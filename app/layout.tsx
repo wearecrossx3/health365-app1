@@ -48,8 +48,30 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    name: "Health365",
+    description:
+      "Nutrition platform offering consultations, personalised diet plans, and dietitian bookings.",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://health365-app1.vercel.app",
+    areaServed: "IN",
+    founder: {
+      "@type": "Person",
+      name: "Dr. Astha Jadeja",
+      jobTitle: "Founder & Lead Dietitian",
+    },
+  };
+
   return (
     <html lang="en" className={`${instrument.variable} ${inter.variable}`}>
+      <head>
+        <meta name="theme-color" content="#C96A3C" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="font-body">
         <AuthModalProvider>{children}</AuthModalProvider>
       </body>
