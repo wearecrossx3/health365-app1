@@ -18,8 +18,8 @@ export default function SiteHeader() {
         <Link href="/#top" className="logo">Health365</Link>
         <nav className="nav-links">
           <Link href="/#how">How it works</Link>
-          <Link href="/#conditions">Conditions</Link>
-          <Link href="/#dietitian">Dietitians</Link>
+          <Link href="/conditions">Conditions</Link>
+          <Link href="/dietitians">Dietitians</Link>
           <Link href="/#about">About</Link>
         </nav>
         <Link href="/consultation" className="btn btn-terracotta">Book a Consultation</Link>

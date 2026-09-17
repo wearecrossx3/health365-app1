@@ -53,6 +53,12 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+
+        <div className="flex gap-3 flex-wrap">
+          <Link href="/diet-plan" className="pill pill-outline text-sm px-4 py-2">Generate a diet plan</Link>
+          <Link href="/conditions" className="pill pill-outline text-sm px-4 py-2">Browse conditions</Link>
+          <Link href="/dietitians" className="pill pill-outline text-sm px-4 py-2">Find a dietitian</Link>
+        </div>
       </div>
     </main>
   );

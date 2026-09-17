@@ -7,8 +7,11 @@ a full auth provider.
 
 ## What's working right now
 
-- Full marketing **homepage** (`/`) — ported from the approved design, real React components
-- **Consultation flow** (`/consultation`) — 7 steps, requires login, submits to the real database (not localStorage anymore)
+- Full marketing **homepage** (`/`) — ported from the approved design
+- **Consultation flow** (`/consultation`) — 7 steps, requires login, submits to the real database
+- **Diet plan generator** (`/diet-plan`) — same rule-based engine as the preview, plus a real browser-downloaded PDF (not the Claude-artifact-only download flow — this uses a normal `<a download>` / `doc.save()`, which works on any deployed site)
+- **Conditions** (`/conditions`) — all 6 conditions, click-through detail view
+- **Dietitian directory** (`/dietitians`) — filterable, with Dr. Astha's profile
 - Email/password signup and login (`/signup`, `/login`)
 - HMAC-signed session cookie, no external auth service
 - A dashboard (`/dashboard`) that reads the logged-in user's consultations
@@ -17,14 +20,15 @@ a full auth provider.
   `POST /api/auth/logout`, `GET /api/auth/session`,
   `POST /api/consultations`, `GET /api/consultations`
 - Design tokens (colors, fonts) wired into Tailwind + globals.css so new
-  pages match the approved look immediately
+  pages match the approved look everywhere
 
-## What's NOT ported yet
+## What's NOT built yet
 
-The diet plan generator, conditions pages, and dietitian directory were
-built and approved as standalone HTML previews. They still need to be
-turned into React components inside this project — same design, moved
-into `.tsx` files and wired to real API routes instead of a static demo.
+- The diet plan generator doesn't yet pull from a user's saved consultation
+  automatically — it's still a standalone tool on its own page. Wiring
+  that together is the next connection to make.
+- Dietitian signup/verification flow, real booking/appointments, dietitian
+  dashboard, and the admin dashboard (Phases 5–6) haven't been started.
 
 ## Local setup
 
