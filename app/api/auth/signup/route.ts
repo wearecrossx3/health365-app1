@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     // Most common cause: Vercel KV isn't attached to this project yet,
     // so KV_REST_API_URL / KV_REST_API_TOKEN are missing.
     return NextResponse.json(
-      { error: "Couldn't create your account — the database isn't connected yet. Check that a Vercel KV store is attached and its env vars are set." },
+      { error: "Couldn't create your account — the database isn't connected yet. Check that a Redis store is attached in Vercel's Storage tab, and that REDIS_URL is set." },
       { status: 500 }
     );
   }

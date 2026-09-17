@@ -1,9 +1,38 @@
-import { kv } from "@vercel/kv";
+import Redis from "ioredis";
 
-// Thin wrapper around Vercel KV so the rest of the app never imports
-// @vercel/kv directly — swapping storage later means editing this one
-// file. Requires KV_REST_API_URL / KV_REST_API_TOKEN (set automatically
-// when you attach a Vercel KV store to this project — see README).
+// Vercel's Redis product (the current one, replacing the older "KV"
+// product) gives you a single REDIS_URL connection string — not the
+// KV_REST_API_URL / KV_REST_API_TOKEN pair the old @vercel/kv package
+// expected. This talks to it directly with ioredis instead.
+
+const globalForRedis = globalThis as unknown as { __redis?: Redis };
+
+function client(): Redis {
+  if (!process.env.REDIS_URL) {
+    throw new Error(
+      "Missing REDIS_URL environment variable — attach a Redis store to this project in Vercel's Storage tab."
+    );
+  }
+  if (!globalForRedis.__redis) {
+    globalForRedis.__redis = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 3,
+    });
+  }
+  return globalForRedis.__redis;
+}
+
+async function getJSON<T>(key: string): Promise<T | null> {
+  const raw = await client().get(key);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+async function setJSON(key: string, value: unknown): Promise<void> {
+  await client().set(key, JSON.stringify(value));
+}
 
 export interface User {
   id: string;
@@ -31,51 +60,51 @@ const consultationKey = (id: string) => `consultation:${id}`;
 const userConsultationsKey = (userId: string) => `user_consultations:${userId}`;
 
 export async function getUserByEmail(email: string): Promise<User | null> {
-  return (await kv.get<User>(userKey(email))) ?? null;
+  return getJSON<User>(userKey(email));
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  return (await kv.get<User>(userByIdKey(id))) ?? null;
+  return getJSON<User>(userByIdKey(id));
 }
 
 export async function createUser(user: User): Promise<void> {
-  await kv.set(userKey(user.email), user);
-  await kv.set(userByIdKey(user.id), user);
+  await setJSON(userKey(user.email), user);
+  await setJSON(userByIdKey(user.id), user);
 }
 
 export async function saveConsultation(c: Consultation): Promise<void> {
-  await kv.set(consultationKey(c.id), c);
-  await kv.lpush(userConsultationsKey(c.userId), c.id);
+  await setJSON(consultationKey(c.id), c);
+  await client().lpush(userConsultationsKey(c.userId), c.id);
 }
 
 export async function getConsultationsForUser(userId: string): Promise<Consultation[]> {
-  const ids = (await kv.lrange<string>(userConsultationsKey(userId), 0, -1)) ?? [];
+  const ids = await client().lrange(userConsultationsKey(userId), 0, -1);
   if (ids.length === 0) return [];
-  const results = await Promise.all(ids.map((id) => kv.get<Consultation>(consultationKey(id))));
+  const results = await Promise.all(ids.map((id) => getJSON<Consultation>(consultationKey(id))));
   return results.filter((c): c is Consultation => c !== null);
 }
 
-// --- Admin-only reads (used only by /admin, gated by ADMIN_EMAIL) ---
+// --- Admin-only reads (used only by /admin, gated by ADMIN_EMAILS) ---
 
 export async function listAllUsers(): Promise<User[]> {
-  const keys = await kv.keys("user_id:*");
+  const keys = await client().keys("user_id:*");
   if (keys.length === 0) return [];
-  const results = await Promise.all(keys.map((k) => kv.get<User>(k)));
+  const results = await Promise.all(keys.map((k) => getJSON<User>(k)));
   return results.filter((u): u is User => u !== null);
 }
 
 export async function listAllConsultations(): Promise<Consultation[]> {
-  const keys = await kv.keys("consultation:*");
+  const keys = await client().keys("consultation:*");
   if (keys.length === 0) return [];
-  const results = await Promise.all(keys.map((k) => kv.get<Consultation>(k)));
+  const results = await Promise.all(keys.map((k) => getJSON<Consultation>(k)));
   return results
     .filter((c): c is Consultation => c !== null)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function markConsultationReviewed(id: string): Promise<void> {
-  const c = await kv.get<Consultation>(consultationKey(id));
+  const c = await getJSON<Consultation>(consultationKey(id));
   if (!c) return;
   c.status = "reviewed";
-  await kv.set(consultationKey(id), c);
+  await setJSON(consultationKey(id), c);
 }

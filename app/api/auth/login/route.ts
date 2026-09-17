@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Login failed:", err);
     return NextResponse.json(
-      { error: "Couldn't log in — the database isn't connected yet. Check that a Vercel KV store is attached." },
+      { error: "Couldn't log in — the database isn't connected yet. Check that a Redis store is attached and REDIS_URL is set." },
       { status: 500 }
     );
   }
