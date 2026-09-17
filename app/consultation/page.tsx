@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
+import { useAuthModal } from "@/components/AuthModalProvider";
 
 const STEP_TITLES = ["About you", "Your body", "Lifestyle", "Your goal", "Food preference", "Allergies & health", "Review"];
 const TOTAL = STEP_TITLES.length;
@@ -41,6 +42,7 @@ function Toggle({ options, value, onChange, multi, warnList }: {
 function ConsultationForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const { open } = useAuthModal();
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [step, setStep] = useState(1);
@@ -84,8 +86,8 @@ function ConsultationForm() {
           <h2 style={{ fontSize: "1.6rem", marginBottom: 10 }}>Let&apos;s save your progress</h2>
           <p style={{ marginBottom: 24 }}>Create a free account so your consultation and plans are there whenever you come back.</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-            <Link href="/signup" className="pill pill-primary">Create an account</Link>
-            <Link href="/login" className="pill pill-outline">Log in</Link>
+            <button onClick={() => open("signup")} className="pill pill-primary">Create an account</button>
+            <button onClick={() => open("login")} className="pill pill-outline">Log in</button>
           </div>
         </div>
       </div>

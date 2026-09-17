@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Inter } from "next/font/google";
 import "./globals.css";
+import AuthModalProvider from "@/components/AuthModalProvider";
 
 const instrument = Instrument_Sans({
   subsets: ["latin"],
@@ -26,7 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${instrument.variable} ${inter.variable}`}>
-      <body className="font-body">{children}</body>
+      <body className="font-body">
+        <AuthModalProvider>{children}</AuthModalProvider>
+      </body>
     </html>
   );
 }

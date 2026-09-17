@@ -11,19 +11,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
-  const user = await getUserByEmail(email);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
-    return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
-  }
+  try {
+    const user = await getUserByEmail(email);
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+      return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
+    }
 
-  const cookieValue = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
-  const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
-  res.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-  return res;
+    const cookieValue = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
+    const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
+    res.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: SESSION_MAX_AGE,
+    });
+    return res;
+  } catch (err) {
+    console.error("Login failed:", err);
+    return NextResponse.json(
+      { error: "Couldn't log in — the database isn't connected yet. Check that a Vercel KV store is attached." },
+      { status: 500 }
+    );
+  }
 }
