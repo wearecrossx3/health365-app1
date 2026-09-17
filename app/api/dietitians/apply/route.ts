@@ -6,6 +6,7 @@ import {
   getDietitianApplicationByUserId,
   DietitianApplication,
 } from "@/lib/kv";
+import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -37,6 +38,22 @@ export async function POST(req: NextRequest) {
       createdAt: existing?.createdAt || new Date().toISOString(),
     };
     await createOrUpdateDietitianApplication(app);
+
+    const admins = getAdminEmails();
+    if (admins.length > 0) {
+      sendEmail({
+        to: admins,
+        subject: "New dietitian application",
+        html: emailWrapper(
+          "New dietitian application",
+          `<p><b>${app.name}</b> (${app.email})</p>
+           <p>${app.qualification} · ${app.experienceYears} yrs · ${app.location}</p>
+           <p>Specializations: ${app.specializations.join(", ") || "none"}</p>
+           <p style="margin-top:16px;">Review it here: ${adminLink("/admin")}</p>`
+        ),
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Dietitian application failed:", err);

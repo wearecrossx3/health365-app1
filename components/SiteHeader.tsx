@@ -9,6 +9,7 @@ export default function SiteHeader() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { open } = useAuthModal();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function SiteHeader() {
   }, []);
 
   function handleBookConsultation() {
+    setMenuOpen(false);
     if (loggedIn) router.push("/consultation");
     else open("signup");
   }
@@ -34,13 +36,15 @@ export default function SiteHeader() {
     <header className={`nav${scrolled ? " scrolled" : ""}`}>
       <div className="nav-inner">
         <Link href="/#top" className="logo">Health365</Link>
+
         <nav className="nav-links">
           <Link href="/#how">How it works</Link>
           <Link href="/conditions">Conditions</Link>
           <Link href="/dietitians">Dietitians</Link>
           <Link href="/#about">About</Link>
         </nav>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+
+        <div className="nav-actions-desktop" style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {loggedIn === true && (
             <Link href="/dashboard" style={{ fontSize: ".86rem", fontWeight: 600 }}>Dashboard</Link>
           )}
@@ -51,6 +55,24 @@ export default function SiteHeader() {
           )}
           <button onClick={handleBookConsultation} className="btn btn-terracotta">Book a Consultation</button>
         </div>
+
+        <button className="nav-toggle" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
+          <span style={{ transform: menuOpen ? "translateY(3.5px) rotate(45deg)" : "none", transition: "transform .2s ease" }} />
+          <span style={{ opacity: menuOpen ? 0 : 1, transition: "opacity .2s ease" }} />
+          <span style={{ transform: menuOpen ? "translateY(-3.5px) rotate(-45deg)" : "none", transition: "transform .2s ease" }} />
+        </button>
+      </div>
+
+      <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
+        <Link href="/#how" onClick={() => setMenuOpen(false)}>How it works</Link>
+        <Link href="/conditions" onClick={() => setMenuOpen(false)}>Conditions</Link>
+        <Link href="/dietitians" onClick={() => setMenuOpen(false)}>Dietitians</Link>
+        <Link href="/#about" onClick={() => setMenuOpen(false)}>About</Link>
+        {loggedIn === true && <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>}
+        {loggedIn === false && (
+          <button onClick={() => { setMenuOpen(false); open("login"); }}>Log in</button>
+        )}
+        <button onClick={handleBookConsultation} style={{ color: "var(--terracotta)" }}>Book a Consultation</button>
       </div>
     </header>
   );

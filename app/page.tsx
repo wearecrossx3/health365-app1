@@ -36,7 +36,7 @@ export default function Home() {
 
         {/* STATS */}
         <div className="stats">
-          <Reveal className="wrap" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", padding: "48px 32px" }}>
+          <Reveal className="wrap stats-grid-3">
             <div className="stat"><span className="num serif">365</span><p>Days of guidance, not a one-time chart.</p></div>
             <div className="stat"><span className="num serif">6+</span><p>Conditions covered with dietitian-reviewed guidance.</p></div>
             <div className="stat"><span className="num serif">1:1</span><p>Consultations shaped around your kitchen.</p></div>
@@ -88,7 +88,7 @@ export default function Home() {
               <h2>Made for real-life health goals.</h2>
               <p>General nutrition guidance for common conditions — always paired with an option to talk to a qualified dietitian.</p>
             </Reveal>
-            <Reveal delay={120} className="service-grid" style={{ gridTemplateColumns: "repeat(3,1fr)", marginTop: 44 }}>
+            <Reveal delay={120} className="service-grid service-grid-3col">
               {[
                 ["Diabetes", "ph-teal", "Steadier meals, smarter carbs."],
                 ["PCOS", "ph-rose", "Hormone-aware eating."],

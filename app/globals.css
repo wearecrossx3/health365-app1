@@ -112,6 +112,16 @@ header.nav.scrolled{border-color:var(--line);}
 .nav-links a{font-size:.88rem; font-weight:500;}
 .nav-links a:hover{color:var(--terracotta);}
 @media (max-width:860px){ .nav-links{display:none;} }
+
+.nav-toggle{display:none; background:none; border:none; flex-direction:column; gap:5px; padding:6px; cursor:pointer;}
+.nav-toggle span{width:22px; height:2px; background:var(--ink); border-radius:2px; display:block;}
+@media (max-width:860px){ .nav-toggle{display:flex;} }
+@media (max-width:860px){ .nav-actions-desktop{display:none !important;} }
+
+.mobile-menu{display:none; flex-direction:column; padding:8px 20px 20px; background:var(--cream); border-top:1px solid var(--line);}
+.mobile-menu.open{display:flex;}
+.mobile-menu a, .mobile-menu button{padding:13px 4px; font-weight:600; border-bottom:1px solid var(--line); text-align:left; background:none; border-left:none; border-right:none; border-top:none; font-size:.95rem; color:var(--ink);}
+.mobile-menu button{width:100%;}
 .btn{border-radius:100px; padding:12px 24px; font-size:.86rem; font-weight:600; border:1.5px solid transparent; transition:all .2s ease; display:inline-block; cursor:pointer;}
 .btn-terracotta{background:var(--terracotta); color:#fff;}
 .btn-terracotta:hover{background:#a8542c;}
@@ -389,3 +399,22 @@ footer{border-top:1px solid var(--line); padding:52px 0 32px;}
 
 
 
+
+/* ---------------------------------------------------------------- */
+/* Admin / dietitian-dashboard responsive grids                      */
+/* ---------------------------------------------------------------- */
+.admin-stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px;}
+@media (max-width:760px){ .admin-stat-grid{grid-template-columns:1fr 1fr;} }
+@media (max-width:480px){ .admin-stat-grid{grid-template-columns:1fr;} }
+.admin-row{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
+.profile-fields-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:.9rem;}
+@media (max-width:560px){ .profile-fields-grid{grid-template-columns:1fr;} }
+
+/* Fixed-column variants that still collapse properly on mobile
+   (inline style grid-template-columns overrides were blocking the
+   .service-grid / .stats media queries — these named classes fix that) */
+.stats-grid-3{display:grid; grid-template-columns:repeat(3,1fr); padding:48px 32px;}
+@media (max-width:700px){ .stats-grid-3{grid-template-columns:1fr; gap:28px; padding:36px 20px;} }
+.service-grid-3col{grid-template-columns:repeat(3,1fr); margin-top:44px;}
+@media (max-width:760px){ .service-grid-3col{grid-template-columns:1fr 1fr;} }
+@media (max-width:480px){ .service-grid-3col{grid-template-columns:1fr;} }

@@ -118,6 +118,12 @@ export async function getDietitianApplicationByUserId(
   return getJSON<DietitianApplication>(dietitianKey(id));
 }
 
+export async function getDietitianApplicationById(
+  id: string
+): Promise<DietitianApplication | null> {
+  return getJSON<DietitianApplication>(dietitianKey(id));
+}
+
 export async function listAllDietitianApplications(): Promise<DietitianApplication[]> {
   const keys = await client().keys("dietitian:*");
   if (keys.length === 0) return [];

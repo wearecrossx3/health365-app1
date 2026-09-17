@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { createAppointment, getAppointmentsForUser, isSlotTaken } from "@/lib/kv";
+import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -34,6 +35,35 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await createAppointment(appointment);
+
+    const prettyDate = new Date(appointment.date).toLocaleDateString(undefined, {
+      weekday: "long", day: "numeric", month: "long",
+    });
+
+    sendEmail({
+      to: session.email,
+      subject: `Your appointment with ${appointment.dietitianName} is confirmed`,
+      html: emailWrapper(
+        "Appointment confirmed",
+        `<p>You're booked with <b>${appointment.dietitianName}</b> on <b>${prettyDate}</b> at <b>${appointment.time}</b>.</p>
+         <p>You can view or manage this anytime from your <a href="${adminLink("/dashboard")}">dashboard</a>.</p>`
+      ),
+    }).catch(() => {});
+
+    const admins = getAdminEmails();
+    if (admins.length > 0) {
+      sendEmail({
+        to: admins,
+        subject: "New appointment booked",
+        html: emailWrapper(
+          "New appointment booked",
+          `<p><b>${session.name}</b> booked with <b>${appointment.dietitianName}</b></p>
+           <p>${prettyDate} at ${appointment.time}</p>
+           <p style="margin-top:16px;">Admin dashboard: ${adminLink("/admin")}</p>`
+        ),
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ ok: true, appointment });
   } catch (err) {
     console.error("Booking failed:", err);

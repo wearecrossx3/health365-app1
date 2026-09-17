@@ -44,7 +44,7 @@ export default async function DietitianDashboardPage() {
 
         <div className="panel" style={{ marginBottom: 20 }}>
           <h2 style={{ fontSize: "1.1rem", marginBottom: 14 }}>Your profile</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, fontSize: ".9rem" }}>
+          <div className="profile-fields-grid">
             <div><span style={{ color: "var(--ink-soft)" }}>Qualification</span><br /><b>{app.qualification}</b></div>
             <div><span style={{ color: "var(--ink-soft)" }}>Experience</span><br /><b>{app.experienceYears} years</b></div>
             <div><span style={{ color: "var(--ink-soft)" }}>Location</span><br /><b>{app.location}</b></div>

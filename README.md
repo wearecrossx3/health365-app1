@@ -9,30 +9,23 @@ a full auth provider.
 
 - Full marketing **homepage** (`/`) — ported from the approved design
 - **Consultation flow** (`/consultation`) — 7 steps, requires login, submits to the real database
-- **Diet plan generator** (`/diet-plan`) — same rule-based engine as the preview, plus a real browser-downloaded PDF (not the Claude-artifact-only download flow — this uses a normal `<a download>` / `doc.save()`, which works on any deployed site)
+- **Diet plan generator** (`/diet-plan`) — rule-based engine, branded PDF download, auto-prefills from your latest saved consultation
 - **Conditions** (`/conditions`) — all 6 conditions, click-through detail view
-- **Dietitian directory** (`/dietitians`) — filterable, with Dr. Astha's profile
-- **Admin dashboard** (`/admin`) — total users, total consultations, a "needs
-  professional review" count, a list of every consultation with a
-  "Mark reviewed" button, and a simple user list. Gated by the
-  `ADMIN_EMAILS` environment variable — no separate role system.
-- Email/password signup and login (`/signup`, `/login`)
-- HMAC-signed session cookie, no external auth service
-- A dashboard (`/dashboard`) that reads the logged-in user's consultations
-  from Redis
-- API routes: `POST /api/auth/signup`, `POST /api/auth/login`,
-  `POST /api/auth/logout`, `GET /api/auth/session`,
-  `POST /api/consultations`, `GET /api/consultations`
-- Design tokens (colors, fonts) wired into Tailwind + globals.css so new
-  pages match the approved look everywhere
+- **Dietitian directory** (`/dietitians`) — filterable, pulls Dr. Astha plus any admin-approved dietitians live from the database
+- **Dietitian applications** (`/join-as-dietitian`) — real application form, reviewed from the admin dashboard (Approve/Reject), approved dietitians get their own dashboard at `/dietitian-dashboard`
+- **Real appointment booking** — pick a date/time on any dietitian's profile, prevents double-booking, shows up on the user's dashboard, the dietitian's dashboard, and the admin dashboard
+- **Admin dashboard** (`/admin`) — users, consultations (with a "needs professional review" flag and mark-reviewed button), dietitian applications, and all appointments in one place. Gated by `ADMIN_EMAILS`, no separate role system.
+- **Email notifications** (optional) — you, dietitians, and users get emailed on new consultations, bookings, and applications instead of relying on manually checking the admin dashboard. Uses Resend; the site works fine without it configured, it just won't send emails.
+- Login/signup as a popup with glass-blur backdrop, not a separate page
+- Email/password auth with an HMAC-signed session cookie — no external auth provider
+- Mobile hamburger menu, responsive grids throughout
+- Design tokens (colors, fonts) wired into Tailwind + globals.css so new pages match the approved look everywhere
 
 ## What's NOT built yet
 
-- The diet plan generator doesn't yet pull from a user's saved consultation
-  automatically — it's still a standalone tool on its own page. Wiring
-  that together is the next connection to make.
-- Dietitian signup/verification flow, real booking/appointments, dietitian
-  dashboard, and the admin dashboard (Phases 5–6) haven't been started.
+- **Payment** — deliberately left as "architecture ready" per the original brief (no fake payment system) until a real provider is chosen.
+- Real content: Dr. Astha's actual bio/credentials/photo are still placeholders; the colored "photo" panels site-wide are gradient stand-ins for real photography.
+- A dietitian can't yet set their own availability — booking currently offers a fixed set of daily time slots for every dietitian.
 
 ## Local setup
 
@@ -53,6 +46,24 @@ a full auth provider.
 4. For local development, open the Redis store's **.env.local** tab in
    the Vercel dashboard and copy the value into your local `.env.local`.
 
+## Setting up email notifications (optional)
+
+Without this, everything still works — new bookings/applications/consultations
+just won't send an email, only show up in `/admin`.
+
+1. Go to **resend.com** → sign up (free tier is fine to start).
+2. Create an **API key** → copy it.
+3. In Vercel → your project → Environment Variables → add:
+   - `RESEND_API_KEY` — the key you just copied (type: Secret)
+   - `RESEND_FROM_EMAIL` — leave blank to start; Resend gives you a free
+     `onboarding@resend.dev` sender for testing. To send from your own
+     domain (e.g. `notifications@health365.com`) you'll need to verify
+     that domain in Resend first — their dashboard walks you through it.
+   - `NEXT_PUBLIC_SITE_URL` — your real site URL (e.g.
+     `https://health365-app1.vercel.app`), just so links inside emails
+     point to the right place.
+4. Redeploy.
+
 ## Deploying
 
 1. Push this project to a GitHub repo.
@@ -66,6 +77,6 @@ a full auth provider.
 
 - [ ] Set a real `SESSION_SECRET` (not the dev default)
 - [ ] Attach and verify the Vercel Redis store
-- [ ] Port the approved HTML designs into React components
-- [ ] Add the dietitian and admin dashboards (Phase 5–6)
+- [ ] Set up Resend for email notifications (optional)
 - [ ] Replace the placeholder Dr. Astha bio/credentials with verified details
+- [ ] Choose a real payment provider before launch (none is wired up yet, by design)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { saveConsultation, getConsultationsForUser } from "@/lib/kv";
+import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 
 // Conditions that should always be routed for professional review before
 // any plan is shared — mirrors the pill "warn" flags in the Phase 2 UI.
@@ -15,8 +16,7 @@ const HIGH_RISK_CONDITIONS = [
   "Pregnant / breastfeeding",
 ];
 
-export async function POST(req: NextRequest) {
-  const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+export async function POST(req: NextRequest) {  const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
   if (!session) {
     return NextResponse.json({ error: "Please sign in before submitting a consultation." }, { status: 401 });
@@ -43,6 +43,22 @@ export async function POST(req: NextRequest) {
   };
 
   await saveConsultation(consultation);
+
+  const admins = getAdminEmails();
+  if (admins.length > 0) {
+    sendEmail({
+      to: admins,
+      subject: needsReview ? "⚠️ New consultation — needs review" : "New consultation submitted",
+      html: emailWrapper(
+        needsReview ? "New consultation — flagged for review" : "New consultation submitted",
+        `<p><b>Goal:</b> ${consultation.goal}</p>
+         <p><b>Diet type:</b> ${consultation.dietType}</p>
+         <p><b>Allergens:</b> ${consultation.allergens.join(", ") || "none"}</p>
+         <p><b>Conditions:</b> ${consultation.conditions.join(", ") || "none"}</p>
+         <p style="margin-top:16px;">Check the admin dashboard for full details: ${adminLink("/admin")}</p>`
+      ),
+    }).catch(() => {});
+  }
 
   return NextResponse.json({
     ok: true,

@@ -30,7 +30,7 @@ export default async function AdminPage() {
           <h1 style={{ fontSize: "2rem" }}>Health365 overview</h1>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
+        <div className="admin-stat-grid">
           <div className="panel" style={{ padding: 24 }}>
             <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)", textTransform: "uppercase" }}>Total users</div>
             <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{users.length}</div>
