@@ -13,26 +13,28 @@ export default async function Home() {
 
       <main id="top">
         {/* HERO */}
-        <div className="hero" id="hero">
-          <div className="wrap">
-            <div className="hero-frame ph-teal grain">
-              <div className="hero-top-tag">
-                <span className="kicker-pill">Nutrition &amp; Real Life</span>
-              </div>
-              <div className="hero-bottom">
-                <h1 className="hero-title">Your health,<br />your 365.</h1>
-                <div className="stat-float">
-                  <span className="num serif">{content.heroStatNumber}</span>
-                  <p>{content.heroStatLabel}</p>
+        <div className="hero-full ph-teal grain" id="hero">
+          <span className="hero-full-kicker"><span className="dot" />Nutrition &amp; Real Life</span>
+          <div className="hero-full-content">
+            <div className="hero-full-grid">
+              <div>
+                <h1 className="hero-full-title">Your health,<br />your 365.</h1>
+                <div className="hero-full-stat">
+                  <div className="avatar-stack">
+                    <span>🧑</span><span>👩</span><span>🧑‍🦱</span>
+                  </div>
+                  <div>
+                    <span className="num">{content.heroStatNumber}</span>
+                    <span className="lbl">{content.heroStatLabel}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="hero-sub-row wrap">
-            <p>Small choices. Better habits. A healthier relationship with food — built around you, not a template.</p>
-            <div className="hero-ctas">
-              <Link href="/consultation" className="btn btn-terracotta">Start Free Consultation</Link>
-              <Link href="/#how" className="btn btn-outline">See How It Works</Link>
+              <div>
+                <p className="hero-full-sub">Small choices. Better habits. A healthier relationship with food — built around you, not a template.</p>
+                <Link href="/consultation" className="hero-full-cta">
+                  Book a Consultation <span className="arrow">→</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
