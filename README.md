@@ -1,0 +1,61 @@
+# Health365 — Next.js app (Phase 4 start)
+
+Real project, no Supabase. Auth and consultation storage run on **Vercel KV**
+(a Redis-compatible key-value store), with sessions signed via HMAC —
+the same lightweight pattern used on the Antaraga admin panel — instead of
+a full auth provider.
+
+## What's working right now
+
+- Full marketing **homepage** (`/`) — ported from the approved design, real React components
+- **Consultation flow** (`/consultation`) — 7 steps, requires login, submits to the real database (not localStorage anymore)
+- Email/password signup and login (`/signup`, `/login`)
+- HMAC-signed session cookie, no external auth service
+- A dashboard (`/dashboard`) that reads the logged-in user's consultations
+  from Vercel KV
+- API routes: `POST /api/auth/signup`, `POST /api/auth/login`,
+  `POST /api/auth/logout`, `GET /api/auth/session`,
+  `POST /api/consultations`, `GET /api/consultations`
+- Design tokens (colors, fonts) wired into Tailwind + globals.css so new
+  pages match the approved look immediately
+
+## What's NOT ported yet
+
+The diet plan generator, conditions pages, and dietitian directory were
+built and approved as standalone HTML previews. They still need to be
+turned into React components inside this project — same design, moved
+into `.tsx` files and wired to real API routes instead of a static demo.
+
+## Local setup
+
+1. `npm install`
+2. Copy `.env.example` to `.env.local` and fill in:
+   - `SESSION_SECRET` — any random string (`openssl rand -base64 32`)
+   - `KV_REST_API_URL` / `KV_REST_API_TOKEN` — from a Vercel KV store (see below)
+3. `npm run dev` — runs at `http://localhost:3000`
+
+## Setting up Vercel KV
+
+1. In the Vercel dashboard, open this project → **Storage** tab → **Create Database** → **KV**.
+2. Once created, Vercel automatically injects `KV_REST_API_URL` and
+   `KV_REST_API_TOKEN` into your project's environment variables — no
+   manual copying needed for the deployed app.
+3. For local development, open the KV store's **.env.local** tab in the
+   Vercel dashboard and copy those same values into your local `.env.local`.
+
+## Deploying
+
+1. Push this project to a GitHub repo.
+2. Import the repo in Vercel → it detects Next.js automatically.
+3. Attach a KV store as described above (do this before the first deploy
+   that needs it, or redeploy after attaching).
+4. Set `SESSION_SECRET` in the project's Environment Variables.
+5. Deploy. `npm run build` should pass with no errors.
+
+## Production checklist
+
+- [ ] Set a real `SESSION_SECRET` (not the dev default)
+- [ ] Attach and verify the Vercel KV store
+- [ ] Port the approved HTML designs into React components
+- [ ] Add the dietitian and admin dashboards (Phase 5–6)
+- [ ] Replace the placeholder Dr. Astha bio/credentials with verified details
