@@ -54,3 +54,28 @@ export async function getConsultationsForUser(userId: string): Promise<Consultat
   const results = await Promise.all(ids.map((id) => kv.get<Consultation>(consultationKey(id))));
   return results.filter((c): c is Consultation => c !== null);
 }
+
+// --- Admin-only reads (used only by /admin, gated by ADMIN_EMAIL) ---
+
+export async function listAllUsers(): Promise<User[]> {
+  const keys = await kv.keys("user_id:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => kv.get<User>(k)));
+  return results.filter((u): u is User => u !== null);
+}
+
+export async function listAllConsultations(): Promise<Consultation[]> {
+  const keys = await kv.keys("consultation:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => kv.get<Consultation>(k)));
+  return results
+    .filter((c): c is Consultation => c !== null)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function markConsultationReviewed(id: string): Promise<void> {
+  const c = await kv.get<Consultation>(consultationKey(id));
+  if (!c) return;
+  c.status = "reviewed";
+  await kv.set(consultationKey(id), c);
+}

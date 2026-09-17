@@ -12,6 +12,10 @@ a full auth provider.
 - **Diet plan generator** (`/diet-plan`) — same rule-based engine as the preview, plus a real browser-downloaded PDF (not the Claude-artifact-only download flow — this uses a normal `<a download>` / `doc.save()`, which works on any deployed site)
 - **Conditions** (`/conditions`) — all 6 conditions, click-through detail view
 - **Dietitian directory** (`/dietitians`) — filterable, with Dr. Astha's profile
+- **Admin dashboard** (`/admin`) — total users, total consultations, a "needs
+  professional review" count, a list of every consultation with a
+  "Mark reviewed" button, and a simple user list. Gated by the
+  `ADMIN_EMAILS` environment variable — no separate role system.
 - Email/password signup and login (`/signup`, `/login`)
 - HMAC-signed session cookie, no external auth service
 - A dashboard (`/dashboard`) that reads the logged-in user's consultations
@@ -36,6 +40,7 @@ a full auth provider.
 2. Copy `.env.example` to `.env.local` and fill in:
    - `SESSION_SECRET` — any random string (`openssl rand -base64 32`)
    - `KV_REST_API_URL` / `KV_REST_API_TOKEN` — from a Vercel KV store (see below)
+   - `ADMIN_EMAILS` — your own email, once you've signed up, so you can access `/admin`
 3. `npm run dev` — runs at `http://localhost:3000`
 
 ## Setting up Vercel KV

@@ -1,0 +1,101 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
+import { listAllUsers, listAllConsultations } from "@/lib/kv";
+import MarkReviewedButton from "./MarkReviewedButton";
+
+export default async function AdminPage() {
+  const cookieStore = cookies();
+  const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+  if (!isAdmin(session)) redirect("/");
+
+  const [users, consultations] = await Promise.all([listAllUsers(), listAllConsultations()]);
+  const needsReview = consultations.filter(
+    (c) => c.status === "submitted" && c.conditions.length > 0
+  );
+
+  return (
+    <main style={{ minHeight: "100vh", background: "var(--paper)", padding: "48px 24px" }}>
+      <div className="wrap" style={{ maxWidth: 980, padding: 0 }}>
+        <div style={{ marginBottom: 32 }}>
+          <span className="eyebrow">Admin</span>
+          <h1 style={{ fontSize: "2rem" }}>Health365 overview</h1>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+          <div className="panel" style={{ padding: 24 }}>
+            <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)", textTransform: "uppercase" }}>Total users</div>
+            <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{users.length}</div>
+          </div>
+          <div className="panel" style={{ padding: 24 }}>
+            <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)", textTransform: "uppercase" }}>Total consultations</div>
+            <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{consultations.length}</div>
+          </div>
+          <div className="panel" style={{ padding: 24, borderColor: needsReview.length ? "var(--terracotta)" : undefined }}>
+            <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--terracotta)", textTransform: "uppercase" }}>Needs professional review</div>
+            <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{needsReview.length}</div>
+          </div>
+        </div>
+
+        <div className="panel" style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: "1.2rem", marginBottom: 16 }}>Consultations</h2>
+          {consultations.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No consultations submitted yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {consultations.map((c) => {
+                const flagged = c.conditions.length > 0;
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      border: "1.5px solid var(--line)", borderRadius: 14, padding: "14px 18px",
+                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap",
+                      background: flagged && c.status === "submitted" ? "#F7E7DC" : "#fff",
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontWeight: 600, fontSize: ".92rem" }}>{c.goal} · {c.dietType}</p>
+                      <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 4 }}>
+                        {new Date(c.createdAt).toLocaleDateString()} · Allergies: {c.allergens.join(", ") || "none"} · Conditions: {c.conditions.join(", ") || "none"}
+                      </p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span
+                        style={{
+                          fontSize: ".72rem", fontWeight: 700, padding: "5px 11px", borderRadius: 100,
+                          background: c.status === "reviewed" ? "var(--teal)" : "var(--ink)", color: "#fff",
+                        }}
+                      >
+                        {c.status === "reviewed" ? "Reviewed" : "Pending"}
+                      </span>
+                      {c.status !== "reviewed" && <MarkReviewedButton id={c.id} />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="panel">
+          <h2 style={{ fontSize: "1.2rem", marginBottom: 16 }}>Users</h2>
+          {users.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No users yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {users.map((u) => (
+                <div key={u.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--line)", padding: "10px 0" }}>
+                  <span style={{ fontSize: ".9rem", fontWeight: 600 }}>{u.name}</span>
+                  <span style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{u.email}</span>
+                  <span style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Joined {new Date(u.createdAt).toLocaleDateString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

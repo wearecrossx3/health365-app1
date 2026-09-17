@@ -10,19 +10,21 @@ export default function Home() {
       <main id="top">
         {/* HERO */}
         <div className="hero" id="hero">
-          <div className="hero-frame ph-teal grain">
-            <div className="hero-top-tag">
-              <span className="kicker-pill">Nutrition &amp; Real Life</span>
-            </div>
-            <div className="hero-bottom">
-              <h1 className="hero-title">Your health,<br />your 365.</h1>
-              <div className="stat-float">
-                <span className="num serif">10K+</span>
-                <p>People supported with real nutrition guidance</p>
+          <div className="wrap">
+            <div className="hero-frame ph-teal grain">
+              <div className="hero-top-tag">
+                <span className="kicker-pill">Nutrition &amp; Real Life</span>
+              </div>
+              <div className="hero-bottom">
+                <h1 className="hero-title">Your health,<br />your 365.</h1>
+                <div className="stat-float">
+                  <span className="num serif">10K+</span>
+                  <p>People supported with real nutrition guidance</p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="hero-sub-row wrap" style={{ padding: 0 }}>
+          <div className="hero-sub-row wrap">
             <p>Small choices. Better habits. A healthier relationship with food — built around you, not a template.</p>
             <div className="hero-ctas">
               <Link href="/consultation" className="btn btn-terracotta">Start Free Consultation</Link>
@@ -184,11 +186,13 @@ export default function Home() {
 
         {/* FINAL CTA */}
         <div className="final-cta">
-          <div className="final-frame ph-olive grain">
-            <div className="inner">
-              <h2 className="serif">365 days. One healthier you.</h2>
-              <p>Start with one conversation. The rest is built around you.</p>
-              <Link href="/consultation" className="btn btn-terracotta">Start Free Consultation</Link>
+          <div className="wrap">
+            <div className="final-frame ph-olive grain">
+              <div className="inner">
+                <h2 className="serif">365 days. One healthier you.</h2>
+                <p>Start with one conversation. The rest is built around you.</p>
+                <Link href="/consultation" className="btn btn-terracotta">Start Free Consultation</Link>
+              </div>
             </div>
           </div>
         </div>
