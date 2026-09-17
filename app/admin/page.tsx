@@ -2,18 +2,24 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
-import { listAllUsers, listAllConsultations } from "@/lib/kv";
+import { listAllUsers, listAllConsultations, listAllDietitianApplications } from "@/lib/kv";
 import MarkReviewedButton from "./MarkReviewedButton";
+import DietitianActionButtons from "./DietitianActionButtons";
 
 export default async function AdminPage() {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (!isAdmin(session)) redirect("/");
 
-  const [users, consultations] = await Promise.all([listAllUsers(), listAllConsultations()]);
+  const [users, consultations, dietitianApps] = await Promise.all([
+    listAllUsers(),
+    listAllConsultations(),
+    listAllDietitianApplications(),
+  ]);
   const needsReview = consultations.filter(
     (c) => c.status === "submitted" && c.conditions.length > 0
   );
+  const pendingDietitians = dietitianApps.filter((d) => d.status === "pending");
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--paper)", padding: "48px 24px" }}>
@@ -23,7 +29,7 @@ export default async function AdminPage() {
           <h1 style={{ fontSize: "2rem" }}>Health365 overview</h1>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
           <div className="panel" style={{ padding: 24 }}>
             <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)", textTransform: "uppercase" }}>Total users</div>
             <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{users.length}</div>
@@ -36,6 +42,48 @@ export default async function AdminPage() {
             <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--terracotta)", textTransform: "uppercase" }}>Needs professional review</div>
             <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{needsReview.length}</div>
           </div>
+          <div className="panel" style={{ padding: 24, borderColor: pendingDietitians.length ? "var(--teal)" : undefined }}>
+            <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--teal-deep)", textTransform: "uppercase" }}>Pending dietitians</div>
+            <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{pendingDietitians.length}</div>
+          </div>
+        </div>
+
+        <div className="panel" style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: "1.2rem", marginBottom: 16 }}>Dietitian applications</h2>
+          {dietitianApps.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No applications yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {dietitianApps.map((d) => (
+                <div
+                  key={d.id}
+                  style={{
+                    border: "1.5px solid var(--line)", borderRadius: 14, padding: "14px 18px",
+                    display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap",
+                    background: d.status === "pending" ? "#EAF3EF" : "#fff",
+                  }}
+                >
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: ".92rem" }}>{d.name} — {d.qualification}</p>
+                    <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 4 }}>
+                      {d.email} · {d.experienceYears} yrs · {d.location} · {d.specializations.join(", ") || "no specialization listed"}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span
+                      style={{
+                        fontSize: ".72rem", fontWeight: 700, padding: "5px 11px", borderRadius: 100, color: "#fff",
+                        background: d.status === "approved" ? "var(--teal)" : d.status === "rejected" ? "var(--terracotta)" : "var(--ink)",
+                      }}
+                    >
+                      {d.status === "approved" ? "Approved" : d.status === "rejected" ? "Rejected" : "Pending"}
+                    </span>
+                    {d.status === "pending" && <DietitianActionButtons id={d.id} />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="panel" style={{ marginBottom: 24 }}>

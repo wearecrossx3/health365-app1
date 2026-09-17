@@ -84,6 +84,64 @@ export async function getConsultationsForUser(userId: string): Promise<Consultat
   return results.filter((c): c is Consultation => c !== null);
 }
 
+export interface DietitianApplication {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  qualification: string;
+  experienceYears: number;
+  specializations: string[];
+  languages: string[];
+  location: string;
+  fee: string;
+  about: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
+
+const dietitianKey = (id: string) => `dietitian:${id}`;
+const dietitianByUserKey = (userId: string) => `dietitian_user:${userId}`;
+
+export async function createOrUpdateDietitianApplication(
+  app: DietitianApplication
+): Promise<void> {
+  await setJSON(dietitianKey(app.id), app);
+  await setJSON(dietitianByUserKey(app.userId), app.id);
+}
+
+export async function getDietitianApplicationByUserId(
+  userId: string
+): Promise<DietitianApplication | null> {
+  const id = await getJSON<string>(dietitianByUserKey(userId));
+  if (!id) return null;
+  return getJSON<DietitianApplication>(dietitianKey(id));
+}
+
+export async function listAllDietitianApplications(): Promise<DietitianApplication[]> {
+  const keys = await client().keys("dietitian:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<DietitianApplication>(k)));
+  return results
+    .filter((d): d is DietitianApplication => d !== null)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function listApprovedDietitians(): Promise<DietitianApplication[]> {
+  const all = await listAllDietitianApplications();
+  return all.filter((d) => d.status === "approved");
+}
+
+export async function setDietitianStatus(
+  id: string,
+  status: DietitianApplication["status"]
+): Promise<void> {
+  const app = await getJSON<DietitianApplication>(dietitianKey(id));
+  if (!app) return;
+  app.status = status;
+  await setJSON(dietitianKey(id), app);
+}
+
 // --- Admin-only reads (used only by /admin, gated by ADMIN_EMAILS) ---
 
 export async function listAllUsers(): Promise<User[]> {

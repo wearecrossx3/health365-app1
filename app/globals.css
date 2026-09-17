@@ -57,7 +57,7 @@ a, button, .btn, .pill, .goal-card, .service-card, .cond-tile, .dcard, .info-car
   border-radius: 24px;
   padding: 32px;
 }
-.field input {
+.field input, .field textarea {
   width: 100%;
   font-size: 0.96rem;
   padding: 13px 16px;
@@ -66,8 +66,10 @@ a, button, .btn, .pill, .goal-card, .service-card, .cond-tile, .dcard, .info-car
   background: #fff;
   color: #20241F;
   outline: none;
+  font-family: inherit;
 }
-.field input:focus {
+.field textarea { resize: vertical; }
+.field input:focus, .field textarea:focus {
   border-color: #3F7F70;
 }
 .field label {
@@ -216,8 +218,53 @@ footer{border-top:1px solid var(--line); padding:52px 0 32px;}
 .foot-bottom{font-size:.78rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
 
 /* ---------------------------------------------------------------- */
-/* Consultation flow                                                 */
+/* Hero v2 — sky gradient card + winding fruit path                  */
 /* ---------------------------------------------------------------- */
+.hero-v2-card{
+  border-radius:36px; overflow:hidden; position:relative;
+  background:linear-gradient(180deg, #9DC1E8 0%, #B9D7F0 45%, #CFE4F5 100%);
+  min-height:640px; display:flex; flex-direction:column; align-items:center;
+  padding:64px 24px 0;
+}
+.hero-v2-card::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(circle at 15% 20%, rgba(255,255,255,.5), transparent 40%),
+             radial-gradient(circle at 85% 15%, rgba(255,255,255,.35), transparent 35%);
+}
+.hero-v2-title{
+  position:relative; z-index:2; text-align:center; font-weight:700;
+  font-size:clamp(2.4rem, 6vw, 4.2rem); line-height:1.05;
+}
+.hero-v2-title .dark{color:var(--ink);}
+.hero-v2-title .light{color:#fff;}
+.hero-v2-sub{
+  position:relative; z-index:2; text-align:center; color:rgba(20,30,45,.75);
+  font-size:1.02rem; max-width:44ch; margin:20px auto 0; line-height:1.6;
+}
+.hero-v2-sub b{color:var(--ink);}
+.hero-v2-cta{
+  position:relative; z-index:2; margin:26px auto 0; display:block; width:max-content;
+  background:var(--ink); color:#fff; border:none; padding:16px 34px; border-radius:100px;
+  font-weight:700; font-size:.86rem; letter-spacing:.04em; text-transform:uppercase;
+  box-shadow:0 16px 30px -12px rgba(10,20,15,.4); transition:transform .2s ease;
+}
+.hero-v2-cta:hover{transform:translateY(-2px);}
+.fruit-path-wrap{
+  position:relative; width:100%; max-width:1100px; margin-top:auto;
+  padding-top:60px;
+}
+.fruit-path-wrap svg{display:block; width:100%; height:auto;}
+.fruit{
+  position:absolute; font-size:2.4rem; line-height:1; filter:drop-shadow(0 6px 8px rgba(20,30,20,.25));
+  transform:translate(-50%,-50%);
+}
+@media (max-width:700px){
+  .hero-v2-card{min-height:520px; padding-top:44px;}
+  .fruit{font-size:1.7rem;}
+}
+.only-desktop{display:none;}
+@media (min-width:700px){ .only-desktop{display:inline;} }
+
 .warn-bg{background:#F7E7DC;} .warn-line{border-color:#E3AF8B;} .warn-text{color:#7A3B1B;}
 .progress-wrap{background:var(--cream); border-bottom:1px solid var(--line); padding:18px 0;}
 .progress-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
