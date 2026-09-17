@@ -164,7 +164,7 @@ export default function DietPlanPage() {
     doc.setTextColor(...INK_SOFT);
     discLines.forEach((line: string, i: number) => doc.text(line, margin + 16, y + 10 + i * 11));
 
-    const totalPages = doc.internal.getNumberOfPages();
+    const totalPages = doc.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       doc.setPage(p);
       doc.setDrawColor(...LINE); doc.setLineWidth(0.5);
