@@ -25,9 +25,12 @@ export default async function AdminPage() {
   return (
     <main style={{ minHeight: "100vh", background: "var(--paper)", padding: "48px 24px" }}>
       <div className="wrap" style={{ maxWidth: 980, padding: 0 }}>
-        <div style={{ marginBottom: 32 }}>
-          <span className="eyebrow">Admin</span>
-          <h1 style={{ fontSize: "2rem" }}>Health365 overview</h1>
+        <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <span className="eyebrow">Admin</span>
+            <h1 style={{ fontSize: "2rem" }}>Health365 overview</h1>
+          </div>
+          <a href="/admin/content" className="pill pill-outline">Edit site content →</a>
         </div>
 
         <div className="admin-stat-grid">

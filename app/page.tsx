@@ -3,8 +3,10 @@ import SiteHeader from "@/components/SiteHeader";
 import GoalCards from "@/components/GoalCards";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
+import { getSiteContent } from "@/lib/kv";
 
-export default function Home() {
+export default async function Home() {
+  const content = await getSiteContent();
   return (
     <>
       <SiteHeader />
@@ -20,8 +22,8 @@ export default function Home() {
               <div className="hero-bottom">
                 <h1 className="hero-title">Your health,<br />your 365.</h1>
                 <div className="stat-float">
-                  <span className="num serif">10K+</span>
-                  <p>People supported with real nutrition guidance</p>
+                  <span className="num serif">{content.heroStatNumber}</span>
+                  <p>{content.heroStatLabel}</p>
                 </div>
               </div>
             </div>
@@ -166,13 +168,13 @@ export default function Home() {
         <section id="dietitian" style={{ background: "var(--paper)" }}>
           <div className="wrap">
             <Reveal className="dietitian">
-              <div className="photo ph-terra grain" />
+              <div className="photo ph-terra grain" style={content.asthaPhotoUrl ? { backgroundImage: `url(${content.asthaPhotoUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
               <div>
                 <span className="eyebrow">Founder &amp; Lead Dietitian</span>
-                <p className="dietitian-quote serif">&quot;Nutrition guidance should feel like it was written for your kitchen — not translated from someone else&apos;s.&quot;</p>
-                <span className="role">Dr. Astha Jadeja</span>
-                <p className="bio">Dr. Astha Jadeja leads the nutrition philosophy behind Health365 — practical, judgement-free guidance built for real Indian kitchens and real routines.</p>
-                <p className="note">Qualifications &amp; credentials placeholder — connect Dr. Astha&apos;s verified details here before launch.</p>
+                <p className="dietitian-quote serif">&quot;{content.asthaQuote}&quot;</p>
+                <span className="role">{content.asthaName}</span>
+                <p className="bio">{content.asthaBio}</p>
+                <p className="note">{content.asthaQualifications}</p>
               </div>
             </Reveal>
           </div>

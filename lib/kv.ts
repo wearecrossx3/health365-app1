@@ -202,6 +202,46 @@ export async function listAllAppointments(): Promise<Appointment[]> {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
+// --- Editable site content (Dr. Astha's profile, hero stat, etc.) ---
+// Lets the site owner update real text/photos from /admin/content
+// instead of asking for a code change every time.
+
+export interface SiteContent {
+  asthaName: string;
+  asthaRole: string;
+  asthaQuote: string;
+  asthaBio: string;
+  asthaQualifications: string;
+  asthaPhotoUrl: string;
+  heroStatNumber: string;
+  heroStatLabel: string;
+}
+
+const SITE_CONTENT_KEY = "site_content";
+
+const DEFAULT_CONTENT: SiteContent = {
+  asthaName: "Dr. Astha Jadeja",
+  asthaRole: "Founder & Lead Dietitian",
+  asthaQuote:
+    "Nutrition guidance should feel like it was written for your kitchen — not translated from someone else's.",
+  asthaBio:
+    "Dr. Astha Jadeja leads the nutrition philosophy behind Health365 — practical, judgement-free guidance built for real Indian kitchens and real routines.",
+  asthaQualifications:
+    "Qualifications & credentials placeholder — connect Dr. Astha's verified details here before launch.",
+  asthaPhotoUrl: "",
+  heroStatNumber: "10K+",
+  heroStatLabel: "People supported with real nutrition guidance",
+};
+
+export async function getSiteContent(): Promise<SiteContent> {
+  const stored = await getJSON<Partial<SiteContent>>(SITE_CONTENT_KEY);
+  return { ...DEFAULT_CONTENT, ...(stored || {}) };
+}
+
+export async function setSiteContent(content: SiteContent): Promise<void> {
+  await setJSON(SITE_CONTENT_KEY, content);
+}
+
 // --- Admin-only reads (used only by /admin, gated by ADMIN_EMAILS) ---
 
 export async function listAllUsers(): Promise<User[]> {
