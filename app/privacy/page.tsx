@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -109,6 +110,8 @@ export default function PrivacyPage() {
           </p>
         </div>
       </main>
+
+      <SiteFooter />
     </>
   );
 }

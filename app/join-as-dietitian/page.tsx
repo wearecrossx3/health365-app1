@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
 import { useAuthModal } from "@/components/AuthModalProvider";
 
@@ -152,6 +153,8 @@ export default function JoinAsDietitianPage() {
           )}
         </div>
       </main>
+
+      <SiteFooter />
     </>
   );
 }

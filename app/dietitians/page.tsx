@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
 import BookingWidget from "@/components/BookingWidget";
 
@@ -159,6 +160,8 @@ export default function DietitiansPage() {
           )}
         </div>
       </main>
+
+      <SiteFooter />
     </>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { useAuthModal } from "@/components/AuthModalProvider";
 
 const STEP_TITLES = ["About you", "Your body", "Lifestyle", "Your goal", "Food preference", "Allergies & health", "Review"];
@@ -288,6 +289,7 @@ export default function ConsultationPage() {
       <Suspense fallback={null}>
         <ConsultationForm />
       </Suspense>
+      <SiteFooter />
     </>
   );
 }

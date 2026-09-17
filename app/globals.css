@@ -418,3 +418,15 @@ footer{border-top:1px solid var(--line); padding:52px 0 32px;}
 .service-grid-3col{grid-template-columns:repeat(3,1fr); margin-top:44px;}
 @media (max-width:760px){ .service-grid-3col{grid-template-columns:1fr 1fr;} }
 @media (max-width:480px){ .service-grid-3col{grid-template-columns:1fr;} }
+
+/* ---------------------------------------------------------------- */
+/* Accessibility — visible focus states everywhere                   */
+/* ---------------------------------------------------------------- */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible,
+.toggle-opt:focus-visible, .goal-card:focus-visible, .service-card:focus-visible,
+.cond-tile:focus-visible, .dcard:focus-visible {
+  outline: 2.5px solid var(--teal, #3F7F70);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) { outline: none; }

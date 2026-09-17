@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -94,6 +95,8 @@ export default function TermsPage() {
           </p>
         </div>
       </main>
+
+      <SiteFooter />
     </>
   );
 }

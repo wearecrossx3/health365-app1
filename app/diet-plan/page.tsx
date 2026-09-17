@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
 
 const GOALS = ["Lose weight", "Gain weight", "Maintain weight", "Improve nutrition", "Manage a condition"];
@@ -328,6 +329,8 @@ export default function DietPlanPage() {
           )}
         </div>
       </main>
+
+      <SiteFooter />
     </>
   );
 }

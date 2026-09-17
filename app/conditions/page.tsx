@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 interface Condition {
   key: string; name: string; photo: string; tag: string; overview: string;
@@ -121,6 +122,8 @@ export default function ConditionsPage() {
           )}
         </div>
       </main>
+
+      <SiteFooter />
     </>
   );
 }
