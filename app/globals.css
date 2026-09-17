@@ -105,7 +105,7 @@ h1,h2,h3,.serif{ font-family: var(--font-instrument), sans-serif; font-weight:50
 
 header.nav{position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--cream) 92%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid transparent; transition:border-color .3s ease;}
 header.nav.scrolled{border-color:var(--line);}
-.nav-inner{max-width:1240px; margin:0 auto; padding:18px 32px; display:flex; align-items:center; justify-content:space-between;}
+.nav-inner{max-width:1440px; margin:0 auto; padding:18px 40px; display:flex; align-items:center; justify-content:space-between;}
 @media (max-width:640px){ .nav-inner{padding:18px 20px;} }
 .logo{font-family: var(--font-instrument), sans-serif; font-weight:600; font-size:1.25rem;}
 .nav-links{display:flex; gap:34px;}
@@ -119,7 +119,7 @@ header.nav.scrolled{border-color:var(--line);}
 .btn-outline:hover{border-color:var(--ink);}
 .btn-dark{background:var(--ink); color:var(--cream);}
 
-.wrap{max-width:1240px; margin:0 auto; padding:0 32px;}
+.wrap{max-width:1440px; margin:0 auto; padding:0 40px;}
 @media (max-width:640px){ .wrap{padding:0 20px;} }
 
 .hero{padding:24px 0 0;}
