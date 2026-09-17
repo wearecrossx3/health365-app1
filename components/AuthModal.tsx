@@ -42,14 +42,22 @@ export default function AuthModal({
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 100, background: "rgba(20,24,18,.5)",
+        position: "fixed", inset: 0, zIndex: 100,
+        background: "rgba(20,24,18,.38)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+        animation: "overlayFadeIn .25s ease",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className="card"
-        style={{ width: "100%", maxWidth: 420, position: "relative", padding: 36 }}
+        style={{
+          width: "100%", maxWidth: 420, position: "relative", padding: 36,
+          animation: "modalPopIn .32s cubic-bezier(.2,.8,.2,1)",
+          boxShadow: "0 30px 60px -20px rgba(20,24,18,.35)",
+        }}
       >
         <button
           onClick={onClose}

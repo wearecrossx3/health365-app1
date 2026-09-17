@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import GoalCards from "@/components/GoalCards";
+import Reveal from "@/components/Reveal";
 
 export default function Home() {
   return (
@@ -35,29 +36,31 @@ export default function Home() {
 
         {/* STATS */}
         <div className="stats">
-          <div className="wrap">
+          <Reveal className="wrap" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", padding: "48px 32px" }}>
             <div className="stat"><span className="num serif">365</span><p>Days of guidance, not a one-time chart.</p></div>
             <div className="stat"><span className="num serif">6+</span><p>Conditions covered with dietitian-reviewed guidance.</p></div>
             <div className="stat"><span className="num serif">1:1</span><p>Consultations shaped around your kitchen.</p></div>
-          </div>
+          </Reveal>
         </div>
 
         {/* GOALS */}
         <section id="goals">
           <div className="wrap">
-            <div className="section-head">
+            <Reveal className="section-head">
               <span className="eyebrow">Get Started</span>
               <h2>What brings you here?</h2>
               <p>Pick a starting point — your consultation adapts around it.</p>
-            </div>
-            <GoalCards />
+            </Reveal>
+            <Reveal delay={120}>
+              <GoalCards />
+            </Reveal>
           </div>
         </section>
 
         {/* WHY US */}
         <section style={{ background: "var(--paper)" }} id="about">
           <div className="wrap">
-            <div className="why-grid">
+            <Reveal className="why-grid">
               <div>
                 <span className="eyebrow">Our Approach</span>
                 <h2 style={{ fontSize: "clamp(1.8rem,3.4vw,2.5rem)" }}>
@@ -73,19 +76,19 @@ export default function Home() {
                 </div>
               </div>
               <div className="photo ph-olive grain" style={{ aspectRatio: "6/5" }} />
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* CONDITIONS */}
         <section id="conditions">
           <div className="wrap">
-            <div className="section-head">
+            <Reveal className="section-head">
               <span className="eyebrow">Conditions</span>
               <h2>Made for real-life health goals.</h2>
               <p>General nutrition guidance for common conditions — always paired with an option to talk to a qualified dietitian.</p>
-            </div>
-            <div className="service-grid" style={{ gridTemplateColumns: "repeat(3,1fr)", marginTop: 44 }}>
+            </Reveal>
+            <Reveal delay={120} className="service-grid" style={{ gridTemplateColumns: "repeat(3,1fr)", marginTop: 44 }}>
               {[
                 ["Diabetes", "ph-teal", "Steadier meals, smarter carbs."],
                 ["PCOS", "ph-rose", "Hormone-aware eating."],
@@ -100,68 +103,68 @@ export default function Home() {
                   <span className="pick">{tag}</span>
                 </Link>
               ))}
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* HOW IT WORKS */}
         <section id="how" style={{ background: "var(--paper)" }}>
           <div className="wrap">
-            <div className="section-head center">
+            <Reveal className="section-head center">
               <span className="eyebrow">Process</span>
               <h2>How Health365 works</h2>
               <p style={{ marginLeft: "auto", marginRight: "auto" }}>Simple steps, built around your everyday life.</p>
-            </div>
-            <div className="process-grid">
+            </Reveal>
+            <Reveal delay={120} className="process-grid">
               <div className="process-card"><div className="photo ph-teal grain" /><h3>Tell us about you</h3><p>A few minutes on your routine, food, and goals.</p></div>
               <div className="process-card"><div className="photo ph-sand grain" /><h3>Understand your needs</h3><p>We look at the full picture, not just a number.</p></div>
               <div className="process-card"><div className="photo ph-terra grain" /><h3>Build your plan</h3><p>A meal structure shaped around your life.</p></div>
               <div className="process-card"><div className="photo ph-olive grain" /><h3>Keep moving</h3><p>Adjust as you go, with a dietitian when needed.</p></div>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* APPROACH */}
         <section>
           <div className="wrap">
-            <div className="section-head" style={{ marginBottom: 64 }}>
+            <Reveal className="section-head" style={{ marginBottom: 64 }}>
               <span className="eyebrow">Wellness That Feels Personal</span>
               <h2>Nutrition, built the way you actually live.</h2>
-            </div>
+            </Reveal>
 
-            <div className="approach-row">
+            <Reveal className="approach-row">
               <div className="photo ph-rose grain" />
               <div>
                 <h3>Personalized nutrition plans</h3>
                 <p>We build your plan around your lifestyle, your goals, and your kitchen — not a generic template. It&apos;s meant to feel natural, flexible, and easy to actually follow.</p>
                 <div className="approach-tags"><span>Personalized</span><span>Flexible</span></div>
               </div>
-            </div>
+            </Reveal>
 
-            <div className="approach-row rev">
+            <Reveal className="approach-row rev">
               <div className="photo ph-teal grain" />
               <div>
                 <h3>A judgement-free space</h3>
                 <p>Ask anything, share what&apos;s really going on with your eating, and get guidance that helps you grow — without pressure or shame.</p>
                 <div className="approach-tags"><span>Confidential</span><span>Supportive</span></div>
               </div>
-            </div>
+            </Reveal>
 
-            <div className="approach-row">
+            <Reveal className="approach-row">
               <div className="photo ph-olive grain" />
               <div>
                 <h3>Guidance from real dietitians</h3>
                 <p>Dietitian-reviewed plans and, when needed, direct access to a professional — so condition-specific cases always get the right eyes on them.</p>
                 <div className="approach-tags"><span>Dietitian-reviewed</span><span>Trustworthy</span></div>
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* DIETITIAN */}
         <section id="dietitian" style={{ background: "var(--paper)" }}>
           <div className="wrap">
-            <div className="dietitian">
+            <Reveal className="dietitian">
               <div className="photo ph-terra grain" />
               <div>
                 <span className="eyebrow">Founder &amp; Lead Dietitian</span>
@@ -170,30 +173,30 @@ export default function Home() {
                 <p className="bio">Dr. Astha Jadeja leads the nutrition philosophy behind Health365 — practical, judgement-free guidance built for real Indian kitchens and real routines.</p>
                 <p className="note">Qualifications &amp; credentials placeholder — connect Dr. Astha&apos;s verified details here before launch.</p>
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* JOIN */}
         <section>
           <div className="wrap">
-            <div className="join">
+            <Reveal className="join">
               <h2>Join Health365 as a Dietitian</h2>
               <Link href="/signup" className="btn btn-dark">Join as a Dietitian</Link>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* FINAL CTA */}
         <div className="final-cta">
           <div className="wrap">
-            <div className="final-frame ph-olive grain">
+            <Reveal className="final-frame ph-olive grain">
               <div className="inner">
                 <h2 className="serif">365 days. One healthier you.</h2>
                 <p>Start with one conversation. The rest is built around you.</p>
                 <Link href="/consultation" className="btn btn-terracotta">Start Free Consultation</Link>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </main>

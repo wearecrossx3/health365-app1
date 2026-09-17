@@ -5,7 +5,26 @@
 body {
   background: #FBF7EE;
   color: #20241F;
+  scroll-behavior: smooth;
 }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html, body { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+@keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalPopIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes revealUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+.reveal-init { opacity: 0; transform: translateY(22px); }
+.reveal-in { animation: revealUp .7s cubic-bezier(.2,.7,.2,1) forwards; }
+
+/* smooth, consistent hover motion everywhere (buttons, cards, links) */
+a, button, .btn, .pill, .goal-card, .service-card, .cond-tile, .dcard, .info-card, .feature-item {
+  transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease, border-color .25s ease, opacity .25s ease;
+}
+
 
 .pill {
   border-radius: 100px;

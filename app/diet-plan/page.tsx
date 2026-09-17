@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
 
@@ -11,6 +11,18 @@ const DIETS: [string, string][] = [
 ];
 const ALLERGENS = ["nuts", "dairy", "gluten", "soy", "shellfish", "eggs"];
 
+const GOAL_FROM_CONSULTATION: Record<string, string> = {
+  "Lose weight": "Lose weight",
+  "Gain weight": "Gain weight",
+  "Maintain weight": "Maintain weight",
+  "Improve nutrition": "Improve nutrition",
+  "Condition-specific support": "Manage a condition",
+};
+const DIET_KEY_FROM_LABEL: Record<string, string> = {
+  Vegetarian: "veg", Jain: "jain", Vegan: "vegan",
+  Eggetarian: "eggetarian", "Non-vegetarian": "nonveg", Other: "other",
+};
+
 type DayPlan = { label: string; item: MealItem | null }[];
 
 export default function DietPlanPage() {
@@ -18,9 +30,30 @@ export default function DietPlanPage() {
   const [diet, setDiet] = useState("veg");
   const [allergens, setAllergens] = useState<string[]>([]);
   const [length, setLength] = useState(1);
+  const [prefillNote, setPrefillNote] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
   const [pdfStatus, setPdfStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/consultations")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const latest = data?.consultations?.[0];
+        if (!latest) return;
+        const mappedGoal = GOAL_FROM_CONSULTATION[latest.goal];
+        const mappedDiet = DIET_KEY_FROM_LABEL[latest.dietType];
+        if (mappedGoal) setGoal(mappedGoal);
+        if (mappedDiet) setDiet(mappedDiet);
+        if (Array.isArray(latest.allergens)) {
+          setAllergens(latest.allergens.map((a: string) => a.toLowerCase()));
+        }
+        setPrefillNote(
+          `Prefilled from your consultation on ${new Date(latest.createdAt).toLocaleDateString()} — feel free to adjust before generating.`
+        );
+      })
+      .catch(() => {});
+  }, []);
 
   function buildDays(): DayPlan[] {
     const days: DayPlan[] = [];
@@ -194,6 +227,11 @@ export default function DietPlanPage() {
           </div>
 
           <div className="panel">
+            {prefillNote && (
+              <div style={{ background: "#EAF3EF", border: "1px solid var(--teal)", color: "var(--teal-deep)", borderRadius: 12, padding: "12px 16px", fontSize: ".85rem", marginBottom: 22 }}>
+                {prefillNote}
+              </div>
+            )}
             <div style={{ marginBottom: 26 }}>
               <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Your goal</label>
               <div className="toggle-group">

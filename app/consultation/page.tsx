@@ -140,8 +140,9 @@ function ConsultationForm() {
               : " You can now generate a basic plan from your dashboard."}
           </p>
           <p style={{ marginTop: 18, fontSize: ".82rem" }}>This is general nutrition guidance, not a medical diagnosis or treatment.</p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
-            <Link href="/dashboard" className="pill pill-primary">Go to your dashboard</Link>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
+            <Link href="/diet-plan" className="pill pill-primary">Generate your diet plan</Link>
+            <Link href="/dashboard" className="pill pill-outline">Go to your dashboard</Link>
             <Link href="/" className="pill pill-outline">Back to Health365</Link>
           </div>
         </div>
