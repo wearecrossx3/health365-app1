@@ -142,6 +142,60 @@ export async function setDietitianStatus(
   await setJSON(dietitianKey(id), app);
 }
 
+// --- Appointments ---
+
+export interface Appointment {
+  id: string;
+  userId: string;
+  userName: string;
+  dietitianId: string;
+  dietitianName: string;
+  date: string; // YYYY-MM-DD
+  time: string; // e.g. "10:00 AM"
+  status: "booked" | "cancelled";
+  createdAt: string;
+}
+
+const appointmentKey = (id: string) => `appointment:${id}`;
+const userAppointmentsKey = (userId: string) => `user_appointments:${userId}`;
+const dietitianAppointmentsKey = (dietitianId: string) => `dietitian_appointments:${dietitianId}`;
+
+export async function isSlotTaken(dietitianId: string, date: string, time: string): Promise<boolean> {
+  const ids = await client().lrange(dietitianAppointmentsKey(dietitianId), 0, -1);
+  if (ids.length === 0) return false;
+  const appts = await Promise.all(ids.map((id) => getJSON<Appointment>(appointmentKey(id))));
+  return appts.some((a) => a && a.status === "booked" && a.date === date && a.time === time);
+}
+
+export async function createAppointment(a: Appointment): Promise<void> {
+  await setJSON(appointmentKey(a.id), a);
+  await client().lpush(userAppointmentsKey(a.userId), a.id);
+  await client().lpush(dietitianAppointmentsKey(a.dietitianId), a.id);
+}
+
+export async function getAppointmentsForUser(userId: string): Promise<Appointment[]> {
+  const ids = await client().lrange(userAppointmentsKey(userId), 0, -1);
+  if (ids.length === 0) return [];
+  const results = await Promise.all(ids.map((id) => getJSON<Appointment>(appointmentKey(id))));
+  return results.filter((a): a is Appointment => a !== null);
+}
+
+export async function getAppointmentsForDietitian(dietitianId: string): Promise<Appointment[]> {
+  const ids = await client().lrange(dietitianAppointmentsKey(dietitianId), 0, -1);
+  if (ids.length === 0) return [];
+  const results = await Promise.all(ids.map((id) => getJSON<Appointment>(appointmentKey(id))));
+  return results.filter((a): a is Appointment => a !== null);
+}
+
+export async function listAllAppointments(): Promise<Appointment[]> {
+  const keys = await client().keys("appointment:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<Appointment>(k)));
+  return results
+    .filter((a): a is Appointment => a !== null)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
 // --- Admin-only reads (used only by /admin, gated by ADMIN_EMAILS) ---
 
 export async function listAllUsers(): Promise<User[]> {

@@ -12,35 +12,24 @@ export default function Home() {
         {/* HERO */}
         <div className="hero" id="hero">
           <div className="wrap">
-            <div className="hero-v2-card">
-              <h1 className="hero-v2-title">
-                <span className="dark">Your health,</span><br />
-                <span className="light">your 365.</span>
-              </h1>
-              <p className="hero-v2-sub">
-                Get your <b>free basic diet plan</b> or a <b>personalized nutrition plan</b><br className="only-desktop" />
-                built with real dietitians, for every health condition.
-              </p>
-              <Link href="/consultation" className="hero-v2-cta">Get Your Diet Plan</Link>
-
-              <div className="fruit-path-wrap">
-                <svg viewBox="0 0 1200 220" preserveAspectRatio="none">
-                  <path d="M -20 150 C 140 50, 260 230, 430 130 C 560 60, 660 220, 820 110 C 940 30, 1060 150, 1230 90"
-                    fill="none" stroke="#B99268" strokeWidth="58" strokeLinecap="round" opacity="0.95" />
-                  <path d="M -20 150 C 140 50, 260 230, 430 130 C 560 60, 660 220, 820 110 C 940 30, 1060 150, 1230 90"
-                    fill="none" stroke="#8FA55A" strokeWidth="10" strokeLinecap="round" opacity="0.55"
-                    transform="translate(0,-26)" />
-                </svg>
-                <span className="fruit" style={{ left: "6%", top: "58%" }}>🍎</span>
-                <span className="fruit" style={{ left: "16%", top: "30%" }}>🥕</span>
-                <span className="fruit" style={{ left: "27%", top: "72%" }}>🍇</span>
-                <span className="fruit" style={{ left: "38%", top: "42%" }}>🥦</span>
-                <span className="fruit" style={{ left: "49%", top: "68%" }}>🫑</span>
-                <span className="fruit" style={{ left: "60%", top: "34%" }}>🍌</span>
-                <span className="fruit" style={{ left: "71%", top: "62%" }}>🍅</span>
-                <span className="fruit" style={{ left: "82%", top: "28%" }}>🫐</span>
-                <span className="fruit" style={{ left: "92%", top: "50%" }}>🍉</span>
+            <div className="hero-frame ph-teal grain">
+              <div className="hero-top-tag">
+                <span className="kicker-pill">Nutrition &amp; Real Life</span>
               </div>
+              <div className="hero-bottom">
+                <h1 className="hero-title">Your health,<br />your 365.</h1>
+                <div className="stat-float">
+                  <span className="num serif">10K+</span>
+                  <p>People supported with real nutrition guidance</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="hero-sub-row wrap">
+            <p>Small choices. Better habits. A healthier relationship with food — built around you, not a template.</p>
+            <div className="hero-ctas">
+              <Link href="/consultation" className="btn btn-terracotta">Start Free Consultation</Link>
+              <Link href="/#how" className="btn btn-outline">See How It Works</Link>
             </div>
           </div>
         </div>

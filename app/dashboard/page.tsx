@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
-import { getConsultationsForUser } from "@/lib/kv";
+import { getConsultationsForUser, getAppointmentsForUser } from "@/lib/kv";
 import LogoutButton from "./LogoutButton";
 
 export default async function DashboardPage() {
@@ -10,7 +10,13 @@ export default async function DashboardPage() {
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (!session) redirect("/login");
 
-  const consultations = await getConsultationsForUser(session.userId);
+  const [consultations, appointments] = await Promise.all([
+    getConsultationsForUser(session.userId),
+    getAppointmentsForUser(session.userId),
+  ]);
+  const upcoming = appointments
+    .filter((a) => a.status === "booked")
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
   return (
     <main className="min-h-screen bg-paper px-6 py-12">
@@ -58,6 +64,27 @@ export default async function DashboardPage() {
           <Link href="/diet-plan" className="pill pill-outline text-sm px-4 py-2">Generate a diet plan</Link>
           <Link href="/conditions" className="pill pill-outline text-sm px-4 py-2">Browse conditions</Link>
           <Link href="/dietitians" className="pill pill-outline text-sm px-4 py-2">Find a dietitian</Link>
+        </div>
+
+        <div className="card mt-6">
+          <h2 className="font-display text-lg mb-4">Your appointments</h2>
+          {upcoming.length === 0 ? (
+            <p className="text-sm text-inksoft">No appointments booked yet — find a dietitian and pick a time that works for you.</p>
+          ) : (
+            <div className="space-y-3">
+              {upcoming.map((a) => (
+                <div key={a.id} className="border border-line rounded-2xl p-4 flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold text-sm">{a.dietitianName}</p>
+                    <p className="text-xs text-inksoft mt-1">
+                      {new Date(a.date).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })} at {a.time}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-pill bg-teal text-white">Booked</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>

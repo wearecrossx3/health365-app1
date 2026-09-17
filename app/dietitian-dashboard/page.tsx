@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
-import { getDietitianApplicationByUserId } from "@/lib/kv";
+import { getDietitianApplicationByUserId, getAppointmentsForDietitian } from "@/lib/kv";
 
 export default async function DietitianDashboardPage() {
   const cookieStore = cookies();
@@ -11,6 +11,11 @@ export default async function DietitianDashboardPage() {
 
   const app = await getDietitianApplicationByUserId(session.userId);
   if (!app) redirect("/join-as-dietitian");
+
+  const appointments = app.status === "approved" ? await getAppointmentsForDietitian(app.id) : [];
+  const upcoming = appointments
+    .filter((a) => a.status === "booked")
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--paper)", padding: "48px 24px" }}>
@@ -51,9 +56,24 @@ export default async function DietitianDashboardPage() {
 
         <div className="panel">
           <h2 style={{ fontSize: "1.1rem", marginBottom: 10 }}>Your patients</h2>
-          <p style={{ fontSize: ".9rem", color: "var(--ink-soft)" }}>
-            No consultations have been assigned to you yet. Once Health365 starts routing consultations to individual dietitians, they&apos;ll show up here.
-          </p>
+          {app.status !== "approved" ? (
+            <p style={{ fontSize: ".9rem", color: "var(--ink-soft)" }}>
+              Appointments will appear here once your application is approved.
+            </p>
+          ) : upcoming.length === 0 ? (
+            <p style={{ fontSize: ".9rem", color: "var(--ink-soft)" }}>
+              No appointments booked yet. Once someone books a session with you from the directory, it&apos;ll show up here.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {upcoming.map((a) => (
+                <div key={a.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--line)", padding: "10px 0", fontSize: ".9rem" }}>
+                  <span style={{ fontWeight: 600 }}>{a.userName}</span>
+                  <span style={{ color: "var(--ink-soft)" }}>{new Date(a.date).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {a.time}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>

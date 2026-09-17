@@ -3,15 +3,16 @@
 import { useEffect, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import Reveal from "@/components/Reveal";
+import BookingWidget from "@/components/BookingWidget";
 
 interface Dietitian {
-  name: string; role: string; verified: boolean; specializations: string[];
+  id: string; name: string; role: string; verified: boolean; specializations: string[];
   languages: string[]; experienceYears: number;
   location: string; bio: string; qualNote: string; fee?: string;
 }
 
 const ASTHA: Dietitian = {
-  name: "Dr. Astha Jadeja", role: "Founder & Lead Dietitian", verified: true,
+  id: "dr-astha", name: "Dr. Astha Jadeja", role: "Founder & Lead Dietitian", verified: true,
   specializations: ["Diabetes", "PCOS", "Weight Management", "Thyroid"],
   languages: ["English", "Hindi", "Gujarati"], experienceYears: 8,
   location: "Gujarat, India",
@@ -39,7 +40,8 @@ export default function DietitiansPage() {
     fetch("/api/dietitians")
       .then((r) => r.json())
       .then((data) => {
-        const approved: Dietitian[] = (data.dietitians || []).map((d: { name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; }) => ({
+        const approved: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; }) => ({
+          id: d.id,
           name: d.name,
           role: d.qualification,
           verified: true,
@@ -146,9 +148,10 @@ export default function DietitiansPage() {
                     </div>
                     {open.qualNote && <p className="note">{open.qualNote}</p>}
                     <div className="profile-cta">
-                      <a href="/consultation" className="pill pill-primary" style={{ background: "var(--mint)", color: "var(--dark)" }}>Book a Consultation</a>
+                      <a href="/consultation" className="pill pill-primary" style={{ background: "var(--mint)", color: "var(--dark)" }}>Start a Consultation</a>
                       <button className="pill pill-outline" style={{ background: "transparent", borderColor: "rgba(255,255,255,.3)", color: "#fff" }} onClick={() => setOpenIndex(null)}>Close</button>
                     </div>
+                    <BookingWidget dietitianId={open.id} dietitianName={open.name} />
                   </div>
                 </div>
               </div>

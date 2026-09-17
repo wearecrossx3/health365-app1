@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
-import { listAllUsers, listAllConsultations, listAllDietitianApplications } from "@/lib/kv";
+import { listAllUsers, listAllConsultations, listAllDietitianApplications, listAllAppointments } from "@/lib/kv";
 import MarkReviewedButton from "./MarkReviewedButton";
 import DietitianActionButtons from "./DietitianActionButtons";
 
@@ -11,10 +11,11 @@ export default async function AdminPage() {
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (!isAdmin(session)) redirect("/");
 
-  const [users, consultations, dietitianApps] = await Promise.all([
+  const [users, consultations, dietitianApps, appointments] = await Promise.all([
     listAllUsers(),
     listAllConsultations(),
     listAllDietitianApplications(),
+    listAllAppointments(),
   ]);
   const needsReview = consultations.filter(
     (c) => c.status === "submitted" && c.conditions.length > 0
@@ -123,6 +124,25 @@ export default async function AdminPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </div>
+
+        <div className="panel" style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: "1.2rem", marginBottom: 16 }}>Appointments</h2>
+          {appointments.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No appointments booked yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {appointments.map((a) => (
+                <div key={a.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--line)", padding: "10px 0", fontSize: ".88rem", flexWrap: "wrap", gap: 6 }}>
+                  <span style={{ fontWeight: 600 }}>{a.userName} → {a.dietitianName}</span>
+                  <span style={{ color: "var(--ink-soft)" }}>{new Date(a.date).toLocaleDateString()} · {a.time}</span>
+                  <span style={{ fontSize: ".72rem", fontWeight: 700, color: a.status === "booked" ? "var(--teal-deep)" : "var(--terracotta)" }}>
+                    {a.status === "booked" ? "Booked" : "Cancelled"}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>
