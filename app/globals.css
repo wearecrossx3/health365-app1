@@ -109,12 +109,13 @@ header.nav.scrolled{background:color-mix(in srgb, var(--cream) 92%, transparent)
 @media (max-width:640px){ .nav-inner{padding:18px 20px;} }
 .logo{font-family: var(--font-instrument), sans-serif; font-weight:600; font-size:1.25rem;}
 .nav-links{display:flex; gap:34px;}
-.nav-links a{font-size:.88rem; font-weight:500;}
+.nav-links a{font-size:.88rem; font-weight:500; transition:color .3s ease;}
 .nav-links a:hover{color:var(--terracotta);}
 @media (max-width:860px){ .nav-links{display:none;} }
 
 .nav-toggle{display:none; background:none; border:none; flex-direction:column; gap:5px; padding:6px; cursor:pointer;}
-.nav-toggle span{width:22px; height:2px; background:var(--ink); border-radius:2px; display:block;}
+.nav-toggle span{width:22px; height:2px; background:var(--ink); border-radius:2px; display:block; transition:background-color .3s ease;}
+.nav-toggle.on-dark span{background:#fff;}
 @media (max-width:860px){ .nav-toggle{display:flex;} }
 @media (max-width:860px){ .nav-actions-desktop{display:none !important;} }
 
@@ -436,9 +437,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* Hero v3 — full-bleed photo placeholder, Helora-style              */
 /* ---------------------------------------------------------------- */
 .hero-full{
-  position:relative; min-height:92vh; overflow:hidden;
+  position:relative; overflow:hidden;
   display:flex; flex-direction:column; justify-content:center;
-  margin-top:-78px; /* pulls the hero up underneath the sticky nav's reserved space, so the photo starts at the true top of the page instead of below the navbar */
+  margin-top:-78px; min-height:calc(92vh + 78px); /* pulled up under the fixed-position nav space, height increased by the same amount so the bottom edge lands exactly where it did before — fixes the hero cutting off early and revealing the next section too soon */
 }
 .hero-full::before{
   content:""; position:absolute; inset:0; z-index:1;

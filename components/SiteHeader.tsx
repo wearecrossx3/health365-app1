@@ -2,16 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthModal } from "./AuthModalProvider";
 import Logo from "./Logo";
 
 export default function SiteHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const { open } = useAuthModal();
+
+  // Only the homepage has a photo hero sitting directly behind the
+  // transparent nav — every other page is plain background from the
+  // top, so only the homepage (and only before scrolling) needs
+  // white logo/text for contrast against the photo.
+  const onDarkHero = pathname === "/" && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -33,31 +40,33 @@ export default function SiteHeader() {
     else open("signup");
   }
 
-  return (
-    <header className={`nav${scrolled ? " scrolled" : ""}`}>
-      <div className="nav-inner">
-        <Link href="/#top" className="logo"><Logo variant="dark" height={24} /></Link>
+  const linkColor = onDarkHero ? "#fff" : "var(--ink)";
 
-        <nav className="nav-links">
-          <Link href="/#how">How it works</Link>
-          <Link href="/conditions">Conditions</Link>
-          <Link href="/dietitians">Dietitians</Link>
-          <Link href="/#about">About</Link>
+  return (
+    <header className={`nav${scrolled ? " scrolled" : ""}${onDarkHero ? " on-dark" : ""}`}>
+      <div className="nav-inner">
+        <Link href="/#top" className="logo"><Logo variant={onDarkHero ? "light" : "dark"} height={24} /></Link>
+
+        <nav className="nav-links" style={{ color: linkColor }}>
+          <Link href="/#how" style={{ color: linkColor }}>How it works</Link>
+          <Link href="/conditions" style={{ color: linkColor }}>Conditions</Link>
+          <Link href="/dietitians" style={{ color: linkColor }}>Dietitians</Link>
+          <Link href="/#about" style={{ color: linkColor }}>About</Link>
         </nav>
 
         <div className="nav-actions-desktop" style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {loggedIn === true && (
-            <Link href="/dashboard" style={{ fontSize: ".86rem", fontWeight: 600 }}>Dashboard</Link>
+            <Link href="/dashboard" style={{ fontSize: ".86rem", fontWeight: 600, color: linkColor }}>Dashboard</Link>
           )}
           {loggedIn === false && (
-            <button onClick={() => open("login")} style={{ fontSize: ".86rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", color: "var(--ink)" }}>
+            <button onClick={() => open("login")} style={{ fontSize: ".86rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", color: linkColor }}>
               Log in
             </button>
           )}
           <button onClick={handleBookConsultation} className="btn btn-terracotta">Book a Consultation</button>
         </div>
 
-        <button className="nav-toggle" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
+        <button className={`nav-toggle${onDarkHero ? " on-dark" : ""}`} aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
           <span style={{ transform: menuOpen ? "translateY(3.5px) rotate(45deg)" : "none", transition: "transform .2s ease" }} />
           <span style={{ opacity: menuOpen ? 0 : 1, transition: "opacity .2s ease" }} />
           <span style={{ transform: menuOpen ? "translateY(-3.5px) rotate(-45deg)" : "none", transition: "transform .2s ease" }} />
