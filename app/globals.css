@@ -459,7 +459,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .hero-full-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:center;}
 @media (max-width:860px){ .hero-full-grid{grid-template-columns:1fr; gap:24px;} }
 .hero-full-title{color:#fff; font-size:clamp(2.4rem,6vw,4.6rem); line-height:1.05; font-weight:500;}
-.hero-full-sub{color:rgba(255,255,255,.9); font-size:1.02rem; max-width:34ch; line-height:1.6;}
+.hero-full-right{
+  background:rgba(15,22,20,.32); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-radius:20px; padding:24px 26px; border:1px solid rgba(255,255,255,.14);
+}
+.hero-full-sub{color:rgba(255,255,255,.92); font-size:1.02rem; max-width:34ch; line-height:1.6;}
 .hero-full-cta{
   margin-top:22px; display:inline-flex; align-items:center; gap:10px;
   background:#fff; color:var(--ink); border:none; padding:8px 8px 8px 22px; border-radius:100px;

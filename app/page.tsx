@@ -29,7 +29,7 @@ export default async function Home() {
               <div>
                 <h1 className="hero-full-title">Your health,<br />your 365.</h1>
               </div>
-              <div>
+              <div className="hero-full-right">
                 <p className="hero-full-sub">Small choices. Better habits. A healthier relationship with food — built around you, not a template.</p>
                 <Link href="/consultation" className="hero-full-cta">
                   Book a Consultation <span className="arrow">→</span>
