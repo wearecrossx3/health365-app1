@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { getDietitianApplicationByUserId, getAppointmentsForDietitian } from "@/lib/kv";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export default async function DietitianDashboardPage() {
   const cookieStore = cookies();
@@ -18,7 +20,9 @@ export default async function DietitianDashboardPage() {
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--paper)", padding: "48px 24px" }}>
+    <>
+      <SiteHeader />
+      <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "48px 24px" }}>
       <div className="wrap" style={{ maxWidth: 720, padding: 0 }}>
         <div style={{ marginBottom: 28 }}>
           <span className="eyebrow">Dietitian dashboard</span>
@@ -76,6 +80,8 @@ export default async function DietitianDashboardPage() {
           )}
         </div>
       </div>
-    </main>
+      </main>
+      <SiteFooter />
+    </>
   );
 }

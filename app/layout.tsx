@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Inter } from "next/font/google";
+import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 import AuthModalProvider from "@/components/AuthModalProvider";
 
-const instrument = Instrument_Sans({
+const heading = Fredoka({
   subsets: ["latin"],
   variable: "--font-instrument",
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 const inter = Inter({
   subsets: ["latin"],
@@ -23,7 +23,9 @@ export const metadata: Metadata = {
   description:
     "Health365 is a nutrition platform built around real people, not just diet charts — consultations, personalised plans, and dietitians you can trust.",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
   openGraph: {
     title: "Health365 — Your health, your 365.",
@@ -64,7 +66,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${instrument.variable} ${inter.variable}`}>
+    <html lang="en" className={`${heading.variable} ${inter.variable}`}>
       <head>
         <meta name="theme-color" content="#C96A3C" />
         <script

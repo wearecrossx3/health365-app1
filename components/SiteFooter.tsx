@@ -1,11 +1,12 @@
 import Link from "next/link";
+import Logo from "./Logo";
 
 export default function SiteFooter() {
   return (
     <footer>
       <div className="wrap">
         <div className="footer-grid">
-          <Link href="/#top" className="logo">Health365</Link>
+          <Link href="/#top" className="logo"><Logo variant="dark" height={24} /></Link>
           <div className="footer-links">
             <Link href="/#how">How it works</Link>
             <Link href="/conditions">Conditions</Link>

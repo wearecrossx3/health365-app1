@@ -215,6 +215,8 @@ export interface SiteContent {
   asthaPhotoUrl: string;
   heroStatNumber: string;
   heroStatLabel: string;
+  heroImageUrl: string;
+  goalLabels: string[];
 }
 
 const SITE_CONTENT_KEY = "site_content";
@@ -231,6 +233,8 @@ const DEFAULT_CONTENT: SiteContent = {
   asthaPhotoUrl: "",
   heroStatNumber: "10K+",
   heroStatLabel: "People supported with real nutrition guidance",
+  heroImageUrl: "",
+  goalLabels: ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"],
 };
 
 export async function getSiteContent(): Promise<SiteContent> {

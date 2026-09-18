@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthModal } from "./AuthModalProvider";
+import Logo from "./Logo";
 
 export default function SiteHeader() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function SiteHeader() {
   return (
     <header className={`nav${scrolled ? " scrolled" : ""}`}>
       <div className="nav-inner">
-        <Link href="/#top" className="logo">Health365</Link>
+        <Link href="/#top" className="logo"><Logo variant="dark" height={24} /></Link>
 
         <nav className="nav-links">
           <Link href="/#how">How it works</Link>

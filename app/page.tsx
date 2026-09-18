@@ -13,7 +13,11 @@ export default async function Home() {
 
       <main id="top">
         {/* HERO */}
-        <div className="hero-full ph-teal grain" id="hero">
+        <div
+          className={`hero-full${content.heroImageUrl ? "" : " ph-teal grain"}`}
+          id="hero"
+          style={content.heroImageUrl ? { backgroundImage: `url(${content.heroImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+        >
           <span className="hero-full-kicker"><span className="dot" />Nutrition &amp; Real Life</span>
           <div className="hero-full-content">
             <div className="hero-full-grid">
@@ -57,7 +61,7 @@ export default async function Home() {
               <p>Pick a starting point — your consultation adapts around it.</p>
             </Reveal>
             <Reveal delay={120}>
-              <GoalCards />
+              <GoalCards labels={content.goalLabels} />
             </Reveal>
           </div>
         </section>
@@ -130,9 +134,9 @@ export default async function Home() {
         </section>
 
         {/* APPROACH */}
-        <section>
+        <section className="approach-section">
           <div className="wrap">
-            <Reveal className="section-head" style={{ marginBottom: 64 }}>
+            <Reveal className="section-head" style={{ marginBottom: 36 }}>
               <span className="eyebrow">Wellness That Feels Personal</span>
               <h2>Nutrition, built the way you actually live.</h2>
             </Reveal>

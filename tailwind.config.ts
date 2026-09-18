@@ -5,8 +5,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#FBF7EE",
-        paper: "#F4EEE0",
+        cream: "#FFFFFF",
+        paper: "#F7F7F5",
         ink: "#20241F",
         inksoft: "#666B5F",
         line: "rgba(32,36,31,.14)",

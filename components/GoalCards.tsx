@@ -3,27 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const GOALS = [
-  { goal: "Lose Weight", photo: "ph-teal" },
-  { goal: "Gain Weight", photo: "ph-sand" },
-  { goal: "Eat Better", photo: "ph-terra" },
-  { goal: "Manage a Condition", photo: "ph-rose" },
-];
+const PHOTOS = ["ph-teal", "ph-sand", "ph-terra", "ph-rose"];
+const DEFAULT_LABELS = ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"];
 
-export default function GoalCards() {
+export default function GoalCards({ labels }: { labels?: string[] }) {
+  const goalLabels = labels && labels.length === 4 ? labels : DEFAULT_LABELS;
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <>
       <div className="service-grid">
-        {GOALS.map((g) => (
+        {goalLabels.map((label, i) => (
           <div
-            key={g.goal}
-            className={`service-card${selected === g.goal ? " selected" : ""}`}
-            onClick={() => setSelected(g.goal)}
+            key={i}
+            className={`service-card${selected === label ? " selected" : ""}`}
+            onClick={() => setSelected(label)}
           >
-            <div className={`photo ${g.photo} grain`} />
-            <h3>{g.goal}</h3>
+            <div className={`photo ${PHOTOS[i]} grain`} />
+            <h3>{label}</h3>
             <span className="pick">Select goal →</span>
           </div>
         ))}

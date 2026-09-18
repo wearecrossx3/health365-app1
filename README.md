@@ -15,6 +15,7 @@ a full auth provider.
 - **Dietitian applications** (`/join-as-dietitian`) — real application form, reviewed from the admin dashboard (Approve/Reject), approved dietitians get their own dashboard at `/dietitian-dashboard`
 - **Real appointment booking** — pick a date/time on any dietitian's profile, prevents double-booking, shows up on the user's dashboard, the dietitian's dashboard, and the admin dashboard
 - **Admin dashboard** (`/admin`) — users, consultations (with a "needs professional review" flag and mark-reviewed button), dietitian applications, and all appointments in one place. Gated by `ADMIN_EMAILS`, no separate role system.
+- **Content editor** (`/admin/content`) — edit the hero image, hero stat, goal card labels, and Dr. Astha's profile from a form, with real drag-and-drop image upload. Changes go live immediately, no redeploy.
 - **Email notifications** (optional) — you, dietitians, and users get emailed on new consultations, bookings, and applications instead of relying on manually checking the admin dashboard. Uses Resend; the site works fine without it configured, it just won't send emails.
 - Login/signup as a popup with glass-blur backdrop, not a separate page
 - Email/password auth with an HMAC-signed session cookie — no external auth provider
@@ -45,6 +46,18 @@ a full auth provider.
    new environment variables until you redeploy.
 4. For local development, open the Redis store's **.env.local** tab in
    the Vercel dashboard and copy the value into your local `.env.local`.
+
+## Setting up image upload (recommended)
+
+Without this, `/admin/content` still works — you just paste an image URL
+instead of uploading a file from your computer.
+
+1. Vercel dashboard -> your project -> **Storage** tab -> **Create Database** -> **Blob**.
+2. Once created and connected, Vercel automatically adds `BLOB_READ_WRITE_TOKEN`
+   to your project's environment variables.
+3. Redeploy.
+4. Go to `/admin/content` — you'll now see a "Click to choose a photo, or
+   drag one here" box instead of only a URL field.
 
 ## Setting up email notifications (optional)
 
@@ -77,6 +90,7 @@ just won't send an email, only show up in `/admin`.
 
 - [ ] Set a real `SESSION_SECRET` (not the dev default)
 - [ ] Attach and verify the Vercel Redis store
+- [ ] Attach Vercel Blob storage for image uploads (optional)
 - [ ] Set up Resend for email notifications (optional)
 - [ ] Replace the placeholder Dr. Astha bio/credentials with verified details
 - [ ] Choose a real payment provider before launch (none is wired up yet, by design)

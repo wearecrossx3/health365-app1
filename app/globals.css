@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background: #FBF7EE;
+  background: #FFFFFF;
   color: #20241F;
   scroll-behavior: smooth;
 }
@@ -83,7 +83,7 @@ a, button, .btn, .pill, .goal-card, .service-card, .cond-tile, .dcard, .info-car
 /* Marketing site — ported from the approved HTML design (v5)        */
 /* ---------------------------------------------------------------- */
 :root{
-  --cream:#FBF7EE; --paper:#F4EEE0; --ink:#20241F; --ink-soft:#666B5F; --line:rgba(32,36,31,.12);
+  --cream:#FFFFFF; --paper:#F7F7F5; --ink:#20241F; --ink-soft:#666B5F; --line:rgba(32,36,31,.12);
   --terracotta:#C96A3C; --teal:#3F7F70; --teal-deep:#2C5C51; --olive:#8E9B5E; --rose:#C97F82; --sand:#D8C9A3;
   --mint:#7FE6B8; --dark:#132420;
 }
@@ -103,8 +103,8 @@ h1,h2,h3,.serif{ font-family: var(--font-instrument), sans-serif; font-weight:50
 .ph-sand{background:radial-gradient(circle at 30% 25%, #EFE4C6, transparent 55%), radial-gradient(circle at 78% 75%, #A9925C, transparent 55%), #D8C9A3;}
 .ph-ink{background:radial-gradient(circle at 30% 20%, #3A4238, transparent 55%), radial-gradient(circle at 75% 75%, #12140F, transparent 55%), #20241F;}
 
-header.nav{position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--cream) 92%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid transparent; transition:border-color .3s ease;}
-header.nav.scrolled{border-color:var(--line);}
+header.nav{position:sticky; top:0; z-index:60; background:transparent; border-bottom:1px solid transparent; transition:background .3s ease, backdrop-filter .3s ease, border-color .3s ease;}
+header.nav.scrolled{background:color-mix(in srgb, var(--cream) 92%, transparent); backdrop-filter:blur(10px); border-color:var(--line);}
 .nav-inner{max-width:1440px; margin:0 auto; padding:18px 40px; display:flex; align-items:center; justify-content:space-between;}
 @media (max-width:640px){ .nav-inner{padding:18px 20px;} }
 .logo{font-family: var(--font-instrument), sans-serif; font-weight:600; font-size:1.25rem;}
@@ -190,14 +190,15 @@ section{padding:110px 0;}
 .process-card h3{font-size:1.05rem; font-weight:500;}
 .process-card p{font-size:.86rem; margin-top:6px;}
 
-.approach-row{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; margin-bottom:76px;}
+.approach-section{padding:64px 0;}
+.approach-row{display:grid; grid-template-columns:.85fr 1fr; gap:44px; align-items:center; margin-bottom:40px; max-width:1100px; margin-left:auto; margin-right:auto;}
 .approach-row:last-child{margin-bottom:0;}
 .approach-row.rev{direction:rtl;}
 .approach-row.rev > *{direction:ltr;}
 @media (max-width:860px){ .approach-row, .approach-row.rev{grid-template-columns:1fr; direction:ltr;} }
-.approach-row .photo{aspect-ratio:5/4;}
-.approach-row h3{font-size:1.6rem; font-weight:400;}
-.approach-row p{margin-top:16px; font-size:1rem;}
+.approach-row .photo{aspect-ratio:16/10; max-height:280px;}
+.approach-row h3{font-size:1.35rem; font-weight:400;}
+.approach-row p{margin-top:12px; font-size:.95rem;}
 .approach-tags{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
 .approach-tags span{font-size:.78rem; font-weight:600; background:var(--paper); padding:7px 14px; border-radius:100px; color:var(--teal-deep);}
 
@@ -442,10 +443,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   content:""; position:absolute; inset:0; z-index:1;
   background:linear-gradient(180deg, rgba(15,25,30,.28) 0%, rgba(15,25,30,.05) 30%, rgba(10,18,22,.55) 100%);
 }
-.hero-full-content{position:relative; z-index:2; width:100%; padding:0 40px 64px;}
+.hero-full-content{position:relative; z-index:2; width:100%; max-width:1440px; margin:0 auto; padding:0 40px 64px; box-sizing:border-box;}
 @media (max-width:640px){ .hero-full-content{padding:0 20px 44px;} }
 .hero-full-kicker{
-  position:absolute; top:36px; left:40px; z-index:2;
+  position:absolute; top:36px; left:max(40px, calc(50% - 720px + 40px)); z-index:2;
   background:rgba(255,255,255,.18); backdrop-filter:blur(6px);
   color:#fff; font-size:.8rem; font-weight:600; padding:9px 18px; border-radius:100px;
   display:flex; align-items:center; gap:8px;
