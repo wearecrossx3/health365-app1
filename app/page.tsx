@@ -5,6 +5,11 @@ import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import { getSiteContent } from "@/lib/kv";
 
+// Force this page to check the database fresh on every visit instead of
+// caching a static version — otherwise changes made in /admin/content
+// wouldn't show up on the live homepage without a full redeploy.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const content = await getSiteContent();
   return (
