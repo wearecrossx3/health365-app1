@@ -217,6 +217,13 @@ export interface SiteContent {
   heroStatLabel: string;
   heroImageUrl: string;
   goalLabels: string[];
+  logoUrl: string;
+  popupEnabled: boolean;
+  popupMessage: string;
+  popupCtaText: string;
+  popupCtaLink: string;
+  popupTrigger: "scroll" | "time";
+  popupTriggerValue: number;
 }
 
 const SITE_CONTENT_KEY = "site_content";
@@ -235,6 +242,13 @@ const DEFAULT_CONTENT: SiteContent = {
   heroStatLabel: "People supported with real nutrition guidance",
   heroImageUrl: "",
   goalLabels: ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"],
+  logoUrl: "",
+  popupEnabled: false,
+  popupMessage: "",
+  popupCtaText: "Start Free Consultation",
+  popupCtaLink: "/consultation",
+  popupTrigger: "time",
+  popupTriggerValue: 3,
 };
 
 export async function getSiteContent(): Promise<SiteContent> {

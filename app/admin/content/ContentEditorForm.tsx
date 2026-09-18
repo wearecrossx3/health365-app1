@@ -14,6 +14,13 @@ interface SiteContent {
   heroStatLabel: string;
   heroImageUrl: string;
   goalLabels: string[];
+  logoUrl: string;
+  popupEnabled: boolean;
+  popupMessage: string;
+  popupCtaText: string;
+  popupCtaLink: string;
+  popupTrigger: "scroll" | "time";
+  popupTriggerValue: number;
 }
 
 export default function ContentEditorForm({ initial }: { initial: SiteContent }) {
@@ -53,6 +60,21 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
 
   return (
     <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Site logo</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          Replaces the logo in the nav and footer everywhere on the site. Since it's used on
+          both light and dark backgrounds, pick a version that reads clearly on both — or
+          leave blank to keep the built-in Health365 mark.
+        </p>
+        <ImageUploadField
+          label="Logo"
+          hint="leave blank to keep the built-in logo"
+          value={content.logoUrl}
+          onChange={(url) => update("logoUrl", url)}
+        />
+      </div>
+
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>Hero image</h2>
         <ImageUploadField
@@ -121,6 +143,54 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
             value={content.asthaPhotoUrl}
             onChange={(url) => update("asthaPhotoUrl", url)}
           />
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Offer popup</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          A small dismissible popup shown to visitors after they scroll or after a few seconds.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={content.popupEnabled}
+              onChange={(e) => update("popupEnabled", e.target.checked)}
+              style={{ width: 18, height: 18 }}
+            />
+            <span style={{ fontWeight: 600, fontSize: ".9rem" }}>Show the popup on the site</span>
+          </label>
+          <div className="field">
+            <label>Message</label>
+            <textarea rows={2} value={content.popupMessage} onChange={(e) => update("popupMessage", e.target.value)} placeholder="e.g. Your first consultation is free this month." />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Button text</label>
+              <input value={content.popupCtaText} onChange={(e) => update("popupCtaText", e.target.value)} />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Button link</label>
+              <input value={content.popupCtaLink} onChange={(e) => update("popupCtaLink", e.target.value)} />
+            </div>
+          </div>
+          <div className="field">
+            <label>Show it when the visitor…</label>
+            <div className="toggle-group">
+              <span className={`toggle-opt${content.popupTrigger === "time" ? " on" : ""}`} onClick={() => update("popupTrigger", "time")}>Waits a few seconds</span>
+              <span className={`toggle-opt${content.popupTrigger === "scroll" ? " on" : ""}`} onClick={() => update("popupTrigger", "scroll")}>Scrolls down</span>
+            </div>
+          </div>
+          <div className="field">
+            <label>{content.popupTrigger === "time" ? "Seconds to wait" : "Percent scrolled"}</label>
+            <input
+              type="number"
+              value={content.popupTriggerValue}
+              onChange={(e) => update("popupTriggerValue", Number(e.target.value) || 0)}
+              style={{ maxWidth: 140 }}
+            />
+          </div>
         </div>
       </div>
 

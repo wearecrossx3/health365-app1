@@ -12,6 +12,7 @@ export default function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
   const { open } = useAuthModal();
 
   // Only the homepage has a photo hero sitting directly behind the
@@ -34,6 +35,13 @@ export default function SiteHeader() {
       .catch(() => setLoggedIn(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/public-content")
+      .then((r) => r.json())
+      .then((d) => setLogoUrl(d.logoUrl || ""))
+      .catch(() => {});
+  }, []);
+
   function handleBookConsultation() {
     setMenuOpen(false);
     if (loggedIn) router.push("/consultation");
@@ -45,7 +53,7 @@ export default function SiteHeader() {
   return (
     <header className={`nav${scrolled ? " scrolled" : ""}${onDarkHero ? " on-dark" : ""}`}>
       <div className="nav-inner">
-        <Link href="/#top" className="logo"><Logo variant={onDarkHero ? "light" : "dark"} height={24} /></Link>
+        <Link href="/#top" className="logo"><Logo variant={onDarkHero ? "light" : "dark"} height={24} customUrl={logoUrl} /></Link>
 
         <nav className="nav-links" style={{ color: linkColor }}>
           <Link href="/#how" style={{ color: linkColor }}>How it works</Link>

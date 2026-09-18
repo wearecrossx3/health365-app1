@@ -1,12 +1,24 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "./Logo";
 
 export default function SiteFooter() {
+  const [logoUrl, setLogoUrl] = useState("");
+
+  useEffect(() => {
+    fetch("/api/public-content")
+      .then((r) => r.json())
+      .then((d) => setLogoUrl(d.logoUrl || ""))
+      .catch(() => {});
+  }, []);
+
   return (
     <footer>
       <div className="wrap">
         <div className="footer-grid">
-          <Link href="/#top" className="logo"><Logo variant="dark" height={24} /></Link>
+          <Link href="/#top" className="logo"><Logo variant="dark" height={24} customUrl={logoUrl} /></Link>
           <div className="footer-links">
             <Link href="/#how">How it works</Link>
             <Link href="/conditions">Conditions</Link>

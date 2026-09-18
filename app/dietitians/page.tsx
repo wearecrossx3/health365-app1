@@ -134,6 +134,13 @@ export default function DietitiansPage() {
           {open && (
             <div style={{ marginTop: 20 }}>
               <div className="profile-card">
+                <button
+                  onClick={() => setOpenIndex(null)}
+                  aria-label="Close"
+                  style={{ position: "absolute", top: 20, right: 20, background: "rgba(255,255,255,.1)", border: "none", color: "#fff", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1 }}
+                >
+                  ×
+                </button>
                 <div className="profile-grid">
                   <div className="profile-avatar ph-rose grain" />
                   <div>
@@ -147,12 +154,12 @@ export default function DietitiansPage() {
                       <div className="m">Location<b>{open.location}</b></div>
                       {open.fee && <div className="m">Fee<b>{open.fee}</b></div>}
                     </div>
-                    {open.qualNote && <p className="note">{open.qualNote}</p>}
-                    <div className="profile-cta">
-                      <a href="/consultation" className="pill pill-primary" style={{ background: "var(--mint)", color: "var(--dark)" }}>Start a Consultation</a>
-                      <button className="pill pill-outline" style={{ background: "transparent", borderColor: "rgba(255,255,255,.3)", color: "#fff" }} onClick={() => setOpenIndex(null)}>Close</button>
+                    <a href="/consultation" style={{ fontSize: ".84rem", fontWeight: 600, color: "var(--mint)", display: "inline-block", marginTop: 16 }}>
+                      Prefer a full intake instead? Start a consultation →
+                    </a>
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,.12)", marginTop: 22, paddingTop: 22 }}>
+                      <BookingWidget dietitianId={open.id} dietitianName={open.name} />
                     </div>
-                    <BookingWidget dietitianId={open.id} dietitianName={open.name} />
                   </div>
                 </div>
               </div>
