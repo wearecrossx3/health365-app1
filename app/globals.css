@@ -104,7 +104,7 @@ h1,h2,h3,.serif{ font-family: var(--font-instrument), sans-serif; font-weight:50
 .ph-ink{background:radial-gradient(circle at 30% 20%, #3A4238, transparent 55%), radial-gradient(circle at 75% 75%, #12140F, transparent 55%), #20241F;}
 
 header.nav{position:sticky; top:0; z-index:60; background:transparent; border-bottom:1px solid transparent; transition:background .3s ease, backdrop-filter .3s ease, border-color .3s ease;}
-header.nav.scrolled{background:color-mix(in srgb, var(--cream) 92%, transparent); backdrop-filter:blur(10px); border-color:var(--line);}
+header.nav.scrolled{background:color-mix(in srgb, var(--cream) 55%, transparent); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-color:var(--line);}
 .nav-inner{max-width:1440px; margin:0 auto; padding:18px 40px; display:flex; align-items:center; justify-content:space-between;}
 @media (max-width:640px){ .nav-inner{padding:18px 20px;} }
 .logo{font-family: var(--font-instrument), sans-serif; font-weight:600; font-size:1.25rem;}
