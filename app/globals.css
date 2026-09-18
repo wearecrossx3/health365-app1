@@ -453,18 +453,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   position:absolute; top:100px; left:max(40px, calc(50% - 720px + 40px)); z-index:2;
   color:#fff; font-size:1.02rem; font-weight:600;
   display:flex; align-items:center; gap:10px;
-  text-shadow:0 2px 10px rgba(0,0,0,.35);
 }
 .hero-full-kicker .dot{width:7px; height:7px; border-radius:50%; background:#fff;}
 @media (max-width:640px){ .hero-full-kicker{left:20px; top:84px;} }
 
 .hero-full-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:center;}
 @media (max-width:860px){ .hero-full-grid{grid-template-columns:1fr; gap:24px;} }
-.hero-full-title{color:#fff; font-size:clamp(2.4rem,6vw,4.6rem); line-height:1.05; font-weight:500; text-shadow:0 2px 16px rgba(0,0,0,.3);}
+.hero-full-title{color:#fff; font-size:clamp(2.4rem,6vw,4.6rem); line-height:1.05; font-weight:500;}
 .hero-full-right{}
-.hero-full-sub{color:#fff; font-size:1.02rem; max-width:34ch; line-height:1.6; text-shadow:0 2px 10px rgba(0,0,0,.4);}
+.hero-full-sub{color:#fff; font-size:1.02rem; max-width:34ch; line-height:1.6;}
 .hero-full-cta{
-  margin-top:22px; display:inline-flex; align-items:center; gap:10px;
+  margin-top:22px; margin-left:-22px; display:inline-flex; align-items:center; gap:10px;
   background:#fff; color:var(--ink); border:none; padding:8px 8px 8px 22px; border-radius:100px;
   font-weight:700; font-size:.9rem; cursor:pointer; transition:transform .2s ease;
 }
