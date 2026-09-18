@@ -197,7 +197,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>Final CTA image</h2>
         <ImageUploadField
-          label="\"365 days. One healthier you.\" background photo"
+          label={'"365 days. One healthier you." background photo'}
           hint="leave blank to keep the color placeholder"
           value={content.finalCtaImageUrl}
           onChange={(url) => update("finalCtaImageUrl", url)}
