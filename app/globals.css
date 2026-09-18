@@ -438,6 +438,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .hero-full{
   position:relative; min-height:92vh; overflow:hidden;
   display:flex; flex-direction:column; justify-content:center;
+  margin-top:-78px; /* pulls the hero up underneath the sticky nav's reserved space, so the photo starts at the true top of the page instead of below the navbar */
 }
 .hero-full::before{
   content:""; position:absolute; inset:0; z-index:1;
@@ -446,13 +447,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .hero-full-content{position:relative; z-index:2; width:100%; max-width:1440px; margin:0 auto; padding:0 40px; box-sizing:border-box;}
 @media (max-width:640px){ .hero-full-content{padding:0 20px;} }
 .hero-full-kicker{
-  position:absolute; top:36px; left:max(40px, calc(50% - 720px + 40px)); z-index:2;
+  position:absolute; top:100px; left:max(40px, calc(50% - 720px + 40px)); z-index:2;
   background:rgba(255,255,255,.18); backdrop-filter:blur(6px);
   color:#fff; font-size:.8rem; font-weight:600; padding:9px 18px; border-radius:100px;
   display:flex; align-items:center; gap:8px;
 }
 .hero-full-kicker .dot{width:6px; height:6px; border-radius:50%; background:#fff;}
-@media (max-width:640px){ .hero-full-kicker{left:20px; top:20px;} }
+@media (max-width:640px){ .hero-full-kicker{left:20px; top:84px;} }
 
 .hero-full-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:center;}
 @media (max-width:860px){ .hero-full-grid{grid-template-columns:1fr; gap:24px;} }
