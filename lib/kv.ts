@@ -217,7 +217,13 @@ export interface SiteContent {
   heroStatLabel: string;
   heroImageUrl: string;
   goalLabels: string[];
-  logoUrl: string;
+  logoUrlLight: string;
+  logoUrlDark: string;
+  finalCtaImageUrl: string;
+  approachImageUrl: string;
+  processImages: string[];
+  conditionImages: string[];
+  goalImages: string[];
   popupEnabled: boolean;
   popupMessage: string;
   popupCtaText: string;
@@ -242,7 +248,13 @@ const DEFAULT_CONTENT: SiteContent = {
   heroStatLabel: "People supported with real nutrition guidance",
   heroImageUrl: "",
   goalLabels: ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"],
-  logoUrl: "",
+  logoUrlLight: "",
+  logoUrlDark: "",
+  finalCtaImageUrl: "",
+  approachImageUrl: "",
+  processImages: ["", "", "", ""],
+  conditionImages: ["", "", "", "", "", ""],
+  goalImages: ["", "", "", ""],
   popupEnabled: false,
   popupMessage: "",
   popupCtaText: "Start Free Consultation",

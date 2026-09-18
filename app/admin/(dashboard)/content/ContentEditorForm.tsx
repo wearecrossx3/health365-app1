@@ -14,7 +14,13 @@ interface SiteContent {
   heroStatLabel: string;
   heroImageUrl: string;
   goalLabels: string[];
-  logoUrl: string;
+  logoUrlLight: string;
+  logoUrlDark: string;
+  finalCtaImageUrl: string;
+  approachImageUrl: string;
+  processImages: string[];
+  conditionImages: string[];
+  goalImages: string[];
   popupEnabled: boolean;
   popupMessage: string;
   popupCtaText: string;
@@ -22,6 +28,9 @@ interface SiteContent {
   popupTrigger: "scroll" | "time";
   popupTriggerValue: number;
 }
+
+const PROCESS_LABELS = ["Tell us about you", "Understand your needs", "Build your plan", "Keep moving"];
+const CONDITION_LABELS = ["Diabetes", "PCOS", "Thyroid", "Weight Management", "Cholesterol", "Digestive Health"];
 
 export default function ContentEditorForm({ initial }: { initial: SiteContent }) {
   const [content, setContent] = useState<SiteContent>(initial);
@@ -34,10 +43,10 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
     setSaved(false);
   }
 
-  function updateGoalLabel(index: number, value: string) {
-    const next = [...content.goalLabels];
+  function updateArrayItem(key: "goalLabels" | "processImages" | "conditionImages" | "goalImages", index: number, value: string) {
+    const next = [...content[key]];
     next[index] = value;
-    update("goalLabels", next);
+    update(key, next);
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -56,23 +65,40 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       return;
     }
     setSaved(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
     <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--paper)", paddingBottom: 12, marginBottom: -8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1px solid var(--line)", borderRadius: 16, padding: "14px 18px" }}>
+          <button type="submit" disabled={saving} className="pill pill-primary">
+            {saving ? "Saving…" : "Save all changes"}
+          </button>
+          {saved && <span style={{ color: "var(--teal-deep)", fontSize: ".88rem", fontWeight: 600 }}>✓ Saved — live on the site now</span>}
+          {error && <span style={{ color: "var(--terracotta)", fontSize: ".88rem" }}>{error}</span>}
+        </div>
+      </div>
+
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Site logo</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
-          Replaces the logo in the nav and footer everywhere on the site. Since it's used on
-          both light and dark backgrounds, pick a version that reads clearly on both — or
-          leave blank to keep the built-in Health365 mark.
+          Two versions, for two backgrounds — the site automatically switches between them.
         </p>
-        <ImageUploadField
-          label="Logo"
-          hint="leave blank to keep the built-in logo"
-          value={content.logoUrl}
-          onChange={(url) => update("logoUrl", url)}
-        />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <ImageUploadField
+            label="Light / white logo"
+            hint="used over the dark hero photo, top of the homepage"
+            value={content.logoUrlLight}
+            onChange={(url) => update("logoUrlLight", url)}
+          />
+          <ImageUploadField
+            label="Dark logo"
+            hint="used everywhere else (white backgrounds)"
+            value={content.logoUrlDark}
+            onChange={(url) => update("logoUrlDark", url)}
+          />
+        </div>
       </div>
 
       <div className="panel">
@@ -104,14 +130,78 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
           The 4 "What brings you here?" cards on the homepage.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
           {content.goalLabels.map((label, i) => (
-            <div className="field" key={i} style={{ marginBottom: 0 }}>
-              <label>Card {i + 1}</label>
-              <input value={label} onChange={(e) => updateGoalLabel(i, e.target.value)} />
+            <div key={i}>
+              <div className="field">
+                <label>Card {i + 1} title</label>
+                <input value={label} onChange={(e) => updateArrayItem("goalLabels", i, e.target.value)} />
+              </div>
+              <ImageUploadField
+                label="Card image"
+                hint="leave blank to keep the color placeholder"
+                value={content.goalImages[i] || ""}
+                onChange={(url) => updateArrayItem("goalImages", i, url)}
+              />
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Conditions</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          The 6 condition tiles under "Made for real-life health goals."
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+          {CONDITION_LABELS.map((label, i) => (
+            <ImageUploadField
+              key={i}
+              label={label}
+              hint="leave blank to keep the color placeholder"
+              value={content.conditionImages[i] || ""}
+              onChange={(url) => updateArrayItem("conditionImages", i, url)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>How Health365 works</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          The 4 process step images.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          {PROCESS_LABELS.map((label, i) => (
+            <ImageUploadField
+              key={i}
+              label={label}
+              hint="leave blank to keep the color placeholder"
+              value={content.processImages[i] || ""}
+              onChange={(url) => updateArrayItem("processImages", i, url)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>"Not another diet chart" image</h2>
+        <ImageUploadField
+          label="Approach section photo"
+          hint="leave blank to keep the color placeholder"
+          value={content.approachImageUrl}
+          onChange={(url) => update("approachImageUrl", url)}
+        />
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>Final CTA image</h2>
+        <ImageUploadField
+          label="\"365 days. One healthier you.\" background photo"
+          hint="leave blank to keep the color placeholder"
+          value={content.finalCtaImageUrl}
+          onChange={(url) => update("finalCtaImageUrl", url)}
+        />
       </div>
 
       <div className="panel">
@@ -197,7 +287,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       {error && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{error}</p>}
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <button type="submit" disabled={saving} className="pill pill-primary">
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? "Saving…" : "Save all changes"}
         </button>
         {saved && <span style={{ color: "var(--teal-deep)", fontSize: ".88rem", fontWeight: 600 }}>✓ Saved — live on the site now</span>}
       </div>

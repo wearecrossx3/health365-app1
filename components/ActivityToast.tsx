@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface Event {
   type: "consultation" | "appointment";
   goal: string | null;
   createdAt: string;
 }
+
+const VISIBLE_MS = 6000; // how long each toast stays on screen
+const FIRST_DELAY_MS = 15000; // wait before the very first one shows
+const GAP_MIN_MS = 45000; // shortest gap between toasts
+const GAP_MAX_MS = 90000; // longest gap between toasts
 
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -29,6 +34,7 @@ export default function ActivityToast() {
   const [events, setEvents] = useState<Event[]>([]);
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     fetch("/api/recent-activity")
@@ -39,21 +45,23 @@ export default function ActivityToast() {
 
   useEffect(() => {
     if (events.length === 0) return;
-    const showTimer = setTimeout(() => setVisible(true), 4000);
-    return () => clearTimeout(showTimer);
-  }, [events]);
 
-  useEffect(() => {
-    if (!visible || events.length === 0) return;
-    const cycle = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setIndex((i) => (i + 1) % events.length);
-        setVisible(true);
-      }, 400);
-    }, 7000);
-    return () => clearInterval(cycle);
-  }, [visible, events.length]);
+    function showOnce() {
+      setVisible(true);
+      timerRef.current = setTimeout(() => {
+        setVisible(false);
+        const gap = GAP_MIN_MS + Math.random() * (GAP_MAX_MS - GAP_MIN_MS);
+        timerRef.current = setTimeout(() => {
+          setIndex((i) => (i + 1) % events.length);
+          showOnce();
+        }, gap);
+      }, VISIBLE_MS);
+    }
+
+    timerRef.current = setTimeout(showOnce, FIRST_DELAY_MS);
+    return () => clearTimeout(timerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events.length]);
 
   if (events.length === 0) return null;
   const current = events[index];
@@ -66,7 +74,7 @@ export default function ActivityToast() {
         boxShadow: "0 20px 40px -18px rgba(20,24,18,.3)", border: "1px solid var(--line)",
         display: "flex", alignItems: "center", gap: 12,
         opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(10px)",
-        transition: "opacity .4s ease, transform .4s ease", pointerEvents: visible ? "auto" : "none",
+        transition: "opacity .5s ease, transform .5s ease", pointerEvents: visible ? "auto" : "none",
       }}
     >
       <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--teal)", flex: "none" }} />

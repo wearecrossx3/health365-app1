@@ -5,7 +5,13 @@ export async function GET() {
   try {
     const content = await getSiteContent();
     return NextResponse.json({
-      logoUrl: content.logoUrl,
+      logoUrlLight: content.logoUrlLight,
+      logoUrlDark: content.logoUrlDark,
+      finalCtaImageUrl: content.finalCtaImageUrl,
+      approachImageUrl: content.approachImageUrl,
+      processImages: content.processImages,
+      conditionImages: content.conditionImages,
+      goalImages: content.goalImages,
       popup: {
         enabled: content.popupEnabled,
         message: content.popupMessage,
@@ -16,6 +22,6 @@ export async function GET() {
       },
     });
   } catch {
-    return NextResponse.json({ logoUrl: "", popup: { enabled: false } });
+    return NextResponse.json({ logoUrlLight: "", logoUrlDark: "", popup: { enabled: false } });
   }
 }

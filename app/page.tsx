@@ -12,6 +12,9 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const content = await getSiteContent();
+  function imgStyle(url: string) {
+    return url ? { backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined;
+  }
   return (
     <>
       <SiteHeader />
@@ -68,7 +71,7 @@ export default async function Home() {
               <p>Pick a starting point — your consultation adapts around it.</p>
             </Reveal>
             <Reveal delay={120}>
-              <GoalCards labels={content.goalLabels} />
+              <GoalCards labels={content.goalLabels} images={content.goalImages} />
             </Reveal>
           </div>
         </section>
@@ -91,7 +94,7 @@ export default async function Home() {
                   <div className="why-item"><span className="ic">🇮🇳</span><div><h3>Built for Indian kitchens</h3><p>Real ingredients, real routines, real life.</p></div></div>
                 </div>
               </div>
-              <div className="photo ph-olive grain" style={{ aspectRatio: "6/5" }} />
+              <div className="photo ph-olive grain" style={{ aspectRatio: "6/5", ...imgStyle(content.approachImageUrl) }} />
             </Reveal>
           </div>
         </section>
@@ -112,9 +115,9 @@ export default async function Home() {
                 ["Weight Management", "ph-olive", "Sustainable change."],
                 ["Cholesterol", "ph-terra", "Heart-friendly swaps."],
                 ["Digestive Health", "ph-teal", "Gut-friendly meals."],
-              ].map(([name, photo, tag]) => (
+              ].map(([name, photo, tag], i) => (
                 <Link href="/conditions" className="service-card" key={name}>
-                  <div className={`photo ${photo} grain`} style={{ aspectRatio: "5/4" }} />
+                  <div className={`photo ${photo} grain`} style={{ aspectRatio: "5/4", ...imgStyle(content.conditionImages[i]) }} />
                   <h3>{name}</h3>
                   <span className="pick">{tag}</span>
                 </Link>
@@ -132,10 +135,10 @@ export default async function Home() {
               <p style={{ marginLeft: "auto", marginRight: "auto" }}>Simple steps, built around your everyday life.</p>
             </Reveal>
             <Reveal delay={120} className="process-grid">
-              <div className="process-card"><div className="photo ph-teal grain" /><h3>Tell us about you</h3><p>A few minutes on your routine, food, and goals.</p></div>
-              <div className="process-card"><div className="photo ph-sand grain" /><h3>Understand your needs</h3><p>We look at the full picture, not just a number.</p></div>
-              <div className="process-card"><div className="photo ph-terra grain" /><h3>Build your plan</h3><p>A meal structure shaped around your life.</p></div>
-              <div className="process-card"><div className="photo ph-olive grain" /><h3>Keep moving</h3><p>Adjust as you go, with a dietitian when needed.</p></div>
+              <div className="process-card"><div className="photo ph-teal grain" style={imgStyle(content.processImages[0])} /><h3>Tell us about you</h3><p>A few minutes on your routine, food, and goals.</p></div>
+              <div className="process-card"><div className="photo ph-sand grain" style={imgStyle(content.processImages[1])} /><h3>Understand your needs</h3><p>We look at the full picture, not just a number.</p></div>
+              <div className="process-card"><div className="photo ph-terra grain" style={imgStyle(content.processImages[2])} /><h3>Build your plan</h3><p>A meal structure shaped around your life.</p></div>
+              <div className="process-card"><div className="photo ph-olive grain" style={imgStyle(content.processImages[3])} /><h3>Keep moving</h3><p>Adjust as you go, with a dietitian when needed.</p></div>
             </Reveal>
           </div>
         </section>
@@ -206,7 +209,7 @@ export default async function Home() {
         {/* FINAL CTA */}
         <div className="final-cta">
           <div className="wrap">
-            <Reveal className="final-frame ph-olive grain">
+            <Reveal className="final-frame ph-olive grain" style={imgStyle(content.finalCtaImageUrl)}>
               <div className="inner">
                 <h2 className="serif">365 days. One healthier you.</h2>
                 <p>Start with one conversation. The rest is built around you.</p>

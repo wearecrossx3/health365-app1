@@ -12,7 +12,8 @@ export default function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState("");
+  const [logoUrlLight, setLogoUrlLight] = useState("");
+  const [logoUrlDark, setLogoUrlDark] = useState("");
   const { open } = useAuthModal();
 
   // Only the homepage has a photo hero sitting directly behind the
@@ -38,7 +39,10 @@ export default function SiteHeader() {
   useEffect(() => {
     fetch("/api/public-content")
       .then((r) => r.json())
-      .then((d) => setLogoUrl(d.logoUrl || ""))
+      .then((d) => {
+        setLogoUrlLight(d.logoUrlLight || "");
+        setLogoUrlDark(d.logoUrlDark || "");
+      })
       .catch(() => {});
   }, []);
 
@@ -53,7 +57,7 @@ export default function SiteHeader() {
   return (
     <header className={`nav${scrolled ? " scrolled" : ""}${onDarkHero ? " on-dark" : ""}`}>
       <div className="nav-inner">
-        <Link href="/#top" className="logo"><Logo variant={onDarkHero ? "light" : "dark"} height={24} customUrl={logoUrl} /></Link>
+        <Link href="/#top" className="logo"><Logo variant={onDarkHero ? "light" : "dark"} height={24} customUrl={onDarkHero ? logoUrlLight : logoUrlDark} /></Link>
 
         <nav className="nav-links" style={{ color: linkColor }}>
           <Link href="/#how" style={{ color: linkColor }}>How it works</Link>
