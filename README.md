@@ -49,12 +49,12 @@ a full auth provider.
 
 ## Setting up image upload (recommended)
 
-Without this, `/admin/content` still works — you just paste an image URL
-instead of uploading a file from your computer.
-
 1. Vercel dashboard -> your project -> **Storage** tab -> **Create Database** -> **Blob**.
-2. Once created and connected, Vercel automatically adds `BLOB_READ_WRITE_TOKEN`
-   to your project's environment variables.
+2. Once created, it connects to your project automatically. Modern Blob
+   stores use Vercel's OIDC connection — **you do not need to add
+   `BLOB_READ_WRITE_TOKEN` yourself**; in fact Vercel will suggest
+   revoking that token if you're not using it outside of Vercel, which
+   is the expected, correct state.
 3. Redeploy.
 4. Go to `/admin/content` — you'll now see a "Click to choose a photo, or
    drag one here" box instead of only a URL field.

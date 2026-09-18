@@ -13,13 +13,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "Image upload isn't set up yet — attach Vercel Blob storage to this project first." },
-      { status: 500 }
-    );
-  }
-
   const formData = await req.formData().catch(() => null);
   const file = formData?.get("file");
   if (!file || !(file instanceof File)) {
@@ -33,12 +26,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // No explicit token here on purpose: this project's Blob store is
+    // connected via Vercel's OIDC method, which authenticates
+    // automatically at runtime — a manually-set BLOB_READ_WRITE_TOKEN
+    // is neither required nor recommended for this setup.
     const blob = await put(`site-content/${Date.now()}-${file.name}`, file, {
       access: "public",
     });
     return NextResponse.json({ ok: true, url: blob.url });
   } catch (err) {
     console.error("Upload failed:", err);
-    return NextResponse.json({ error: "Upload failed — please try again." }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Upload failed — please try again.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
