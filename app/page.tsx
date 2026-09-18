@@ -28,21 +28,23 @@ export default async function Home() {
             <div className="hero-full-grid">
               <div>
                 <h1 className="hero-full-title">Your health,<br />your 365.</h1>
-                <div className="hero-full-stat">
-                  <div className="avatar-stack">
-                    <span>🧑</span><span>👩</span><span>🧑‍🦱</span>
-                  </div>
-                  <div>
-                    <span className="num">{content.heroStatNumber}</span>
-                    <span className="lbl">{content.heroStatLabel}</span>
-                  </div>
-                </div>
               </div>
               <div>
                 <p className="hero-full-sub">Small choices. Better habits. A healthier relationship with food — built around you, not a template.</p>
                 <Link href="/consultation" className="hero-full-cta">
                   Book a Consultation <span className="arrow">→</span>
                 </Link>
+              </div>
+            </div>
+          </div>
+          <div className="hero-full-stat-wrap">
+            <div className="hero-full-stat">
+              <div className="avatar-stack">
+                <span>🧑</span><span>👩</span><span>🧑‍🦱</span>
+              </div>
+              <div>
+                <span className="num">{content.heroStatNumber}</span>
+                <span className="lbl">{content.heroStatLabel}</span>
               </div>
             </div>
           </div>
