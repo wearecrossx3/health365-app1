@@ -15,7 +15,10 @@ a full auth provider.
 - **Dietitian applications** (`/join-as-dietitian`) — real application form, reviewed from the admin dashboard (Approve/Reject), approved dietitians get their own dashboard at `/dietitian-dashboard`
 - **Real appointment booking** — pick a date/time on any dietitian's profile, prevents double-booking, shows up on the user's dashboard, the dietitian's dashboard, and the admin dashboard
 - **Admin dashboard** (`/admin`) — users, consultations (with a "needs professional review" flag and mark-reviewed button), dietitian applications, and all appointments in one place. Gated by `ADMIN_EMAILS`, no separate role system.
-- **Content editor** (`/admin/content`) — edit the hero image, hero stat, goal card labels, and Dr. Astha's profile from a form, with real drag-and-drop image upload. Changes go live immediately, no redeploy.
+- **Dedicated admin login** (`/admin/login`) — separate branded sign-in for the admin area, distinct from the public site's login popup.
+- **Admin sidebar** — every page under `/admin` shares a persistent sidebar (Dashboard, Site Content, Media Library) instead of the public site's header/footer.
+- **Media Library** (`/admin/media`) — every uploaded image in one place, with copy-URL and delete.
+- **Content editor** (`/admin/content`) — edit the hero image, hero stat, goal card labels, custom logo, offer popup, and Dr. Astha's profile from a form, with real drag-and-drop image upload. Changes go live immediately, no redeploy.
 - **Email notifications** (optional) — you, dietitians, and users get emailed on new consultations, bookings, and applications instead of relying on manually checking the admin dashboard. Uses Resend; the site works fine without it configured, it just won't send emails.
 - Login/signup as a popup with glass-blur backdrop, not a separate page
 - Email/password auth with an HMAC-signed session cookie — no external auth provider

@@ -5,13 +5,11 @@ import { isAdmin } from "@/lib/admin";
 import { listAllUsers, listAllConsultations, listAllDietitianApplications, listAllAppointments } from "@/lib/kv";
 import MarkReviewedButton from "./MarkReviewedButton";
 import DietitianActionButtons from "./DietitianActionButtons";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
 
 export default async function AdminPage() {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
-  if (!isAdmin(session)) redirect("/");
+  if (!isAdmin(session)) redirect("/admin/login");
 
   const [users, consultations, dietitianApps, appointments] = await Promise.all([
     listAllUsers(),
@@ -25,9 +23,7 @@ export default async function AdminPage() {
   const pendingDietitians = dietitianApps.filter((d) => d.status === "pending");
 
   return (
-    <>
-      <SiteHeader />
-      <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "48px 24px" }}>
+          <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "48px 24px" }}>
       <div className="wrap" style={{ maxWidth: 980, padding: 0 }}>
         <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div>
@@ -172,7 +168,5 @@ export default async function AdminPage() {
         </div>
       </div>
       </main>
-      <SiteFooter />
-    </>
   );
 }

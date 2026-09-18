@@ -4,19 +4,15 @@ import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { getSiteContent } from "@/lib/kv";
 import ContentEditorForm from "./ContentEditorForm";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
 
 export default async function AdminContentPage() {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
-  if (!isAdmin(session)) redirect("/");
+  if (!isAdmin(session)) redirect("/admin/login");
 
   const content = await getSiteContent();
 
   return (
-    <>
-      <SiteHeader />
       <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "48px 24px" }}>
       <div className="wrap" style={{ maxWidth: 680, padding: 0 }}>
         <div style={{ marginBottom: 28 }}>
@@ -29,7 +25,5 @@ export default async function AdminContentPage() {
         <ContentEditorForm initial={content} />
       </div>
       </main>
-      <SiteFooter />
-    </>
   );
 }
