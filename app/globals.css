@@ -565,3 +565,55 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .luma-pill:hover{ transform:translateY(-2px); }
 .luma-tile:hover{ border-color:var(--sage-deep) !important; }
+
+/* ---------------------------------------------------------------- */
+/* Luma homepage sections — stats bar, colored service cards,        */
+/* checklist icons, minimal process steps, final CTA panel           */
+/* ---------------------------------------------------------------- */
+.luma-stats-row{ display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; padding:32px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.luma-stats-nums{ display:flex; gap:40px; flex-wrap:wrap; }
+.luma-stat b{ font-family:var(--font-instrument),sans-serif; font-size:2.1rem; font-weight:700; color:var(--ink); }
+.luma-stat p{ font-size:.82rem; margin-top:4px; max-width:16ch; }
+.luma-ask{ background:var(--sage); border-radius:100px; padding:12px 12px 12px 22px; display:flex; align-items:center; gap:18px; }
+.luma-ask p{ font-size:.78rem; margin:0; } .luma-ask p+p{ font-weight:700; color:var(--ink); font-size:.9rem; margin-top:2px; }
+.luma-ask .arrow-circle{ width:40px; height:40px; border-radius:50%; background:var(--sage-mid); display:flex; align-items:center; justify-content:center; flex:none; }
+
+.luma-service-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:44px; }
+@media (max-width:900px){ .luma-service-grid{grid-template-columns:1fr 1fr;} }
+@media (max-width:520px){ .luma-service-grid{grid-template-columns:1fr;} }
+.luma-service-card{ border-radius:22px; padding:24px; min-height:230px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; border:2px solid transparent; transition:transform .2s ease; }
+.luma-service-card:hover{ transform:translateY(-4px); }
+.luma-service-card.selected{ border-color:var(--ink); }
+.luma-service-card .top-row{ display:flex; justify-content:space-between; align-items:flex-start; }
+.luma-service-card .ic-circle{ width:44px; height:44px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+.luma-service-card .num{ font-size:.78rem; color:var(--ink-soft); }
+.luma-service-card h3{ font-size:1.1rem; font-weight:600; margin-top:20px; }
+.luma-service-card p{ font-size:.85rem; margin-top:6px; }
+.luma-service-card .learn{ font-size:.8rem; font-weight:700; color:var(--ink); margin-top:14px; display:inline-block; }
+.luma-sage-bg{ background:var(--sage); }
+.luma-cream-bg{ background:var(--paper); }
+.luma-blue-bg{ background:#DCE9F5; }
+.luma-tan-bg{ background:#EFE7D8; }
+
+.luma-checklist{ display:flex; flex-direction:column; gap:16px; margin-top:24px; }
+.luma-checklist .item{ display:flex; align-items:center; gap:14px; }
+.luma-checklist .icon{ width:32px; height:32px; border-radius:50%; background:var(--sage); display:flex; align-items:center; justify-content:center; font-size:.95rem; flex:none; }
+.luma-checklist span.label{ font-size:.92rem; font-weight:500; }
+
+.luma-quote-card{ position:absolute; bottom:20px; left:20px; right:20px; background:#fff; border-radius:16px; padding:18px 20px; box-shadow:0 16px 30px -18px rgba(0,0,0,.25); }
+.luma-quote-card p{ font-size:.95rem; color:var(--ink); font-style:italic; margin:0; }
+
+.luma-minimal-steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:24px; margin-top:44px; }
+@media (max-width:760px){ .luma-minimal-steps{grid-template-columns:1fr 1fr;} }
+@media (max-width:480px){ .luma-minimal-steps{grid-template-columns:1fr;} }
+.luma-step{ text-align:left; }
+.luma-step .icon-circle{ width:48px; height:48px; border-radius:50%; background:var(--sage); display:flex; align-items:center; justify-content:center; font-size:1.3rem; margin-bottom:16px; }
+.luma-step h3{ font-size:1rem; font-weight:600; }
+.luma-step p{ font-size:.85rem; margin-top:6px; }
+
+.luma-final-panel{ background:var(--sage); border-radius:28px; padding:56px 48px; display:flex; justify-content:space-between; align-items:center; gap:32px; flex-wrap:wrap; }
+@media (max-width:700px){ .luma-final-panel{padding:36px 24px;} }
+.luma-final-panel h2{ font-size:clamp(1.9rem,4vw,2.6rem); font-weight:700; max-width:16ch; }
+.luma-final-panel .cta-col{ text-align:right; }
+@media (max-width:700px){ .luma-final-panel .cta-col{text-align:left;} }
+.luma-final-panel .cta-col p{ margin-top:10px; font-size:.8rem; }
