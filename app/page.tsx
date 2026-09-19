@@ -3,6 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import GoalCards from "@/components/GoalCards";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
+import LazyPhoto from "@/components/LazyPhoto";
 import { getSiteContent } from "@/lib/kv";
 
 // Force this page to check the database fresh on every visit instead of
@@ -109,15 +110,15 @@ export default async function Home() {
             </Reveal>
             <Reveal delay={120} className="service-grid service-grid-3col">
               {[
-                ["Diabetes", "ph-teal", "Steadier meals, smarter carbs."],
-                ["PCOS", "ph-rose", "Hormone-aware eating."],
-                ["Thyroid", "ph-sand", "Support alongside treatment."],
-                ["Weight Management", "ph-olive", "Sustainable change."],
-                ["Cholesterol", "ph-terra", "Heart-friendly swaps."],
-                ["Digestive Health", "ph-teal", "Gut-friendly meals."],
-              ].map(([name, photo, tag], i) => (
+                ["Diabetes", "ph-teal", "Steadier meals, smarter carbs.", "🩸"],
+                ["PCOS", "ph-rose", "Hormone-aware eating.", "💜"],
+                ["Thyroid", "ph-sand", "Support alongside treatment.", "🦋"],
+                ["Weight Management", "ph-olive", "Sustainable change.", "⚖️"],
+                ["Cholesterol", "ph-terra", "Heart-friendly swaps.", "❤️"],
+                ["Digestive Health", "ph-teal", "Gut-friendly meals.", "🌱"],
+              ].map(([name, photo, tag, icon], i) => (
                 <Link href="/conditions" className="service-card" key={name}>
-                  <div className={`photo ${photo} grain`} style={{ aspectRatio: "5/4", ...imgStyle(content.conditionImages[i]) }} />
+                  <LazyPhoto placeholderClass={photo} alt={name} icon={icon} src={content.conditionImages[i]} style={{ aspectRatio: "5/4" }} />
                   <h3>{name}</h3>
                   <span className="pick">{tag}</span>
                 </Link>
@@ -135,10 +136,10 @@ export default async function Home() {
               <p style={{ marginLeft: "auto", marginRight: "auto" }}>Simple steps, built around your everyday life.</p>
             </Reveal>
             <Reveal delay={120} className="process-grid">
-              <div className="process-card"><div className="photo ph-teal grain" style={imgStyle(content.processImages[0])} /><h3>Tell us about you</h3><p>A few minutes on your routine, food, and goals.</p></div>
-              <div className="process-card"><div className="photo ph-sand grain" style={imgStyle(content.processImages[1])} /><h3>Understand your needs</h3><p>We look at the full picture, not just a number.</p></div>
-              <div className="process-card"><div className="photo ph-terra grain" style={imgStyle(content.processImages[2])} /><h3>Build your plan</h3><p>A meal structure shaped around your life.</p></div>
-              <div className="process-card"><div className="photo ph-olive grain" style={imgStyle(content.processImages[3])} /><h3>Keep moving</h3><p>Adjust as you go, with a dietitian when needed.</p></div>
+              <div className="process-card"><LazyPhoto placeholderClass="ph-teal" src={content.processImages[0]} /><h3>Tell us about you</h3><p>A few minutes on your routine, food, and goals.</p></div>
+              <div className="process-card"><LazyPhoto placeholderClass="ph-sand" src={content.processImages[1]} /><h3>Understand your needs</h3><p>We look at the full picture, not just a number.</p></div>
+              <div className="process-card"><LazyPhoto placeholderClass="ph-terra" src={content.processImages[2]} /><h3>Build your plan</h3><p>A meal structure shaped around your life.</p></div>
+              <div className="process-card"><LazyPhoto placeholderClass="ph-olive" src={content.processImages[3]} /><h3>Keep moving</h3><p>Adjust as you go, with a dietitian when needed.</p></div>
             </Reveal>
           </div>
         </section>

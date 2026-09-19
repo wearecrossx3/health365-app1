@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import LazyPhoto from "./LazyPhoto";
 
 const PHOTOS = ["ph-teal", "ph-sand", "ph-terra", "ph-rose"];
 const DEFAULT_LABELS = ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"];
@@ -21,10 +22,7 @@ export default function GoalCards({ labels, images }: { labels?: string[]; image
               className={`service-card${selected === label ? " selected" : ""}`}
               onClick={() => setSelected(label)}
             >
-              <div
-                className={`photo ${PHOTOS[i]} grain`}
-                style={customImg ? { backgroundImage: `url(${customImg})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-              />
+              <LazyPhoto placeholderClass={PHOTOS[i]} alt={label} src={customImg} />
               <h3>{label}</h3>
               <span className="pick">Select goal →</span>
             </div>
