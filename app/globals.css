@@ -485,3 +485,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .avatar-stack span:first-child{margin-left:0;}
 .hero-full-stat .num{color:#fff; font-weight:700; font-size:1.15rem; display:block;}
 .hero-full-stat .lbl{color:rgba(255,255,255,.85); font-size:.8rem;}
+
+/* ---------------------------------------------------------------- */
+/* Mobile carousels — goal cards, conditions, process steps          */
+/* were stacking full-width, making each photo nearly full-screen    */
+/* tall on phones. Below 640px they become horizontal swipeable      */
+/* carousels with properly sized cards instead.                      */
+/* ---------------------------------------------------------------- */
+@media (max-width:640px){
+  .service-grid, .service-grid-3col, .process-grid{
+    display:flex !important; grid-template-columns:none !important;
+    overflow-x:auto; scroll-snap-type:x mandatory; gap:14px !important;
+    padding-bottom:10px; margin-top:24px !important;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .service-grid::-webkit-scrollbar, .service-grid-3col::-webkit-scrollbar, .process-grid::-webkit-scrollbar{ display:none; }
+  .service-grid .service-card, .service-grid-3col .service-card, .process-grid .process-card{
+    flex:0 0 76%; scroll-snap-align:start;
+  }
+  .service-grid .photo, .service-grid-3col .photo{ aspect-ratio:4/5 !important; }
+  .process-grid .photo{ aspect-ratio:3/4 !important; }
+}
+
+/* Mobile menu — make sure it's a fully solid panel, no bleed-through */
+@media (max-width:860px){
+  .mobile-menu.open{
+    position:relative; z-index:70; background:var(--cream);
+    box-shadow:0 12px 24px -12px rgba(20,24,18,.15);
+  }
+}
