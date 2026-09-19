@@ -151,14 +151,15 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Conditions</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
-          The 6 condition tiles under "Made for real-life health goals."
+          The 6 condition tiles under "Made for real-life health goals." — these show as small icons now,
+          not big photos. Upload a small square icon image, or leave blank for the default emoji.
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
           {CONDITION_LABELS.map((label, i) => (
             <ImageUploadField
               key={i}
               label={label}
-              hint="leave blank to keep the color placeholder"
+              hint="leave blank to keep the default icon"
               value={content.conditionImages[i] || ""}
               onChange={(url) => updateArrayItem("conditionImages", i, url)}
             />

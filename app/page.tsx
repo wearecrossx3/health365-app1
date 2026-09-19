@@ -108,22 +108,31 @@ export default async function Home() {
               <h2>Made for real-life health goals.</h2>
               <p>General nutrition guidance for common conditions — always paired with an option to talk to a qualified dietitian.</p>
             </Reveal>
-            <Reveal delay={120} className="service-grid service-grid-3col">
+            <div className="icon-tile-grid">
               {[
-                ["Diabetes", "ph-teal", "Steadier meals, smarter carbs.", "🩸"],
-                ["PCOS", "ph-rose", "Hormone-aware eating.", "💜"],
-                ["Thyroid", "ph-sand", "Support alongside treatment.", "🦋"],
-                ["Weight Management", "ph-olive", "Sustainable change.", "⚖️"],
-                ["Cholesterol", "ph-terra", "Heart-friendly swaps.", "❤️"],
-                ["Digestive Health", "ph-teal", "Gut-friendly meals.", "🌱"],
-              ].map(([name, photo, tag, icon], i) => (
-                <Link href="/conditions" className="service-card" key={name}>
-                  <LazyPhoto placeholderClass={photo} alt={name} icon={icon} src={content.conditionImages[i]} style={{ aspectRatio: "5/4" }} />
-                  <h3>{name}</h3>
-                  <span className="pick">{tag}</span>
-                </Link>
-              ))}
-            </Reveal>
+                ["Diabetes", "🩸"],
+                ["PCOS", "💜"],
+                ["Thyroid", "🦋"],
+                ["Weight Management", "⚖️"],
+                ["Cholesterol", "❤️"],
+                ["Digestive Health", "🌱"],
+              ].map(([name, icon], i) => {
+                const img = content.conditionImages[i];
+                return (
+                  <Link href="/conditions" className="icon-tile" key={name}>
+                    <div className="icon-box">
+                      {img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={img} alt={name} loading="lazy" />
+                      ) : (
+                        icon
+                      )}
+                    </div>
+                    <span className="label">{name}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </section>
 

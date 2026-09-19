@@ -514,3 +514,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     box-shadow:0 12px 24px -12px rgba(20,24,18,.15);
   }
 }
+
+/* ---------------------------------------------------------------- */
+/* Compact icon-tile grid — replaces large photo cards for the       */
+/* homepage conditions preview, matching a small icon+label layout   */
+/* ---------------------------------------------------------------- */
+.icon-tile-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-top:44px;}
+@media (max-width:900px){ .icon-tile-grid{grid-template-columns:repeat(4,1fr);} }
+@media (max-width:520px){ .icon-tile-grid{grid-template-columns:repeat(3,1fr); gap:10px;} }
+.icon-tile{
+  background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px 8px 14px;
+  text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.icon-tile:hover{ transform:translateY(-3px); box-shadow:0 14px 28px -16px rgba(0,0,0,.18); border-color:var(--teal); }
+.icon-tile .icon-box{
+  width:52px; height:52px; border-radius:14px; background:var(--paper);
+  display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+  overflow:hidden; position:relative; flex:none;
+}
+.icon-tile .icon-box img{ width:100%; height:100%; object-fit:cover; }
+.icon-tile .label{ font-size:.78rem; font-weight:600; color:var(--ink); line-height:1.3; }
