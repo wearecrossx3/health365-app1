@@ -70,9 +70,9 @@ export default function ConditionsPage() {
       <main>
         <div className="wrap" style={{ maxWidth: 980, paddingTop: 72, paddingBottom: 100 }}>
           <div style={{ marginBottom: 64, maxWidth: 620 }}>
-            <span className="eyebrow">Conditions</span>
+            <span className="luma-eyebrow">Conditions</span>
             <h1 style={{ fontSize: "clamp(2.1rem,4vw,2.9rem)", fontWeight: 500 }}>
-              Made for <em style={{ fontStyle: "italic", color: "var(--terracotta)" }}>real-life</em> health goals.
+              Made for <span className="luma-mark">real-life</span> <span className="luma-highlight">health goals.</span>
             </h1>
             <p style={{ marginTop: 18, fontSize: "1.05rem", lineHeight: 1.7 }}>
               General nutrition guidance for common conditions — always paired with an option to talk to a qualified dietitian.
@@ -81,7 +81,7 @@ export default function ConditionsPage() {
 
           <div className="cond-grid">
             {conditions.map((c) => (
-              <div key={c.key} className={`cond-tile${activeKey === c.key ? " active" : ""}`} onClick={() => setActiveKey(c.key)}>
+              <div key={c.key} className={`cond-tile luma-tile${activeKey === c.key ? " active" : ""}`} onClick={() => setActiveKey(c.key)}>
                 <div className={`photo ${c.photo} grain`} />
                 <div className="body"><h3>{c.name}</h3><p>{c.tag}</p></div>
               </div>
@@ -93,7 +93,7 @@ export default function ConditionsPage() {
               <div className="cond-detail-head" style={{ display: "grid", gridTemplateColumns: ".55fr 1fr", gap: 56, alignItems: "center", marginBottom: 56 }}>
                 <div className={`photo ${active.photo} grain`} style={{ aspectRatio: "4/5" }} />
                 <div>
-                  <span className="eyebrow">Condition guide</span>
+                  <span className="luma-eyebrow">Condition guide</span>
                   <h2 style={{ fontSize: "clamp(1.9rem,3.6vw,2.6rem)", fontWeight: 500 }}>{active.name}</h2>
                   <p style={{ marginTop: 16, fontSize: "1.05rem", lineHeight: 1.75, maxWidth: "58ch" }}>{active.overview}</p>
                 </div>
@@ -114,15 +114,15 @@ export default function ConditionsPage() {
                 </div>
               </div>
 
-              <div style={{ maxWidth: "62ch", padding: "24px 0", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", marginBottom: 40 }}>
+              <div style={{ maxWidth: "62ch", padding: "24px 0", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", marginBottom: 40, background: "var(--sage)", borderRadius: 16, paddingLeft: 24, paddingRight: 24 }}>
                 <p style={{ fontSize: ".95rem", lineHeight: 1.7 }}>
                   <b style={{ color: "var(--ink)" }}>When to consult a professional — </b>{active.consult}
                 </p>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-                <a href={`/consultation?goal=${encodeURIComponent("Manage a Condition")}`} className="pill pill-primary">
-                  Start a Consultation for {active.name}
+                <a href={`/consultation?goal=${encodeURIComponent("Manage a Condition")}`} className="luma-pill">
+                  Start a Consultation for {active.name} <span>→</span>
                 </a>
                 <button
                   onClick={() => setActiveKey(null)}

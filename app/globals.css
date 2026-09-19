@@ -541,3 +541,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .cond-detail-head{ grid-template-columns:1fr !important; gap:28px !important; }
   .cond-detail-lists{ grid-template-columns:1fr !important; gap:32px !important; }
 }
+
+/* ---------------------------------------------------------------- */
+/* Luma-inspired palette for secondary pages (not the homepage) —    */
+/* sage green + black, same fonts as everywhere else                 */
+/* ---------------------------------------------------------------- */
+:root{
+  --sage:#E7F0DC;
+  --sage-mid:#CFE2B8;
+  --sage-deep:#5E7F42;
+}
+.luma-eyebrow{
+  font-size:.8rem; font-weight:700; color:var(--sage-deep); text-transform:uppercase; letter-spacing:.05em;
+  margin-bottom:16px; display:inline-flex; align-items:center; gap:10px;
+}
+.luma-eyebrow::before{ content:""; width:20px; height:1px; background:var(--sage-deep); display:inline-block; }
+.luma-highlight{ color:var(--ink-soft); font-weight:400; }
+.luma-mark{ background:var(--sage-mid); padding:1px 8px; border-radius:6px; }
+.luma-pill{
+  background:var(--ink); color:#fff; border-radius:100px; padding:15px 28px; font-weight:700; font-size:.88rem;
+  display:inline-flex; align-items:center; gap:8px; border:none; cursor:pointer; transition:transform .2s ease;
+  text-decoration:none;
+}
+.luma-pill:hover{ transform:translateY(-2px); }
+.luma-tile:hover{ border-color:var(--sage-deep) !important; }
