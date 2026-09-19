@@ -300,3 +300,13 @@ export async function markConsultationReviewed(id: string): Promise<void> {
   c.status = "reviewed";
   await setJSON(consultationKey(id), c);
 }
+
+// --- Newsletter signups ---
+
+export async function addNewsletterSubscriber(email: string): Promise<void> {
+  await client().sadd("newsletter_subscribers", email.toLowerCase());
+}
+
+export async function listNewsletterSubscribers(): Promise<string[]> {
+  return client().smembers("newsletter_subscribers");
+}
