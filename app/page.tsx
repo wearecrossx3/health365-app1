@@ -143,40 +143,23 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* APPROACH */}
-        <section className="approach-section">
-          <div className="wrap">
-            <Reveal className="section-head" style={{ marginBottom: 36 }}>
-              <span className="eyebrow">Wellness That Feels Personal</span>
-              <h2>Nutrition, built the way you actually live.</h2>
-            </Reveal>
-
-            <Reveal className="approach-row">
-              <div className="photo ph-rose grain" />
-              <div>
-                <h3>Personalized nutrition plans</h3>
-                <p>We build your plan around your lifestyle, your goals, and your kitchen — not a generic template. It&apos;s meant to feel natural, flexible, and easy to actually follow.</p>
-                <div className="approach-tags"><span>Personalized</span><span>Flexible</span></div>
-              </div>
-            </Reveal>
-
-            <Reveal className="approach-row rev">
-              <div className="photo ph-teal grain" />
-              <div>
-                <h3>A judgement-free space</h3>
-                <p>Ask anything, share what&apos;s really going on with your eating, and get guidance that helps you grow — without pressure or shame.</p>
-                <div className="approach-tags"><span>Confidential</span><span>Supportive</span></div>
-              </div>
-            </Reveal>
-
-            <Reveal className="approach-row">
-              <div className="photo ph-olive grain" />
-              <div>
-                <h3>Guidance from real dietitians</h3>
-                <p>Dietitian-reviewed plans and, when needed, direct access to a professional — so condition-specific cases always get the right eyes on them.</p>
-                <div className="approach-tags"><span>Dietitian-reviewed</span><span>Trustworthy</span></div>
-              </div>
-            </Reveal>
+        {/* FOUNDER TEASER — small, minimal, replaces the old 3-row approach section */}
+        <section style={{ padding: "56px 0" }}>
+          <div className="wrap" style={{ maxWidth: 640, textAlign: "center" }}>
+            <div
+              style={{
+                width: 60, height: 60, borderRadius: "50%", margin: "0 auto 18px",
+                background: content.asthaPhotoUrl ? undefined : "var(--paper)",
+                ...imgStyle(content.asthaPhotoUrl),
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem",
+              }}
+            >
+              {!content.asthaPhotoUrl && "👩‍⚕️"}
+            </div>
+            <p className="serif" style={{ fontSize: "1.15rem", lineHeight: 1.5 }}>&quot;{content.asthaQuote}&quot;</p>
+            <p style={{ marginTop: 12, fontSize: ".85rem", fontWeight: 600, color: "var(--terracotta)" }}>
+              {content.asthaName} — {content.asthaRole}
+            </p>
           </div>
         </section>
 
