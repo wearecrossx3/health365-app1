@@ -13,6 +13,8 @@ interface SiteContent {
   heroStatNumber: string;
   heroStatLabel: string;
   heroImageUrl: string;
+  heroImageUrl2: string;
+  heroImageUrl3: string;
   goalLabels: string[];
   logoUrlLight: string;
   logoUrlDark: string;
@@ -102,13 +104,30 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       </div>
 
       <div className="panel">
-        <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>Hero image</h2>
-        <ImageUploadField
-          label="Hero background photo"
-          hint="leave blank to keep the current color placeholder"
-          value={content.heroImageUrl}
-          onChange={(url) => update("heroImageUrl", url)}
-        />
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Hero image</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          Add up to 3 — with more than one, the hero automatically becomes a slideshow that fades between them.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <ImageUploadField
+            label="Hero background photo 1"
+            hint="leave blank to keep the current color placeholder"
+            value={content.heroImageUrl}
+            onChange={(url) => update("heroImageUrl", url)}
+          />
+          <ImageUploadField
+            label="Hero background photo 2"
+            hint="optional"
+            value={content.heroImageUrl2}
+            onChange={(url) => update("heroImageUrl2", url)}
+          />
+          <ImageUploadField
+            label="Hero background photo 3"
+            hint="optional"
+            value={content.heroImageUrl3}
+            onChange={(url) => update("heroImageUrl3", url)}
+          />
+        </div>
       </div>
 
       <div className="panel">

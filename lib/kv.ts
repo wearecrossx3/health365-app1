@@ -216,6 +216,8 @@ export interface SiteContent {
   heroStatNumber: string;
   heroStatLabel: string;
   heroImageUrl: string;
+  heroImageUrl2: string;
+  heroImageUrl3: string;
   goalLabels: string[];
   logoUrlLight: string;
   logoUrlDark: string;
@@ -247,6 +249,8 @@ const DEFAULT_CONTENT: SiteContent = {
   heroStatNumber: "10K+",
   heroStatLabel: "People supported with real nutrition guidance",
   heroImageUrl: "",
+  heroImageUrl2: "",
+  heroImageUrl3: "",
   goalLabels: ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"],
   logoUrlLight: "",
   logoUrlDark: "",

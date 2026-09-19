@@ -3,6 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import GoalCards from "@/components/GoalCards";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
+import HeroSlider from "@/components/HeroSlider";
 import { getSiteContent } from "@/lib/kv";
 
 // Force this page to check the database fresh on every visit instead of
@@ -22,10 +23,11 @@ export default async function Home() {
       <main id="top">
         {/* HERO */}
         <div
-          className={`hero-full${content.heroImageUrl ? "" : " ph-teal grain"}`}
+          className={`hero-full${content.heroImageUrl || content.heroImageUrl2 || content.heroImageUrl3 ? "" : " ph-teal grain"}`}
           id="hero"
-          style={content.heroImageUrl ? { backgroundImage: `url(${content.heroImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+          style={{ position: "relative" }}
         >
+          <HeroSlider images={[content.heroImageUrl, content.heroImageUrl2, content.heroImageUrl3]} />
           <span className="hero-full-kicker"><span className="dot" />Nutrition &amp; Real Life</span>
           <div className="hero-full-content">
             <div className="hero-full-grid">
@@ -166,8 +168,9 @@ export default async function Home() {
         </section>
 
         {/* DIETITIAN */}
-        <section id="dietitian" style={{ background: "var(--paper)" }}>
+        <section id="dietitian">
           <div className="wrap">
+            <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 28, padding: "48px" }}>
             <Reveal className="dietitian" style={{ position: "relative" }}>
               <div className="photo ph-terra grain" style={{ position: "relative", ...(content.asthaPhotoUrl ? { backgroundImage: `url(${content.asthaPhotoUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : {}) }}>
                 <div className="luma-quote-card">
@@ -181,6 +184,7 @@ export default async function Home() {
                 <p className="bio">{content.asthaBio}</p>
               </div>
             </Reveal>
+            </div>
           </div>
         </section>
 
@@ -197,7 +201,13 @@ export default async function Home() {
         {/* FINAL CTA */}
         <div className="final-cta">
           <div className="wrap">
-            <Reveal className="luma-final-panel">
+            <Reveal
+              className="luma-final-panel"
+              style={content.finalCtaImageUrl ? {
+                backgroundImage: `linear-gradient(rgba(231,240,220,.72), rgba(231,240,220,.72)), url(${content.finalCtaImageUrl})`,
+                backgroundSize: "cover", backgroundPosition: "center",
+              } : undefined}
+            >
               <div>
                 <span className="luma-eyebrow">Ready When You Are</span>
                 <h2>365 days. One healthier you.</h2>
