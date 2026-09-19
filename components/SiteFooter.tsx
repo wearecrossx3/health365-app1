@@ -15,23 +15,16 @@ export default function SiteFooter() {
   }, []);
 
   return (
-    <footer>
-      <div className="wrap">
-        <div className="footer-grid">
-          <Link href="/#top" className="logo"><Logo variant="dark" height={24} customUrl={logoUrlDark} /></Link>
-          <div className="footer-links">
-            <Link href="/#how">How it works</Link>
-            <Link href="/conditions">Conditions</Link>
-            <Link href="/dietitians">Dietitians</Link>
-            <Link href="/#about">About</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/contact">Contact</Link>
-          </div>
-        </div>
-        <div className="foot-bottom">
-          <span>© 2026 Health365. General nutrition guidance, not a medical diagnosis.</span>
-          <span>Made with care in Gujarat.</span>
+    <footer style={{ padding: "36px 0" }}>
+      <div className="wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+        <Link href="/#top" className="logo"><Logo variant="dark" height={22} customUrl={logoUrlDark} /></Link>
+        <span style={{ fontSize: ".8rem", color: "var(--ink-soft)" }}>
+          © 2026 Health365. Thoughtful nutrition for every kitchen.
+        </span>
+        <div style={{ display: "flex", gap: 22 }}>
+          <Link href="/conditions" style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>Conditions</Link>
+          <Link href="/dietitians" style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>Dietitians</Link>
+          <Link href="/contact" style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>Contact</Link>
         </div>
       </div>
     </footer>
