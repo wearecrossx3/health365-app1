@@ -535,3 +535,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .icon-tile .icon-box img{ width:100%; height:100%; object-fit:cover; }
 .icon-tile .label{ font-size:.78rem; font-weight:600; color:var(--ink); line-height:1.3; }
+
+/* Conditions detail page — editorial redesign responsive stacking */
+@media (max-width:760px){
+  .cond-detail-head{ grid-template-columns:1fr !important; gap:28px !important; }
+  .cond-detail-lists{ grid-template-columns:1fr !important; gap:32px !important; }
+}

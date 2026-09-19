@@ -68,12 +68,14 @@ export default function ConditionsPage() {
     <>
       <SiteHeader />
       <main>
-        <div className="wrap" style={{ maxWidth: 980, paddingTop: 56, paddingBottom: 90 }}>
-          <div style={{ marginBottom: 44, maxWidth: 640 }}>
+        <div className="wrap" style={{ maxWidth: 980, paddingTop: 72, paddingBottom: 100 }}>
+          <div style={{ marginBottom: 64, maxWidth: 620 }}>
             <span className="eyebrow">Conditions</span>
-            <h1 style={{ fontSize: "clamp(2rem,4vw,2.8rem)" }}>Made for real-life health goals.</h1>
-            <p style={{ marginTop: 14, fontSize: "1.04rem" }}>
-              General nutrition guidance for common conditions — always paired with an option to talk to a qualified dietitian. Pick one to see what&apos;s inside.
+            <h1 style={{ fontSize: "clamp(2.1rem,4vw,2.9rem)", fontWeight: 500 }}>
+              Made for <em style={{ fontStyle: "italic", color: "var(--terracotta)" }}>real-life</em> health goals.
+            </h1>
+            <p style={{ marginTop: 18, fontSize: "1.05rem", lineHeight: 1.7 }}>
+              General nutrition guidance for common conditions — always paired with an option to talk to a qualified dietitian.
             </p>
           </div>
 
@@ -87,36 +89,47 @@ export default function ConditionsPage() {
           </div>
 
           {active && (
-            <div style={{ marginTop: 60 }}>
-              <div className="detail-head">
-                <div className={`photo ${active.photo} grain`} />
+            <div style={{ marginTop: 80, paddingTop: 64, borderTop: "1px solid var(--line)" }}>
+              <div className="cond-detail-head" style={{ display: "grid", gridTemplateColumns: ".55fr 1fr", gap: 56, alignItems: "center", marginBottom: 56 }}>
+                <div className={`photo ${active.photo} grain`} style={{ aspectRatio: "4/5" }} />
                 <div>
                   <span className="eyebrow">Condition guide</span>
-                  <h2>{active.name}</h2>
-                  <p>{active.overview}</p>
+                  <h2 style={{ fontSize: "clamp(1.9rem,3.6vw,2.6rem)", fontWeight: 500 }}>{active.name}</h2>
+                  <p style={{ marginTop: 16, fontSize: "1.05rem", lineHeight: 1.75, maxWidth: "58ch" }}>{active.overview}</p>
                 </div>
               </div>
-              <div className="detail-grid">
-                <div className="info-card">
-                  <h3>🩺 Nutrition considerations</h3>
-                  <ul>{active.considerations.map((i) => <li key={i}>{i}</li>)}</ul>
+
+              <div className="cond-detail-lists" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, marginBottom: 48 }}>
+                <div>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 16 }}>Generally include</h3>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {active.included.map((i) => <li key={i} style={{ fontSize: ".95rem", color: "var(--ink-soft)", marginBottom: 10, lineHeight: 1.6 }}>{i}</li>)}
+                  </ul>
                 </div>
-                <div className="info-card">
-                  <h3>✅ Foods commonly included</h3>
-                  <ul>{active.included.map((i) => <li key={i}>{i}</li>)}</ul>
-                </div>
-                <div className="info-card full">
-                  <h3>⚠️ Foods that may need moderation</h3>
-                  <ul>{active.moderation.map((i) => <li key={i}>{i}</li>)}</ul>
+                <div>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 16 }}>Worth moderating</h3>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {active.moderation.map((i) => <li key={i} style={{ fontSize: ".95rem", color: "var(--ink-soft)", marginBottom: 10, lineHeight: 1.6 }}>{i}</li>)}
+                  </ul>
                 </div>
               </div>
-              <div className="consult-note">
-                <p><b>When to consult a professional:</b> {active.consult}</p>
-                <a href="/consultation" className="pill pill-outline" style={{ padding: "9px 18px", fontSize: ".8rem" }}>Book a Consultation</a>
+
+              <div style={{ maxWidth: "62ch", padding: "24px 0", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", marginBottom: 40 }}>
+                <p style={{ fontSize: ".95rem", lineHeight: 1.7 }}>
+                  <b style={{ color: "var(--ink)" }}>When to consult a professional — </b>{active.consult}
+                </p>
               </div>
-              <div className="detail-cta">
-                <a href={`/consultation?goal=${encodeURIComponent("Manage a Condition")}`} className="pill pill-primary">Start a Consultation for {active.name}</a>
-                <button className="pill pill-outline" onClick={() => setActiveKey(null)}>Close</button>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+                <a href={`/consultation?goal=${encodeURIComponent("Manage a Condition")}`} className="pill pill-primary">
+                  Start a Consultation for {active.name}
+                </a>
+                <button
+                  onClick={() => setActiveKey(null)}
+                  style={{ background: "none", border: "none", fontSize: ".88rem", fontWeight: 600, color: "var(--ink-soft)", cursor: "pointer" }}
+                >
+                  Close
+                </button>
               </div>
             </div>
           )}
