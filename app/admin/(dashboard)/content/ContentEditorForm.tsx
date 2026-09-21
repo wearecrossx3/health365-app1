@@ -32,6 +32,8 @@ interface SiteContent {
   popupCtaLink: string;
   popupTrigger: "scroll" | "time";
   popupTriggerValue: number;
+  popupImageUrl: string;
+  popupHeadline: string;
 }
 
 const PROCESS_LABELS = ["Tell us about you", "Understand your needs", "Build your plan", "Keep moving"];
@@ -294,7 +296,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Offer popup</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
-          A small dismissible popup shown to visitors after they scroll or after a few seconds.
+          A centered popup with an email signup, shown to visitors after they scroll or after a few seconds.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
@@ -306,19 +308,23 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
             />
             <span style={{ fontWeight: 600, fontSize: ".9rem" }}>Show the popup on the site</span>
           </label>
+          <ImageUploadField
+            label="Popup image"
+            hint="optional — shown on the left side of the popup"
+            value={content.popupImageUrl}
+            onChange={(url) => update("popupImageUrl", url)}
+          />
+          <div className="field">
+            <label>Headline</label>
+            <input value={content.popupHeadline} onChange={(e) => update("popupHeadline", e.target.value)} placeholder="e.g. Unlock 10% Off Your First Consultation" />
+          </div>
           <div className="field">
             <label>Message</label>
-            <textarea rows={2} value={content.popupMessage} onChange={(e) => update("popupMessage", e.target.value)} placeholder="e.g. Your first consultation is free this month." />
+            <textarea rows={2} value={content.popupMessage} onChange={(e) => update("popupMessage", e.target.value)} placeholder="e.g. Sign up and we'll send you a code for your first consultation." />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>Button text</label>
-              <input value={content.popupCtaText} onChange={(e) => update("popupCtaText", e.target.value)} />
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>Button link</label>
-              <input value={content.popupCtaLink} onChange={(e) => update("popupCtaLink", e.target.value)} />
-            </div>
+          <div className="field">
+            <label>Button text</label>
+            <input value={content.popupCtaText} onChange={(e) => update("popupCtaText", e.target.value)} placeholder="Unlock Offer" />
           </div>
           <div className="field">
             <label>Show it when the visitor…</label>

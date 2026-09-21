@@ -148,6 +148,12 @@ export async function setDietitianStatus(
   await setJSON(dietitianKey(id), app);
 }
 
+export async function deleteDietitianApplication(id: string): Promise<void> {
+  const app = await getJSON<DietitianApplication>(dietitianKey(id));
+  await client().del(dietitianKey(id));
+  if (app) await client().del(dietitianByUserKey(app.userId));
+}
+
 // --- Appointments ---
 
 export interface Appointment {
@@ -235,6 +241,8 @@ export interface SiteContent {
   popupCtaLink: string;
   popupTrigger: "scroll" | "time";
   popupTriggerValue: number;
+  popupImageUrl: string;
+  popupHeadline: string;
   siteTitle: string;
   contactEmail: string;
   contactPhone: string;
@@ -281,6 +289,8 @@ const DEFAULT_CONTENT: SiteContent = {
   contactPhone: "",
   whatsappNumber: "",
   instagramUrl: "",
+  popupImageUrl: "",
+  popupHeadline: "",
 };
 
 export async function getSiteContent(): Promise<SiteContent> {

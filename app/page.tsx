@@ -197,15 +197,32 @@ export default async function Home() {
                 <span className="luma-eyebrow">What People Say</span>
                 <h2>Real stories, real routines.</h2>
               </Reveal>
-              <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(3, testimonials.length)}, 1fr)`, gap: 20, marginTop: 40 }}>
-                {testimonials.slice(0, 3).map((t) => (
-                  <div key={t.id} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 20, padding: 26 }}>
-                    <p style={{ fontSize: ".9rem", color: "var(--sage-deep)" }}>{"★".repeat(t.rating)}</p>
-                    <p style={{ fontSize: ".95rem", marginTop: 12, lineHeight: 1.6 }}>&quot;{t.quote}&quot;</p>
-                    <p style={{ fontSize: ".85rem", fontWeight: 600, marginTop: 16 }}>{t.name}</p>
-                    {t.role && <p style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>{t.role}</p>}
-                  </div>
-                ))}
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(3, testimonials.length)}, 1fr)`, gap: 18, marginTop: 40 }}>
+                {testimonials.slice(0, 3).map((t, i) => {
+                  const isSage = i % 2 === 1;
+                  return (
+                    <div
+                      key={t.id}
+                      style={{
+                        background: isSage ? "var(--sage)" : "#EFEAE0",
+                        borderRadius: 22, padding: 26,
+                        display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 230,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <span style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)" }}>
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span style={{ fontSize: "1.1rem" }}>↗</span>
+                      </div>
+                      <div style={{ marginTop: 20 }}>
+                        <p style={{ fontSize: ".95rem", fontWeight: 600, lineHeight: 1.3 }}>{t.name}</p>
+                        {t.role && <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 2 }}>{t.role}</p>}
+                        <p style={{ fontSize: ".88rem", marginTop: 10, lineHeight: 1.55 }}>&quot;{t.quote}&quot;</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>

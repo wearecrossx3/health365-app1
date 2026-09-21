@@ -83,7 +83,7 @@ export default async function AdminPage() {
                     >
                       {d.status === "approved" ? "Approved" : d.status === "rejected" ? "Rejected" : "Pending"}
                     </span>
-                    {d.status === "pending" && <DietitianActionButtons id={d.id} />}
+                    <DietitianActionButtons id={d.id} status={d.status} />
                   </div>
                 </div>
               ))}

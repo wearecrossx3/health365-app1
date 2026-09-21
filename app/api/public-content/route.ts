@@ -17,7 +17,9 @@ export async function GET() {
       goalImages: content.goalImages,
       popup: {
         enabled: content.popupEnabled,
+        headline: content.popupHeadline,
         message: content.popupMessage,
+        imageUrl: content.popupImageUrl,
         ctaText: content.popupCtaText,
         ctaLink: content.popupCtaLink,
         trigger: content.popupTrigger,
