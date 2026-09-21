@@ -4,6 +4,7 @@ import GoalCards from "@/components/GoalCards";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import { getSiteContent, listPublishedTestimonials } from "@/lib/kv";
 
 // Force this page to check the database fresh on every visit instead of
@@ -57,6 +58,7 @@ export default async function Home() {
         </div>
 
         {/* STATS */}
+        {content.sectionsEnabled.stats && (
         <div className="wrap">
           <Reveal className="luma-stats-row">
             <div className="luma-stats-nums">
@@ -70,8 +72,10 @@ export default async function Home() {
             </Link>
           </Reveal>
         </div>
+        )}
 
         {/* GOALS */}
+        {content.sectionsEnabled.goals && (
         <section id="goals">
           <div className="wrap">
             <Reveal className="section-head">
@@ -84,8 +88,10 @@ export default async function Home() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* WHY US */}
+        {content.sectionsEnabled.about && (
         <section style={{ background: "var(--paper)" }} id="about">
           <div className="wrap">
             <Reveal className="why-grid">
@@ -114,8 +120,10 @@ export default async function Home() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* CONDITIONS */}
+        {content.sectionsEnabled.conditions && (
         <section id="conditions">
           <div className="wrap">
             <Reveal className="section-head">
@@ -150,8 +158,10 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* HOW IT WORKS */}
+        {content.sectionsEnabled.how && (
         <section id="how" style={{ background: "var(--paper)" }}>
           <div className="wrap">
             <Reveal className="section-head">
@@ -167,8 +177,10 @@ export default async function Home() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* DIETITIAN */}
+        {content.sectionsEnabled.dietitian && (
         <section id="dietitian">
           <div className="wrap">
             <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 28, padding: "48px" }}>
@@ -188,47 +200,23 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* TESTIMONIALS */}
-        {testimonials.length > 0 && (
+        {content.sectionsEnabled.testimonials && testimonials.length > 0 && (
           <section style={{ background: "var(--paper)" }}>
             <div className="wrap">
               <Reveal className="section-head">
                 <span className="luma-eyebrow">What People Say</span>
                 <h2>Real stories, real routines.</h2>
               </Reveal>
-              <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(3, testimonials.length)}, 1fr)`, gap: 18, marginTop: 40 }}>
-                {testimonials.slice(0, 3).map((t, i) => {
-                  const isSage = i % 2 === 1;
-                  return (
-                    <div
-                      key={t.id}
-                      style={{
-                        background: isSage ? "var(--sage)" : "#EFEAE0",
-                        borderRadius: 22, padding: 26,
-                        display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 230,
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <span style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)" }}>
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span style={{ fontSize: "1.1rem" }}>↗</span>
-                      </div>
-                      <div style={{ marginTop: 20 }}>
-                        <p style={{ fontSize: ".95rem", fontWeight: 600, lineHeight: 1.3 }}>{t.name}</p>
-                        {t.role && <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 2 }}>{t.role}</p>}
-                        <p style={{ fontSize: ".88rem", marginTop: 10, lineHeight: 1.55 }}>&quot;{t.quote}&quot;</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <TestimonialsCarousel testimonials={testimonials} />
             </div>
           </section>
         )}
 
         {/* JOIN */}
+        {content.sectionsEnabled.join && (
         <section>
           <div className="wrap">
             <Reveal className="join luma-sage-bg">
@@ -237,6 +225,7 @@ export default async function Home() {
             </Reveal>
           </div>
         </section>
+        )}
 
       </main>
 

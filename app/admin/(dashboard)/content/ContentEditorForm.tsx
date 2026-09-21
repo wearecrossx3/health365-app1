@@ -3,6 +3,17 @@
 import { useState } from "react";
 import ImageUploadField from "./ImageUploadField";
 
+interface SectionVisibility {
+  stats: boolean;
+  goals: boolean;
+  about: boolean;
+  conditions: boolean;
+  how: boolean;
+  dietitian: boolean;
+  testimonials: boolean;
+  join: boolean;
+}
+
 interface SiteContent {
   asthaName: string;
   asthaRole: string;
@@ -34,7 +45,19 @@ interface SiteContent {
   popupTriggerValue: number;
   popupImageUrl: string;
   popupHeadline: string;
+  sectionsEnabled: SectionVisibility;
 }
+
+const SECTION_TOGGLES: { key: keyof SectionVisibility; label: string; hint: string }[] = [
+  { key: "stats", label: "Stats row", hint: "the \"365 / 6+ / 1:1\" strip right under the hero" },
+  { key: "goals", label: "\"What brings you here?\" goal cards", hint: "" },
+  { key: "about", label: "\"Not another diet chart\" section", hint: "" },
+  { key: "conditions", label: "Conditions tiles", hint: "" },
+  { key: "how", label: "\"How Health365 works\" steps", hint: "" },
+  { key: "dietitian", label: "Dr. Astha profile section", hint: "" },
+  { key: "testimonials", label: "Testimonials", hint: "also hidden automatically if none are published" },
+  { key: "join", label: "\"Join as a Dietitian\" banner", hint: "" },
+];
 
 const PROCESS_LABELS = ["Tell us about you", "Understand your needs", "Build your plan", "Keep moving"];
 const CONDITION_LABELS = ["Diabetes", "PCOS", "Thyroid", "Weight Management", "Cholesterol", "Digestive Health"];
@@ -54,6 +77,10 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
     const next = [...content[key]];
     next[index] = value;
     update(key, next);
+  }
+
+  function updateSection(key: keyof SectionVisibility, value: boolean) {
+    update("sectionsEnabled", { ...content.sectionsEnabled, [key]: value });
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -84,6 +111,29 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
           </button>
           {saved && <span style={{ color: "var(--teal-deep)", fontSize: ".88rem", fontWeight: 600 }}>✓ Saved — live on the site now</span>}
           {error && <span style={{ color: "var(--terracotta)", fontSize: ".88rem" }}>{error}</span>}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Homepage sections</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          Uncheck a section to hide it from the live homepage. The hero at the very top always stays visible.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {SECTION_TOGGLES.map(({ key, label, hint }) => (
+            <label key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={content.sectionsEnabled[key]}
+                onChange={(e) => updateSection(key, e.target.checked)}
+                style={{ width: 18, height: 18, marginTop: 1, flexShrink: 0 }}
+              />
+              <span>
+                <span style={{ fontWeight: 600, fontSize: ".9rem", display: "block" }}>{label}</span>
+                {hint && <span style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>{hint}</span>}
+              </span>
+            </label>
+          ))}
         </div>
       </div>
 

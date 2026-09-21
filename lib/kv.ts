@@ -212,6 +212,17 @@ export async function listAllAppointments(): Promise<Appointment[]> {
 // Lets the site owner update real text/photos from /admin/content
 // instead of asking for a code change every time.
 
+export interface SectionVisibility {
+  stats: boolean;
+  goals: boolean;
+  about: boolean;
+  conditions: boolean;
+  how: boolean;
+  dietitian: boolean;
+  testimonials: boolean;
+  join: boolean;
+}
+
 export interface SiteContent {
   asthaName: string;
   asthaRole: string;
@@ -248,6 +259,7 @@ export interface SiteContent {
   contactPhone: string;
   whatsappNumber: string;
   instagramUrl: string;
+  sectionsEnabled: SectionVisibility;
 }
 
 const SITE_CONTENT_KEY = "site_content";
@@ -291,11 +303,29 @@ const DEFAULT_CONTENT: SiteContent = {
   instagramUrl: "",
   popupImageUrl: "",
   popupHeadline: "",
+  sectionsEnabled: {
+    stats: true,
+    goals: true,
+    about: true,
+    conditions: true,
+    how: true,
+    dietitian: true,
+    testimonials: true,
+    join: true,
+  },
 };
 
 export async function getSiteContent(): Promise<SiteContent> {
   const stored = await getJSON<Partial<SiteContent>>(SITE_CONTENT_KEY);
-  return { ...DEFAULT_CONTENT, ...(stored || {}) };
+  return {
+    ...DEFAULT_CONTENT,
+    ...(stored || {}),
+    // Shallow-merged above would drop any section key missing from an older
+    // saved record (e.g. right after this field is introduced) — merge it
+    // one level deeper so a partial/missing sectionsEnabled still defaults
+    // every individual section to visible.
+    sectionsEnabled: { ...DEFAULT_CONTENT.sectionsEnabled, ...(stored?.sectionsEnabled || {}) },
+  };
 }
 
 export async function setSiteContent(content: SiteContent): Promise<void> {
