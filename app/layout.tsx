@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 import AuthModalProvider from "@/components/AuthModalProvider";
-import OfferPopup from "@/components/OfferPopup";
 import ActivityToast from "@/components/ActivityToast";
 import ThemeInjector from "@/components/ThemeInjector";
 
@@ -80,7 +79,6 @@ export default function RootLayout({
       <body className="font-body">
         <ThemeInjector />
         <AuthModalProvider>{children}</AuthModalProvider>
-        <OfferPopup />
         <ActivityToast />
       </body>
     </html>

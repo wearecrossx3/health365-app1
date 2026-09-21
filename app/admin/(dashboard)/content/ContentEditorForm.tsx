@@ -343,58 +343,6 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
         </div>
       </div>
 
-      <div className="panel">
-        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Offer popup</h2>
-        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
-          A centered popup with an email signup, shown to visitors after they scroll or after a few seconds.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-            <input
-              type="checkbox"
-              checked={content.popupEnabled}
-              onChange={(e) => update("popupEnabled", e.target.checked)}
-              style={{ width: 18, height: 18 }}
-            />
-            <span style={{ fontWeight: 600, fontSize: ".9rem" }}>Show the popup on the site</span>
-          </label>
-          <ImageUploadField
-            label="Popup image"
-            hint="optional — shown on the left side of the popup"
-            value={content.popupImageUrl}
-            onChange={(url) => update("popupImageUrl", url)}
-          />
-          <div className="field">
-            <label>Headline</label>
-            <input value={content.popupHeadline} onChange={(e) => update("popupHeadline", e.target.value)} placeholder="e.g. Unlock 10% Off Your First Consultation" />
-          </div>
-          <div className="field">
-            <label>Message</label>
-            <textarea rows={2} value={content.popupMessage} onChange={(e) => update("popupMessage", e.target.value)} placeholder="e.g. Sign up and we'll send you a code for your first consultation." />
-          </div>
-          <div className="field">
-            <label>Button text</label>
-            <input value={content.popupCtaText} onChange={(e) => update("popupCtaText", e.target.value)} placeholder="Unlock Offer" />
-          </div>
-          <div className="field">
-            <label>Show it when the visitor…</label>
-            <div className="toggle-group">
-              <span className={`toggle-opt${content.popupTrigger === "time" ? " on" : ""}`} onClick={() => update("popupTrigger", "time")}>Waits a few seconds</span>
-              <span className={`toggle-opt${content.popupTrigger === "scroll" ? " on" : ""}`} onClick={() => update("popupTrigger", "scroll")}>Scrolls down</span>
-            </div>
-          </div>
-          <div className="field">
-            <label>{content.popupTrigger === "time" ? "Seconds to wait" : "Percent scrolled"}</label>
-            <input
-              type="number"
-              value={content.popupTriggerValue}
-              onChange={(e) => update("popupTriggerValue", Number(e.target.value) || 0)}
-              style={{ maxWidth: 140 }}
-            />
-          </div>
-        </div>
-      </div>
-
       {error && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{error}</p>}
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <button type="submit" disabled={saving} className="pill pill-primary">

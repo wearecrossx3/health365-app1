@@ -7,13 +7,24 @@ import NewsletterPanel from "./NewsletterPanel";
 
 export default function SiteFooter() {
   const [logoUrlDark, setLogoUrlDark] = useState("");
+  const [contact, setContact] = useState({ contactEmail: "", contactPhone: "", whatsappNumber: "", instagramUrl: "" });
 
   useEffect(() => {
     fetch("/api/public-content")
       .then((r) => r.json())
-      .then((d) => setLogoUrlDark(d.logoUrlDark || ""))
+      .then((d) => {
+        setLogoUrlDark(d.logoUrlDark || "");
+        setContact({
+          contactEmail: d.contactEmail || "",
+          contactPhone: d.contactPhone || "",
+          whatsappNumber: d.whatsappNumber || "",
+          instagramUrl: d.instagramUrl || "",
+        });
+      })
       .catch(() => {});
   }, []);
+
+  const hasContact = contact.contactEmail || contact.contactPhone || contact.whatsappNumber || contact.instagramUrl;
 
   return (
     <footer style={{ width: "100%", background: "var(--paper)", paddingTop: 20 }}>
@@ -54,6 +65,34 @@ export default function SiteFooter() {
                 <Link href="/terms" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Terms of Service</Link>
               </div>
             </div>
+            {hasContact && (
+              <div>
+                <p style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 14 }}>Get in touch</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {contact.contactEmail && (
+                    <a href={`mailto:${contact.contactEmail}`} style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{contact.contactEmail}</a>
+                  )}
+                  {contact.contactPhone && (
+                    <a href={`tel:${contact.contactPhone}`} style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{contact.contactPhone}</a>
+                  )}
+                  {contact.whatsappNumber && (
+                    <a
+                      href={`https://wa.me/${contact.whatsappNumber.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}
+                    >
+                      WhatsApp us
+                    </a>
+                  )}
+                  {contact.instagramUrl && (
+                    <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>
+                      Instagram
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

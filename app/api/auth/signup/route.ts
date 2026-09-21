@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { getUserByEmail, createUser } from "@/lib/kv";
 import { hashPassword } from "@/lib/auth";
 import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "@/lib/session";
+import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -29,6 +30,22 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await createUser(user);
+
+    // Let the owner know a new member joined — same notification path as
+    // a contact message, so it needs no extra setup beyond RESEND_API_KEY
+    // and ADMIN_EMAILS already being set in Vercel.
+    const admins = getAdminEmails();
+    if (admins.length > 0) {
+      await sendEmail({
+        to: admins,
+        subject: `New Health365 member: ${user.name}`,
+        html: emailWrapper(
+          "New member joined Health365",
+          `<p>A new account was just created on the site.</p>
+           <p><b>Name:</b> ${user.name}<br/><b>Email:</b> ${user.email}<br/><b>Joined:</b> ${new Date(user.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>`
+        ),
+      }).catch(() => {});
+    }
 
     const cookieValue = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
     const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });

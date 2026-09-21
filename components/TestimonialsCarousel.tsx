@@ -1,17 +1,33 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Testimonial {
   id: string;
   name: string;
   role: string;
   quote: string;
+  rating?: number;
+}
+
+const SLIDE_MS = 3500;
+
+function Stars({ rating }: { rating: number }) {
+  const value = Math.max(0, Math.min(5, Math.round(rating || 0)));
+  if (value === 0) return null;
+  return (
+    <div style={{ display: "flex", gap: 2, marginTop: 2 }} aria-label={`${value} out of 5 stars`}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <span key={i} style={{ fontSize: ".78rem", color: i < value ? "#E8A33D" : "var(--line)" }}>★</span>
+      ))}
+    </div>
+  );
 }
 
 export default function TestimonialsCarousel({ testimonials }: { testimonials: Testimonial[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  const pausedRef = useRef(false);
 
   function scrollToIndex(i: number) {
     const track = trackRef.current;
@@ -23,33 +39,35 @@ export default function TestimonialsCarousel({ testimonials }: { testimonials: T
     setActive(i);
   }
 
-  function shift(dir: number) {
-    scrollToIndex(Math.max(0, Math.min(testimonials.length - 1, active + dir)));
-  }
-
-  // Keeps the dots/arrows in sync when the visitor drags/swipes the
-  // track directly instead of using the buttons.
-  function handleScroll() {
-    const track = trackRef.current;
-    if (!track) return;
-    let closest = 0;
-    let minDist = Infinity;
-    Array.from(track.children).forEach((child, i) => {
-      const el = child as HTMLElement;
-      const dist = Math.abs(el.offsetLeft - track.offsetLeft - track.scrollLeft);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = i;
-      }
-    });
-    setActive(closest);
-  }
+  // Auto-advances on its own, like a slideshow — loops back to the start
+  // after the last card. Pauses while the visitor's cursor is over it or
+  // they're dragging/swiping the track by hand.
+  useEffect(() => {
+    if (testimonials.length < 2) return;
+    const t = setInterval(() => {
+      if (pausedRef.current) return;
+      setActive((i) => {
+        const next = (i + 1) % testimonials.length;
+        const track = trackRef.current;
+        const card = track?.children[next] as HTMLElement | undefined;
+        if (track && card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: "smooth" });
+        return next;
+      });
+    }, SLIDE_MS);
+    return () => clearInterval(t);
+  }, [testimonials.length]);
 
   if (testimonials.length === 0) return null;
 
   return (
-    <div style={{ position: "relative" }}>
-      <div ref={trackRef} onScroll={handleScroll} className="testimonial-track">
+    <div
+      style={{ position: "relative" }}
+      onMouseEnter={() => (pausedRef.current = true)}
+      onMouseLeave={() => (pausedRef.current = false)}
+      onTouchStart={() => (pausedRef.current = true)}
+      onTouchEnd={() => (pausedRef.current = false)}
+    >
+      <div ref={trackRef} className="testimonial-track">
         {testimonials.map((t, i) => {
           const isSage = i % 2 === 1;
           return (
@@ -73,6 +91,7 @@ export default function TestimonialsCarousel({ testimonials }: { testimonials: T
               <div style={{ marginTop: 14 }}>
                 <p style={{ fontSize: ".88rem", fontWeight: 600, lineHeight: 1.3 }}>{t.name}</p>
                 {t.role && <p style={{ fontSize: ".72rem", color: "var(--ink-soft)", marginTop: 2 }}>{t.role}</p>}
+                <Stars rating={t.rating || 0} />
                 <p style={{ fontSize: ".82rem", marginTop: 8, lineHeight: 1.5 }}>&quot;{t.quote}&quot;</p>
               </div>
             </div>
@@ -81,29 +100,15 @@ export default function TestimonialsCarousel({ testimonials }: { testimonials: T
       </div>
 
       {testimonials.length > 1 && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 22 }}>
-          <button type="button" onClick={() => shift(-1)} disabled={active === 0} aria-label="Previous testimonial" className="carousel-arrow">
-            ←
-          </button>
-          <div style={{ display: "flex", gap: 6 }}>
-            {testimonials.map((_, i) => (
-              <span
-                key={i}
-                onClick={() => scrollToIndex(i)}
-                className="carousel-dot"
-                style={{ width: i === active ? 18 : 6, background: i === active ? "var(--ink)" : "var(--line)" }}
-              />
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => shift(1)}
-            disabled={active === testimonials.length - 1}
-            aria-label="Next testimonial"
-            className="carousel-arrow"
-          >
-            →
-          </button>
+        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 20 }}>
+          {testimonials.map((_, i) => (
+            <span
+              key={i}
+              onClick={() => scrollToIndex(i)}
+              className="carousel-dot"
+              style={{ width: i === active ? 18 : 6, background: i === active ? "var(--ink)" : "var(--line)" }}
+            />
+          ))}
         </div>
       )}
     </div>

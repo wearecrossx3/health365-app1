@@ -15,6 +15,10 @@ export async function GET() {
       processImages: content.processImages,
       conditionImages: content.conditionImages,
       goalImages: content.goalImages,
+      contactEmail: content.contactEmail,
+      contactPhone: content.contactPhone,
+      whatsappNumber: content.whatsappNumber,
+      instagramUrl: content.instagramUrl,
       popup: {
         enabled: content.popupEnabled,
         headline: content.popupHeadline,
