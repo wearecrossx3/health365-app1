@@ -7,6 +7,9 @@ export async function GET() {
     return NextResponse.json({
       logoUrlLight: content.logoUrlLight,
       logoUrlDark: content.logoUrlDark,
+      themeAccentColor: content.themeAccentColor,
+      themeButtonColor: content.themeButtonColor,
+      heroTextOffsetY: content.heroTextOffsetY,
       finalCtaImageUrl: content.finalCtaImageUrl,
       approachImageUrl: content.approachImageUrl,
       processImages: content.processImages,

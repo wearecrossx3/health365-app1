@@ -18,6 +18,9 @@ interface SiteContent {
   goalLabels: string[];
   logoUrlLight: string;
   logoUrlDark: string;
+  themeAccentColor: string;
+  themeButtonColor: string;
+  heroTextOffsetY: number;
   finalCtaImageUrl: string;
   approachImageUrl: string;
   processImages: string[];
@@ -104,10 +107,42 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       </div>
 
       <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Site colors</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          Changes the sage-green accent and the black buttons/text used across the site. Pick a dark color for
+          "Button &amp; text color" — a light one will make text hard to read.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          <div className="field">
+            <label>Accent color</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <input type="color" value={content.themeAccentColor} onChange={(e) => update("themeAccentColor", e.target.value)} style={{ width: 44, height: 38, padding: 2, border: "1px solid var(--line)", borderRadius: 8 }} />
+              <input value={content.themeAccentColor} onChange={(e) => update("themeAccentColor", e.target.value)} style={{ flex: 1 }} />
+            </div>
+          </div>
+          <div className="field">
+            <label>Button &amp; text color</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <input type="color" value={content.themeButtonColor} onChange={(e) => update("themeButtonColor", e.target.value)} style={{ width: 44, height: 38, padding: 2, border: "1px solid var(--line)", borderRadius: 8 }} />
+              <input value={content.themeButtonColor} onChange={(e) => update("themeButtonColor", e.target.value)} style={{ flex: 1 }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Hero image</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
           Add up to 3 — with more than one, the hero automatically becomes a slideshow that fades between them.
         </p>
+        <div className="field">
+          <label>Text position</label>
+          <div className="toggle-group">
+            <span className={`toggle-opt${content.heroTextOffsetY < 0 ? " on" : ""}`} onClick={() => update("heroTextOffsetY", -1)}>Top</span>
+            <span className={`toggle-opt${content.heroTextOffsetY === 0 ? " on" : ""}`} onClick={() => update("heroTextOffsetY", 0)}>Center</span>
+            <span className={`toggle-opt${content.heroTextOffsetY > 0 ? " on" : ""}`} onClick={() => update("heroTextOffsetY", 1)}>Bottom</span>
+          </div>
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <ImageUploadField
             label="Hero background photo 1"

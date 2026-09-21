@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthModalProvider from "@/components/AuthModalProvider";
 import OfferPopup from "@/components/OfferPopup";
 import ActivityToast from "@/components/ActivityToast";
+import ThemeInjector from "@/components/ThemeInjector";
 
 const heading = Fredoka({
   subsets: ["latin"],
@@ -77,6 +78,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body">
+        <ThemeInjector />
         <AuthModalProvider>{children}</AuthModalProvider>
         <OfferPopup />
         <ActivityToast />

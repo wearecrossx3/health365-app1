@@ -25,7 +25,7 @@ export default async function Home() {
         <div
           className={`hero-full${content.heroImageUrl || content.heroImageUrl2 || content.heroImageUrl3 ? "" : " ph-teal grain"}`}
           id="hero"
-          style={{ position: "relative" }}
+          style={{ position: "relative", justifyContent: content.heroTextOffsetY < 0 ? "flex-start" : content.heroTextOffsetY > 0 ? "flex-end" : "center" }}
         >
           <HeroSlider images={[content.heroImageUrl, content.heroImageUrl2, content.heroImageUrl3]} />
           <span className="hero-full-kicker"><span className="dot" />Nutrition &amp; Real Life</span>
@@ -198,27 +198,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* FINAL CTA */}
-        <div className="final-cta">
-          <div className="wrap">
-            <Reveal
-              className="luma-final-panel"
-              style={content.finalCtaImageUrl ? {
-                backgroundImage: `linear-gradient(rgba(231,240,220,.72), rgba(231,240,220,.72)), url(${content.finalCtaImageUrl})`,
-                backgroundSize: "cover", backgroundPosition: "center",
-              } : undefined}
-            >
-              <div>
-                <span className="luma-eyebrow">Ready When You Are</span>
-                <h2>365 days. One healthier you.</h2>
-              </div>
-              <div className="cta-col">
-                <Link href="/consultation" className="luma-pill">Start Free Consultation <span>→</span></Link>
-                <p>No pressure. Just friendly advice and a plan that feels right.</p>
-              </div>
-            </Reveal>
-          </div>
-        </div>
       </main>
 
       <SiteFooter />

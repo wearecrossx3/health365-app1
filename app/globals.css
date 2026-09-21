@@ -548,8 +548,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* ---------------------------------------------------------------- */
 :root{
   --sage:#E7F0DC;
-  --sage-mid:#CFE2B8;
-  --sage-deep:#5E7F42;
+  --sage-mid:color-mix(in srgb, var(--sage) 78%, black);
+  --sage-deep:color-mix(in srgb, var(--sage) 45%, black);
 }
 .luma-eyebrow{
   font-size:.8rem; font-weight:700; color:var(--sage-deep); text-transform:uppercase; letter-spacing:.05em;

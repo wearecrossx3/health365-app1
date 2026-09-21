@@ -221,6 +221,9 @@ export interface SiteContent {
   goalLabels: string[];
   logoUrlLight: string;
   logoUrlDark: string;
+  themeAccentColor: string;
+  themeButtonColor: string;
+  heroTextOffsetY: number;
   finalCtaImageUrl: string;
   approachImageUrl: string;
   processImages: string[];
@@ -254,6 +257,9 @@ const DEFAULT_CONTENT: SiteContent = {
   goalLabels: ["Lose Weight", "Gain Weight", "Eat Better", "Manage a Condition"],
   logoUrlLight: "",
   logoUrlDark: "",
+  themeAccentColor: "#E7F0DC",
+  themeButtonColor: "#20241F",
+  heroTextOffsetY: 0,
   finalCtaImageUrl: "",
   approachImageUrl: "",
   processImages: ["", "", "", ""],

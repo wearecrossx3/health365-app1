@@ -67,9 +67,21 @@ export default function ImageUploadField({
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="or paste an image URL" />
 
       {value && (
-        <div style={{ borderRadius: 12, overflow: "hidden", marginTop: 10, aspectRatio: "16/9", maxWidth: 280 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <div style={{ marginTop: 10 }}>
+          <div style={{ borderRadius: 12, overflow: "hidden", aspectRatio: "16/9", maxWidth: 280, position: "relative" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            style={{
+              marginTop: 8, background: "none", border: "none", color: "var(--terracotta)",
+              fontSize: ".78rem", fontWeight: 700, cursor: "pointer", padding: 0,
+            }}
+          >
+            ✕ Remove this image
+          </button>
         </div>
       )}
     </div>
