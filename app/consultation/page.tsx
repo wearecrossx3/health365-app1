@@ -79,7 +79,13 @@ function ConsultationForm() {
       .finally(() => setCheckedAuth(true));
   }, []);
 
-  if (!checkedAuth) return null;
+  if (!checkedAuth) {
+    return (
+      <div className="wrap" style={{ paddingTop: 60, paddingBottom: 60, maxWidth: 560 }}>
+        <div className="step-card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>Loading…</div>
+      </div>
+    );
+  }
 
   if (!loggedIn) {
     return (

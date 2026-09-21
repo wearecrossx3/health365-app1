@@ -29,7 +29,7 @@ export default function NewsletterPanel() {
   return (
     <div className="newsletter-panel">
       <div style={{ maxWidth: 340 }}>
-        <h2 style={{ color: "#fff", fontSize: "1.7rem" }}>Subscribe our newsletter</h2>
+        <h2 style={{ color: "#fff", fontSize: "1.7rem" }}>Subscribe to our newsletter</h2>
         <p style={{ color: "rgba(255,255,255,.65)", marginTop: 12, fontSize: ".9rem" }}>
           Subscribe to our newsletter and be the first to receive nutrition tips, new conditions guides, and updates from Health365.
         </p>

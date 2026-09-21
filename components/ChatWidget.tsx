@@ -48,7 +48,7 @@ export default function ChatWidget() {
       {open && (
         <div
           style={{
-            position: "absolute", bottom: 66, left: 0, width: 300,
+            position: "absolute", bottom: 66, left: 0, width: 300, maxWidth: "calc(100vw - 48px)",
             background: "#fff", borderRadius: 18, border: "1px solid var(--line)",
             boxShadow: "0 24px 48px -16px rgba(0,0,0,.25)", padding: 20,
           }}

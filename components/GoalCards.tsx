@@ -38,17 +38,14 @@ export default function GoalCards({ labels }: { labels?: string[] }) {
           </div>
         ))}
       </div>
-      <p style={{ marginTop: 26, opacity: selected ? 1 : 0, transition: "opacity .3s ease" }}>
-        Good pick — we&apos;ll shape your consultation around <strong>{selected}</strong>.
-        {selected && (
-          <>
-            {" "}
-            <Link href={`/consultation?goal=${encodeURIComponent(selected)}`} style={{ color: "var(--sage-deep)", fontWeight: 600 }}>
-              Continue →
-            </Link>
-          </>
-        )}
-      </p>
+      {selected && (
+        <p style={{ marginTop: 26, animation: "revealUp .4s ease" }}>
+          Good pick — we&apos;ll shape your consultation around <strong>{selected}</strong>.{" "}
+          <Link href={`/consultation?goal=${encodeURIComponent(selected)}`} style={{ color: "var(--sage-deep)", fontWeight: 600 }}>
+            Continue →
+          </Link>
+        </p>
+      )}
     </>
   );
 }

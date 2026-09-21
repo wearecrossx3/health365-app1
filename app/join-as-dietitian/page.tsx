@@ -68,8 +68,6 @@ export default function JoinAsDietitianPage() {
     setStatus("pending");
   }
 
-  if (!checkedAuth) return null;
-
   return (
     <>
       <SiteHeader />
@@ -83,7 +81,11 @@ export default function JoinAsDietitianPage() {
             </p>
           </Reveal>
 
-          {!loggedIn ? (
+          {!checkedAuth ? (
+            <div className="step-card" style={{ marginTop: 32, textAlign: "center", color: "var(--ink-soft)" }}>
+              Loading…
+            </div>
+          ) : !loggedIn ? (
             <div className="step-card" style={{ marginTop: 32, textAlign: "center" }}>
               <h2 style={{ fontSize: "1.4rem", marginBottom: 10 }}>Log in to apply</h2>
               <p style={{ marginBottom: 22 }}>Create a free account so we can review and contact you about your application.</p>
