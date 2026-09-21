@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { listAllUsers, listAllConsultations, listAllDietitianApplications, listAllAppointments } from "@/lib/kv";
-import MarkReviewedButton from "./MarkReviewedButton";
+import ConsultationRow from "./ConsultationRow";
+import AppointmentRow from "./AppointmentRow";
 import DietitianActionButtons from "./DietitianActionButtons";
 
 export default async function AdminPage() {
@@ -96,37 +97,7 @@ export default async function AdminPage() {
             <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No consultations submitted yet.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {consultations.map((c) => {
-                const flagged = c.conditions.length > 0;
-                return (
-                  <div
-                    key={c.id}
-                    style={{
-                      border: "1.5px solid var(--line)", borderRadius: 14, padding: "14px 18px",
-                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap",
-                      background: flagged && c.status === "submitted" ? "#F7E7DC" : "#fff",
-                    }}
-                  >
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: ".92rem" }}>{c.goal} · {c.dietType}</p>
-                      <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 4 }}>
-                        {new Date(c.createdAt).toLocaleDateString()} · Allergies: {c.allergens.join(", ") || "none"} · Conditions: {c.conditions.join(", ") || "none"}
-                      </p>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span
-                        style={{
-                          fontSize: ".72rem", fontWeight: 700, padding: "5px 11px", borderRadius: 100,
-                          background: c.status === "reviewed" ? "var(--teal)" : "var(--ink)", color: "#fff",
-                        }}
-                      >
-                        {c.status === "reviewed" ? "Reviewed" : "Pending"}
-                      </span>
-                      {c.status !== "reviewed" && <MarkReviewedButton id={c.id} />}
-                    </div>
-                  </div>
-                );
-              })}
+              {consultations.map((c) => <ConsultationRow key={c.id} c={c} />)}
             </div>
           )}
         </div>
@@ -137,15 +108,7 @@ export default async function AdminPage() {
             <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No appointments booked yet.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {appointments.map((a) => (
-                <div key={a.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--line)", padding: "10px 0", fontSize: ".88rem", flexWrap: "wrap", gap: 6 }}>
-                  <span style={{ fontWeight: 600 }}>{a.userName} → {a.dietitianName}</span>
-                  <span style={{ color: "var(--ink-soft)" }}>{new Date(a.date).toLocaleDateString()} · {a.time}</span>
-                  <span style={{ fontSize: ".72rem", fontWeight: 700, color: a.status === "booked" ? "var(--teal-deep)" : "var(--terracotta)" }}>
-                    {a.status === "booked" ? "Booked" : "Cancelled"}
-                  </span>
-                </div>
-              ))}
+              {appointments.map((a) => <AppointmentRow key={a.id} a={a} />)}
             </div>
           )}
         </div>

@@ -235,6 +235,11 @@ export interface SiteContent {
   popupCtaLink: string;
   popupTrigger: "scroll" | "time";
   popupTriggerValue: number;
+  siteTitle: string;
+  contactEmail: string;
+  contactPhone: string;
+  whatsappNumber: string;
+  instagramUrl: string;
 }
 
 const SITE_CONTENT_KEY = "site_content";
@@ -271,6 +276,11 @@ const DEFAULT_CONTENT: SiteContent = {
   popupCtaLink: "/consultation",
   popupTrigger: "time",
   popupTriggerValue: 3,
+  siteTitle: "Health365",
+  contactEmail: "",
+  contactPhone: "",
+  whatsappNumber: "",
+  instagramUrl: "",
 };
 
 export async function getSiteContent(): Promise<SiteContent> {
@@ -307,6 +317,28 @@ export async function markConsultationReviewed(id: string): Promise<void> {
   await setJSON(consultationKey(id), c);
 }
 
+export async function deleteConsultation(id: string): Promise<void> {
+  const c = await getJSON<Consultation>(consultationKey(id));
+  await client().del(consultationKey(id));
+  if (c) await client().lrem(userConsultationsKey(c.userId), 0, id);
+}
+
+export async function deleteAppointment(id: string): Promise<void> {
+  const a = await getJSON<Appointment>(appointmentKey(id));
+  await client().del(appointmentKey(id));
+  if (a) {
+    await client().lrem(userAppointmentsKey(a.userId), 0, id);
+    await client().lrem(dietitianAppointmentsKey(a.dietitianId), 0, id);
+  }
+}
+
+export async function updateAppointmentStatus(id: string, status: "booked" | "cancelled"): Promise<void> {
+  const a = await getJSON<Appointment>(appointmentKey(id));
+  if (!a) return;
+  a.status = status;
+  await setJSON(appointmentKey(id), a);
+}
+
 // --- Newsletter signups ---
 
 export async function addNewsletterSubscriber(email: string): Promise<void> {
@@ -315,4 +347,48 @@ export async function addNewsletterSubscriber(email: string): Promise<void> {
 
 export async function listNewsletterSubscribers(): Promise<string[]> {
   return client().smembers("newsletter_subscribers");
+}
+
+// --- Testimonials (admin-entered, real, published-controlled) ---
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string; // e.g. "Lost 8kg in 6 months" or "Managing PCOS"
+  quote: string;
+  rating: number; // 1-5
+  photoUrl: string;
+  published: boolean;
+  createdAt: string;
+}
+
+const testimonialKey = (id: string) => `testimonial:${id}`;
+
+export async function saveTestimonial(t: Testimonial): Promise<void> {
+  await setJSON(testimonialKey(t.id), t);
+}
+
+export async function listAllTestimonials(): Promise<Testimonial[]> {
+  const keys = await client().keys("testimonial:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<Testimonial>(k)));
+  return results
+    .filter((t): t is Testimonial => t !== null)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function listPublishedTestimonials(): Promise<Testimonial[]> {
+  const all = await listAllTestimonials();
+  return all.filter((t) => t.published);
+}
+
+export async function setTestimonialPublished(id: string, published: boolean): Promise<void> {
+  const t = await getJSON<Testimonial>(testimonialKey(id));
+  if (!t) return;
+  t.published = published;
+  await setJSON(testimonialKey(id), t);
+}
+
+export async function deleteTestimonial(id: string): Promise<void> {
+  await client().del(testimonialKey(id));
 }

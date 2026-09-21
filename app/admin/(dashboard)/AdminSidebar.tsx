@@ -8,6 +8,8 @@ const NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
   { href: "/admin/content", label: "Site Content", icon: "📝" },
   { href: "/admin/media", label: "Media Library", icon: "🖼️" },
+  { href: "/admin/testimonials", label: "Testimonials", icon: "💬" },
+  { href: "/admin/settings", label: "Website Settings", icon: "⚙️" },
 ];
 
 export default function AdminSidebar({ adminName }: { adminName: string }) {
@@ -54,7 +56,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
           <p style={{ fontSize: ".72rem", fontWeight: 700, color: "rgba(255,255,255,.35)", textTransform: "uppercase", letterSpacing: ".04em", padding: "0 12px", marginBottom: 8 }}>
             Coming soon
           </p>
-          {["Testimonials", "Blog / Articles", "Website Settings", "Admin Users"].map((label) => (
+          {["Blog / Articles", "Admin Users"].map((label) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 12px", fontSize: ".84rem", color: "rgba(255,255,255,.28)" }}>
               {label}
             </div>

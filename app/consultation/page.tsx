@@ -53,6 +53,7 @@ function ConsultationForm() {
 
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
+  const [phone, setPhone] = useState("");
   const [gender, setGender] = useState<string[]>([]);
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -96,7 +97,7 @@ function ConsultationForm() {
   }
 
   function validate(): boolean {
-    if (step === 1 && (!fullName.trim() || !age || gender.length === 0)) { setError("Please fill in the required fields."); return false; }
+    if (step === 1 && (!fullName.trim() || !age || !phone.trim() || gender.length === 0)) { setError("Please fill in the required fields."); return false; }
     if (step === 2 && (!height || !weight)) { setError("Please enter your height and weight."); return false; }
     if (step === 3 && activity.length === 0) { setError("Please select your activity level."); return false; }
     if (step === 4 && goal.length === 0) { setError("Please choose a goal."); return false; }
@@ -118,7 +119,7 @@ function ConsultationForm() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        fullName, age, gender: gender[0], height, weight, activity: activity[0],
+        fullName, age, phone, gender: gender[0], height, weight, activity: activity[0],
         goal: goal[0], dietType: dietType[0], allergens, conditions,
       }),
     });
@@ -176,6 +177,10 @@ function ConsultationForm() {
               <div className="field" style={{ marginBottom: 20 }}>
                 <label>Age</label>
                 <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="e.g. 29" />
+              </div>
+              <div className="field" style={{ marginBottom: 20 }}>
+                <label>Mobile number</label>
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 98765 43210" />
               </div>
               <div className="field">
                 <label>Gender</label>
@@ -253,6 +258,7 @@ function ConsultationForm() {
               <p style={{ marginBottom: 26 }}>You can go back and change anything.</p>
               <div className="summary-grid">
                 <div className="summary-card"><div className="lbl">Name</div><div className="val">{fullName || "—"}</div></div>
+                <div className="summary-card"><div className="lbl">Mobile</div><div className="val">{phone || "—"}</div></div>
                 <div className="summary-card"><div className="lbl">Age / Gender</div><div className="val">{age || "—"} · {gender[0] || "—"}</div></div>
                 <div className="summary-card"><div className="lbl">Height / Weight</div><div className="val">{height || "—"}cm · {weight || "—"}kg</div></div>
                 <div className="summary-card"><div className="lbl">Activity</div><div className="val">{activity[0] || "—"}</div></div>

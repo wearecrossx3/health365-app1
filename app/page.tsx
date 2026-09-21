@@ -4,7 +4,7 @@ import GoalCards from "@/components/GoalCards";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
-import { getSiteContent } from "@/lib/kv";
+import { getSiteContent, listPublishedTestimonials } from "@/lib/kv";
 
 // Force this page to check the database fresh on every visit instead of
 // caching a static version — otherwise changes made in /admin/content
@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const content = await getSiteContent();
+  const testimonials = await listPublishedTestimonials();
   function imgStyle(url: string) {
     return url ? { backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined;
   }
@@ -187,6 +188,28 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* TESTIMONIALS */}
+        {testimonials.length > 0 && (
+          <section style={{ background: "var(--paper)" }}>
+            <div className="wrap">
+              <Reveal className="section-head">
+                <span className="luma-eyebrow">What People Say</span>
+                <h2>Real stories, real routines.</h2>
+              </Reveal>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(3, testimonials.length)}, 1fr)`, gap: 20, marginTop: 40 }}>
+                {testimonials.slice(0, 3).map((t) => (
+                  <div key={t.id} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 20, padding: 26 }}>
+                    <p style={{ fontSize: ".9rem", color: "var(--sage-deep)" }}>{"★".repeat(t.rating)}</p>
+                    <p style={{ fontSize: ".95rem", marginTop: 12, lineHeight: 1.6 }}>&quot;{t.quote}&quot;</p>
+                    <p style={{ fontSize: ".85rem", fontWeight: 600, marginTop: 16 }}>{t.name}</p>
+                    {t.role && <p style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>{t.role}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* JOIN */}
         <section>
