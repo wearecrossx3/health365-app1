@@ -6,7 +6,7 @@ import { isAdmin } from "@/lib/admin";
 export async function GET(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
-  if (!isAdmin(session)) {
+  if (!(await isAdmin(session, "media"))) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
   try {
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
-  if (!isAdmin(session)) {
+  if (!(await isAdmin(session, "media"))) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
   const body = await req.json().catch(() => null);

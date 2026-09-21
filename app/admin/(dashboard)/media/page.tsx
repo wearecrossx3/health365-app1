@@ -1,6 +1,15 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
+import { getAdminAccess, defaultAdminPath } from "@/lib/admin";
 import MediaGrid from "./MediaGrid";
 
-export default function MediaLibraryPage() {
+export default async function MediaLibraryPage() {
+  const cookieStore = cookies();
+  const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
+  const access = await getAdminAccess(session);
+  if (!access.permissions.includes("media")) redirect(access.allowed ? defaultAdminPath(access.permissions) : "/admin/login");
+
   return (
     <main style={{ padding: "48px 32px" }}>
       <div style={{ maxWidth: 1000 }}>

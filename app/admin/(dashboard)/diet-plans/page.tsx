@@ -1,14 +1,15 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
-import { isAdmin } from "@/lib/admin";
+import { getAdminAccess, defaultAdminPath } from "@/lib/admin";
 import { listAllDietTemplates } from "@/lib/kv";
 import DietPlansManager from "./DietPlansManager";
 
 export default async function AdminDietPlansPage() {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
-  if (!isAdmin(session)) redirect("/admin/login");
+  const access = await getAdminAccess(session);
+  if (!access.permissions.includes("diet-plans")) redirect(access.allowed ? defaultAdminPath(access.permissions) : "/admin/login");
 
   const templates = await listAllDietTemplates();
 

@@ -5,18 +5,27 @@ import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 
 const NAV = [
-  { href: "/admin", label: "Dashboard", icon: "📊" },
-  { href: "/admin/content", label: "Site Content", icon: "📝" },
-  { href: "/admin/media", label: "Media Library", icon: "🖼️" },
-  { href: "/admin/testimonials", label: "Testimonials", icon: "💬" },
-  { href: "/admin/diet-plans", label: "Diet Plan Templates", icon: "🥗" },
-  { href: "/admin/messages", label: "Messages", icon: "✉️" },
-  { href: "/admin/settings", label: "Website Settings", icon: "⚙️" },
+  { href: "/admin", label: "Dashboard", icon: "📊", permission: "dashboard" },
+  { href: "/admin/content", label: "Site Content", icon: "📝", permission: "content" },
+  { href: "/admin/media", label: "Media Library", icon: "🖼️", permission: "media" },
+  { href: "/admin/testimonials", label: "Testimonials", icon: "💬", permission: "testimonials" },
+  { href: "/admin/diet-plans", label: "Diet Plan Templates", icon: "🥗", permission: "diet-plans" },
+  { href: "/admin/messages", label: "Messages", icon: "✉️", permission: "messages" },
+  { href: "/admin/settings", label: "Website Settings", icon: "⚙️", permission: "settings" },
 ];
 
-export default function AdminSidebar({ adminName }: { adminName: string }) {
+export default function AdminSidebar({
+  adminName,
+  permissions,
+  isSuperAdmin,
+}: {
+  adminName: string;
+  permissions: string[];
+  isSuperAdmin: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
+  const visibleNav = NAV.filter((item) => permissions.includes(item.permission));
 
   async function handleLogout() {
     await fetch("/api/auth/admin-logout", { method: "POST" });
@@ -37,7 +46,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
       </div>
 
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-        {NAV.map((item) => {
+        {visibleNav.map((item) => {
           const active = pathname === item.href;
           return (
             <Link
@@ -54,16 +63,24 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
           );
         })}
 
-        <div style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.08)" }}>
-          <p style={{ fontSize: ".72rem", fontWeight: 700, color: "rgba(255,255,255,.35)", textTransform: "uppercase", letterSpacing: ".04em", padding: "0 12px", marginBottom: 8 }}>
-            Coming soon
-          </p>
-          {["Blog / Articles", "Admin Users"].map((label) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 12px", fontSize: ".84rem", color: "rgba(255,255,255,.28)" }}>
-              {label}
-            </div>
-          ))}
-        </div>
+        {isSuperAdmin && (
+          <div style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,.08)" }}>
+            <p style={{ fontSize: ".72rem", fontWeight: 700, color: "rgba(255,255,255,.35)", textTransform: "uppercase", letterSpacing: ".04em", padding: "0 12px", marginBottom: 8 }}>
+              Owner only
+            </p>
+            <Link
+              href="/admin/admin-users"
+              style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 10,
+                fontSize: ".88rem", fontWeight: 600,
+                color: pathname === "/admin/admin-users" ? "#fff" : "rgba(255,255,255,.6)",
+                background: pathname === "/admin/admin-users" ? "rgba(255,255,255,.08)" : "transparent",
+              }}
+            >
+              <span>👥</span>Admin Users
+            </Link>
+          </div>
+        )}
       </nav>
 
       <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 16, marginTop: 16 }}>
