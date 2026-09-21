@@ -80,7 +80,7 @@ export default function SiteFooter() {
       </div>
 
       <div className="wrap" style={{ paddingTop: 20, paddingBottom: 40 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 40, borderTop: "1px solid var(--line)", paddingTop: 40 }}>
+        <div className="footer-top" style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 40, borderTop: "1px solid var(--line)", paddingTop: 40 }}>
           <div style={{ maxWidth: 240 }}>
             <Link href="/#top" className="logo"><Logo variant="dark" height={22} customUrl={logoUrlDark} /></Link>
             <p style={{ marginTop: 12, fontSize: ".85rem", color: "var(--ink-soft)" }}>
@@ -88,7 +88,7 @@ export default function SiteFooter() {
             </p>
           </div>
 
-          <div style={{ display: "flex", gap: 56, flexWrap: "wrap" }}>
+          <div className="footer-nav-cols" style={{ display: "flex", gap: 56, flexWrap: "wrap" }}>
             <div>
               <p style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 14 }}>Explore</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

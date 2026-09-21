@@ -27,26 +27,21 @@ export default function NewsletterPanel() {
   }
 
   return (
-    <div
-      style={{
-        background: "var(--dark)", borderRadius: 28, padding: "48px", display: "flex",
-        justifyContent: "space-between", alignItems: "center", gap: 32, flexWrap: "wrap",
-      }}
-    >
+    <div className="newsletter-panel">
       <div style={{ maxWidth: 340 }}>
         <h2 style={{ color: "#fff", fontSize: "1.7rem" }}>Subscribe our newsletter</h2>
         <p style={{ color: "rgba(255,255,255,.65)", marginTop: 12, fontSize: ".9rem" }}>
           Subscribe to our newsletter and be the first to receive nutrition tips, new conditions guides, and updates from Health365.
         </p>
       </div>
-      <div style={{ minWidth: 300 }}>
+      <div className="newsletter-form-col">
         <p style={{ color: "rgba(255,255,255,.55)", fontSize: ".78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 10 }}>
           Stay up to date
         </p>
         {status === "done" ? (
           <p style={{ color: "var(--mint)", fontSize: ".9rem", fontWeight: 600 }}>✓ You&apos;re subscribed — thank you!</p>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", gap: 10 }}>
+          <form onSubmit={handleSubmit} className="newsletter-form">
             <input
               type="email"
               required
@@ -55,7 +50,7 @@ export default function NewsletterPanel() {
               placeholder="Enter your email"
               style={{
                 flex: 1, padding: "12px 16px", borderRadius: 100, border: "1px solid rgba(255,255,255,.2)",
-                background: "rgba(255,255,255,.06)", color: "#fff", fontSize: ".88rem",
+                background: "rgba(255,255,255,.06)", color: "#fff", fontSize: ".88rem", minWidth: 0, width: "100%", boxSizing: "border-box",
               }}
             />
             <button

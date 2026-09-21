@@ -8,6 +8,10 @@ body {
   scroll-behavior: smooth;
 }
 html { scroll-behavior: smooth; }
+/* Safety net: a single stray wide element (a fixed min-width, an
+   un-wrapped flex row) can otherwise force sideways scroll on phones,
+   clipping the hero, footer, and menu at the right edge. */
+html, body { max-width: 100%; overflow-x: hidden; }
 @media (prefers-reduced-motion: reduce) {
   html, body { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
@@ -132,6 +136,31 @@ header.nav.scrolled{background:color-mix(in srgb, var(--cream) 55%, transparent)
 
 .wrap{max-width:1440px; margin:0 auto; padding:0 40px;}
 @media (max-width:640px){ .wrap{padding:0 20px;} }
+
+.newsletter-panel{
+  background:var(--dark); border-radius:28px; padding:48px; display:flex;
+  justify-content:space-between; align-items:center; gap:32px; flex-wrap:wrap;
+  max-width:100%; box-sizing:border-box;
+}
+.newsletter-form-col{ min-width:300px; max-width:100%; box-sizing:border-box; }
+.newsletter-form{ display:flex; gap:10px; max-width:100%; }
+@media (max-width:640px){
+  .newsletter-panel{ padding:28px 22px; }
+  .newsletter-form-col{ min-width:0; width:100%; }
+  .newsletter-form{ flex-direction:column; }
+  .newsletter-form button{ width:100%; }
+}
+
+.footer-nav-cols{ max-width:100%; }
+@media (max-width:640px){
+  .footer-top{ flex-direction:column; gap:32px !important; }
+  .footer-nav-cols{
+    display:grid !important; grid-template-columns:1fr 1fr; gap:28px !important; width:100%;
+  }
+}
+@media (max-width:380px){
+  .footer-nav-cols{ grid-template-columns:1fr; }
+}
 
 .hero{padding:24px 0 0;}
 .hero-frame{border-radius:28px; overflow:hidden; position:relative; min-height:88vh; display:flex; flex-direction:column; justify-content:space-between; width:100%;}
@@ -486,6 +515,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   font-weight:700; font-size:.9rem; cursor:pointer; transition:transform .2s ease;
 }
 .hero-full-cta:hover{transform:translateY(-2px);}
+@media (max-width:640px){ .hero-full-cta{ margin-left:0; } }
 .hero-full-cta .arrow{
   width:34px; height:34px; border-radius:50%; background:var(--ink); color:#fff;
   display:flex; align-items:center; justify-content:center; font-size:1rem;
@@ -523,6 +553,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   }
   .service-grid .photo, .service-grid-3col .photo{ aspect-ratio:4/5 !important; }
   .process-grid .photo{ aspect-ratio:3/4 !important; }
+
+  /* Homepage goal cards and "how it works" steps were stacking as
+     near-full-height blocks on phones — same horizontal-carousel
+     treatment, sized down for their more compact content. */
+  .luma-service-grid{
+    display:flex !important; grid-template-columns:none !important;
+    overflow-x:auto; scroll-snap-type:x mandatory; gap:14px !important;
+    padding-bottom:8px; margin-top:28px !important;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .luma-service-grid::-webkit-scrollbar{ display:none; }
+  .luma-service-card{ flex:0 0 76%; min-height:0; padding:22px; scroll-snap-align:start; }
+
+  .luma-minimal-steps{
+    display:flex !important; grid-template-columns:none !important;
+    overflow-x:auto; scroll-snap-type:x mandatory; gap:14px !important;
+    padding-bottom:8px; margin-top:28px !important;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .luma-minimal-steps::-webkit-scrollbar{ display:none; }
+  .luma-step{ flex:0 0 68%; scroll-snap-align:start; }
 }
 
 /* Mobile menu — make sure it's a fully solid panel, no bleed-through */
