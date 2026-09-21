@@ -5,26 +5,73 @@ import Link from "next/link";
 import Logo from "./Logo";
 import NewsletterPanel from "./NewsletterPanel";
 
+const ICON_STYLE = {
+  width: 34, height: 34, borderRadius: "50%", border: "1px solid var(--line)",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  color: "var(--ink)", flexShrink: 0,
+};
+
+function InstagramIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function YoutubeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="2" y="5" width="20" height="14" rx="4" />
+      <path d="M10 9l6 3-6 3V9z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function PinterestIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.5 19c.5-2 1.5-6 1.5-6M12 13c2 1 4-1 4-3.5 0-2-1.5-3.5-4-3.5-2.8 0-4.5 2-4.5 4 0 1.2.5 2 1 2.4" />
+    </svg>
+  );
+}
+function LinkedinIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="2" y="2" width="20" height="20" rx="4" />
+      <line x1="7" y1="10" x2="7" y2="17" />
+      <circle cx="7" cy="6.5" r="1" fill="currentColor" stroke="none" />
+      <path d="M11 17v-7M11 12c0-1.5 1.2-2.5 2.5-2.5S16 10.5 16 12v5" />
+    </svg>
+  );
+}
+
 export default function SiteFooter() {
   const [logoUrlDark, setLogoUrlDark] = useState("");
-  const [contact, setContact] = useState({ contactEmail: "", contactPhone: "", whatsappNumber: "", instagramUrl: "" });
+  const [social, setSocial] = useState({ instagramUrl: "", youtubeUrl: "", pinterestUrl: "", linkedinUrl: "" });
 
   useEffect(() => {
     fetch("/api/public-content")
       .then((r) => r.json())
       .then((d) => {
         setLogoUrlDark(d.logoUrlDark || "");
-        setContact({
-          contactEmail: d.contactEmail || "",
-          contactPhone: d.contactPhone || "",
-          whatsappNumber: d.whatsappNumber || "",
+        setSocial({
           instagramUrl: d.instagramUrl || "",
+          youtubeUrl: d.youtubeUrl || "",
+          pinterestUrl: d.pinterestUrl || "",
+          linkedinUrl: d.linkedinUrl || "",
         });
       })
       .catch(() => {});
   }, []);
 
-  const hasContact = contact.contactEmail || contact.contactPhone || contact.whatsappNumber || contact.instagramUrl;
+  const socialLinks = [
+    { url: social.instagramUrl, label: "Instagram", Icon: InstagramIcon },
+    { url: social.youtubeUrl, label: "YouTube", Icon: YoutubeIcon },
+    { url: social.pinterestUrl, label: "Pinterest", Icon: PinterestIcon },
+    { url: social.linkedinUrl, label: "LinkedIn", Icon: LinkedinIcon },
+  ].filter((s) => s.url);
 
   return (
     <footer style={{ width: "100%", background: "var(--paper)", paddingTop: 20 }}>
@@ -65,31 +112,15 @@ export default function SiteFooter() {
                 <Link href="/terms" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Terms of Service</Link>
               </div>
             </div>
-            {hasContact && (
+            {socialLinks.length > 0 && (
               <div>
                 <p style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink)", marginBottom: 14 }}>Get in touch</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {contact.contactEmail && (
-                    <a href={`mailto:${contact.contactEmail}`} style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{contact.contactEmail}</a>
-                  )}
-                  {contact.contactPhone && (
-                    <a href={`tel:${contact.contactPhone}`} style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{contact.contactPhone}</a>
-                  )}
-                  {contact.whatsappNumber && (
-                    <a
-                      href={`https://wa.me/${contact.whatsappNumber.replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}
-                    >
-                      WhatsApp us
+                <div style={{ display: "flex", gap: 10 }}>
+                  {socialLinks.map(({ url, label, Icon }) => (
+                    <a key={label} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} style={ICON_STYLE}>
+                      <Icon />
                     </a>
-                  )}
-                  {contact.instagramUrl && (
-                    <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>
-                      Instagram
-                    </a>
-                  )}
+                  ))}
                 </div>
               </div>
             )}

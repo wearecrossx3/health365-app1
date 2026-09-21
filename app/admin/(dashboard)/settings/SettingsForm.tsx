@@ -8,6 +8,9 @@ interface Settings {
   contactPhone: string;
   whatsappNumber: string;
   instagramUrl: string;
+  youtubeUrl: string;
+  pinterestUrl: string;
+  linkedinUrl: string;
 }
 
 export default function SettingsForm({ initial }: { initial: Settings }) {
@@ -46,20 +49,37 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
         <input value={values.siteTitle} onChange={(e) => update("siteTitle", e.target.value)} />
       </div>
       <div className="field">
-        <label>Contact email</label>
+        <label>Contact email <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— for your own records only, not shown on the site</span></label>
         <input type="email" value={values.contactEmail} onChange={(e) => update("contactEmail", e.target.value)} placeholder="hello@health365.in" />
       </div>
       <div className="field">
-        <label>Contact phone</label>
+        <label>Contact phone <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— for your own records only, not shown on the site</span></label>
         <input value={values.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} placeholder="+91 98765 43210" />
       </div>
       <div className="field">
-        <label>WhatsApp number</label>
+        <label>WhatsApp number <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— for your own records only, not shown on the site</span></label>
         <input value={values.whatsappNumber} onChange={(e) => update("whatsappNumber", e.target.value)} placeholder="+91 98765 43210" />
       </div>
+
+      <div style={{ borderTop: "1px solid var(--line)", margin: "6px 0" }} />
+      <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", margin: "-6px 0 2px" }}>
+        These show as icons in the site footer — leave any blank to hide that icon.
+      </p>
       <div className="field">
         <label>Instagram URL</label>
         <input value={values.instagramUrl} onChange={(e) => update("instagramUrl", e.target.value)} placeholder="https://instagram.com/health365" />
+      </div>
+      <div className="field">
+        <label>YouTube URL</label>
+        <input value={values.youtubeUrl} onChange={(e) => update("youtubeUrl", e.target.value)} placeholder="https://youtube.com/@health365" />
+      </div>
+      <div className="field">
+        <label>Pinterest URL</label>
+        <input value={values.pinterestUrl} onChange={(e) => update("pinterestUrl", e.target.value)} placeholder="https://pinterest.com/health365" />
+      </div>
+      <div className="field">
+        <label>LinkedIn URL</label>
+        <input value={values.linkedinUrl} onChange={(e) => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/company/health365" />
       </div>
 
       {error && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{error}</p>}

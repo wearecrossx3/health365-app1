@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { listAllUsers, listAllConsultations, listAllDietitianApplications, listAllAppointments } from "@/lib/kv";
 import ConsultationRow from "./ConsultationRow";
@@ -9,7 +9,7 @@ import DietitianActionButtons from "./DietitianActionButtons";
 
 export default async function AdminPage() {
   const cookieStore = cookies();
-  const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+  const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   if (!isAdmin(session)) redirect("/admin/login");
 
   const [users, consultations, dietitianApps, appointments] = await Promise.all([

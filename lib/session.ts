@@ -55,3 +55,10 @@ export function verifySessionCookieValue(value: string | undefined): SessionPayl
 
 export const SESSION_COOKIE_NAME = COOKIE_NAME;
 export const SESSION_MAX_AGE = MAX_AGE_SECONDS;
+
+// A completely separate cookie for the admin panel. Logging into /admin
+// only ever sets this one — it never touches h365_session — so signing
+// into the admin panel does not also sign the owner into the regular
+// customer-facing account (and vice versa). Same signing/verification
+// functions above are reused for both; only the cookie name differs.
+export const ADMIN_SESSION_COOKIE_NAME = "h365_admin_session";

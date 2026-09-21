@@ -9,6 +9,8 @@ const NAV = [
   { href: "/admin/content", label: "Site Content", icon: "📝" },
   { href: "/admin/media", label: "Media Library", icon: "🖼️" },
   { href: "/admin/testimonials", label: "Testimonials", icon: "💬" },
+  { href: "/admin/diet-plans", label: "Diet Plan Templates", icon: "🥗" },
+  { href: "/admin/messages", label: "Messages", icon: "✉️" },
   { href: "/admin/settings", label: "Website Settings", icon: "⚙️" },
 ];
 
@@ -17,7 +19,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/admin-logout", { method: "POST" });
     router.push("/admin/login");
     router.refresh();
   }

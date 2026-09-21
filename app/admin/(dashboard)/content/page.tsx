@@ -1,13 +1,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { getSiteContent } from "@/lib/kv";
 import ContentEditorForm from "./ContentEditorForm";
 
 export default async function AdminContentPage() {
   const cookieStore = cookies();
-  const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+  const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   if (!isAdmin(session)) redirect("/admin/login");
 
   const content = await getSiteContent();

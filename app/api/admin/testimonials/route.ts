@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { listAllTestimonials, saveTestimonial, setTestimonialPublished, deleteTestimonial, Testimonial } from "@/lib/kv";
 
 function requireAdmin(req: NextRequest) {
-  const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
   return isAdmin(session);
 }

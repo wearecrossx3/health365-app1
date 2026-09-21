@@ -259,6 +259,9 @@ export interface SiteContent {
   contactPhone: string;
   whatsappNumber: string;
   instagramUrl: string;
+  youtubeUrl: string;
+  pinterestUrl: string;
+  linkedinUrl: string;
   sectionsEnabled: SectionVisibility;
 }
 
@@ -301,6 +304,9 @@ const DEFAULT_CONTENT: SiteContent = {
   contactPhone: "",
   whatsappNumber: "",
   instagramUrl: "",
+  youtubeUrl: "",
+  pinterestUrl: "",
+  linkedinUrl: "",
   popupImageUrl: "",
   popupHeadline: "",
   sectionsEnabled: {
@@ -431,4 +437,82 @@ export async function setTestimonialPublished(id: string, published: boolean): P
 
 export async function deleteTestimonial(id: string): Promise<void> {
   await client().del(testimonialKey(id));
+}
+
+// --- Contact messages (contact-page form + the floating chat widget) ---
+// Both feed the same store so the admin can see every incoming message
+// in one place, regardless of which one someone used.
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  source: "contact_form" | "chat_widget";
+  read: boolean;
+  createdAt: string;
+}
+
+const contactMessageKey = (id: string) => `contact_message:${id}`;
+
+export async function saveContactMessage(m: ContactMessage): Promise<void> {
+  await setJSON(contactMessageKey(m.id), m);
+}
+
+export async function listAllContactMessages(): Promise<ContactMessage[]> {
+  const keys = await client().keys("contact_message:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<ContactMessage>(k)));
+  return results
+    .filter((m): m is ContactMessage => m !== null)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function markContactMessageRead(id: string, read: boolean): Promise<void> {
+  const m = await getJSON<ContactMessage>(contactMessageKey(id));
+  if (!m) return;
+  m.read = read;
+  await setJSON(contactMessageKey(id), m);
+}
+
+export async function deleteContactMessage(id: string): Promise<void> {
+  await client().del(contactMessageKey(id));
+}
+
+// --- Admin-authored diet plan templates ---
+// A short, hand-written day of meals the owner enters once per goal/
+// condition (e.g. "Lose Weight", "Diabetes"). When a visitor picks that
+// goal/condition on the diet-plan page, this is used instead of the
+// randomly-assembled plan from mealPool.ts — both on screen and in the
+// downloaded PDF.
+
+export interface DietTemplateMeal {
+  name: string;
+  portion: string;
+  cal: string;
+  note: string; // shown as "Alternative / tip"
+}
+
+export interface DietTemplate {
+  key: string; // slug — see lib/dietConditions.ts for the fixed list
+  tips: string; // short general note shown under the meals
+  meals: Record<string, DietTemplateMeal>; // slot -> meal (slots: breakfast, midmorning, lunch, eveningsnack, dinner)
+  updatedAt: string;
+}
+
+const dietTemplateKey = (key: string) => `diet_template:${key}`;
+
+export async function getDietTemplate(key: string): Promise<DietTemplate | null> {
+  return getJSON<DietTemplate>(dietTemplateKey(key));
+}
+
+export async function setDietTemplate(t: DietTemplate): Promise<void> {
+  await setJSON(dietTemplateKey(t.key), t);
+}
+
+export async function listAllDietTemplates(): Promise<DietTemplate[]> {
+  const keys = await client().keys("diet_template:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<DietTemplate>(k)));
+  return results.filter((t): t is DietTemplate => t !== null);
 }

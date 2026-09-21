@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
+import { DIET_TEMPLATE_OPTIONS, GOAL_TO_TEMPLATE_KEY } from "@/lib/dietConditions";
 
 const GOALS = ["Lose weight", "Gain weight", "Maintain weight", "Improve nutrition", "Manage a condition"];
 const DIETS: [string, string][] = [
@@ -11,6 +12,7 @@ const DIETS: [string, string][] = [
   ["eggetarian", "Eggetarian"], ["nonveg", "Non-vegetarian"], ["other", "Other"],
 ];
 const ALLERGENS = ["nuts", "dairy", "gluten", "soy", "shellfish", "eggs"];
+const CONDITIONS = DIET_TEMPLATE_OPTIONS.filter((o) => o.group === "condition");
 
 const GOAL_FROM_CONSULTATION: Record<string, string> = {
   "Lose weight": "Lose weight",
@@ -24,10 +26,14 @@ const DIET_KEY_FROM_LABEL: Record<string, string> = {
   Eggetarian: "eggetarian", "Non-vegetarian": "nonveg", Other: "other",
 };
 
+interface DietTemplateMeal { name: string; portion: string; cal: string; note: string; }
+interface DietTemplate { key: string; tips: string; meals: Record<string, DietTemplateMeal>; }
+
 type DayPlan = { label: string; item: MealItem | null }[];
 
 export default function DietPlanPage() {
   const [goal, setGoal] = useState(GOALS[0]);
+  const [condition, setCondition] = useState(CONDITIONS[0].key);
   const [diet, setDiet] = useState("veg");
   const [allergens, setAllergens] = useState<string[]>([]);
   const [length, setLength] = useState(1);
@@ -35,6 +41,14 @@ export default function DietPlanPage() {
   const [generated, setGenerated] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
   const [pdfStatus, setPdfStatus] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<Record<string, DietTemplate>>({});
+
+  useEffect(() => {
+    fetch("/api/diet-templates")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data?.templates && setTemplates(data.templates))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch("/api/consultations")
@@ -56,7 +70,30 @@ export default function DietPlanPage() {
       .catch(() => {});
   }, []);
 
+  const templateKey = goal === "Manage a condition" ? condition : GOAL_TO_TEMPLATE_KEY[goal];
+  const activeTemplate = templates[templateKey];
+  const templateHasMeals = !!activeTemplate && slotOrder.some((slot) => activeTemplate.meals[slot]?.name?.trim());
+
+  // A template written by the admin is one basic day — force plan length
+  // back to 1 whenever one becomes active, so we're not silently
+  // repeating that single day across a "7 day" plan.
+  useEffect(() => {
+    if (templateHasMeals) setLength(1);
+  }, [templateHasMeals]);
+
   function buildDays(): DayPlan[] {
+    if (templateHasMeals && activeTemplate) {
+      const day: DayPlan = slotOrder.map((slot) => {
+        const m = activeTemplate.meals[slot];
+        return {
+          label: slotLabels[slot],
+          item: m?.name?.trim()
+            ? { name: m.name, portion: m.portion, cal: m.cal, alt: m.note, diets: [], allergens: [] }
+            : null,
+        };
+      });
+      return [day];
+    }
     const days: DayPlan[] = [];
     for (let d = 0; d < length; d++) {
       days.push(
@@ -140,7 +177,8 @@ export default function DietPlanPage() {
       y += 30;
     }
     function mealCard(label: string, item: MealItem | null) {
-      const lines = item ? doc.splitTextToSize("Alternative: " + item.alt, contentW - 70) : [];
+      const altLabel = templateHasMeals ? "Note: " : "Alternative: ";
+      const lines = item && item.alt ? doc.splitTextToSize(altLabel + item.alt, contentW - 70) : [];
       const h = item ? 58 + lines.length * 11 : 40;
       ensureSpace(h + 10);
       doc.setFillColor(...CREAM); doc.setDrawColor(...LINE); doc.setLineWidth(0.75);
@@ -189,7 +227,9 @@ export default function DietPlanPage() {
     doc.text("Aim for 8–10 glasses of water spread through the day, and a 20–30 minute walk most days.", margin + 18, y + 34, { maxWidth: contentW - 36 });
     y += 70;
 
-    const disc = 'This plan was generated automatically from general nutrition guidelines — it has not been reviewed by a dietitian and is not a medically prescribed diet. If you selected "Manage a condition," please book a consultation before making significant changes to your diet.';
+    const disc = templateHasMeals
+      ? 'This plan was prepared by the Health365 team as general guidance — it is not a medically prescribed diet. Please check with a dietitian before making significant changes if you have a diagnosed condition.'
+      : 'This plan was generated automatically from general nutrition guidelines — it has not been reviewed by a dietitian and is not a medically prescribed diet. If you selected "Manage a condition," please book a consultation before making significant changes to your diet.';
     const discLines = doc.splitTextToSize(disc, contentW - 36);
     ensureSpace(24 + discLines.length * 11);
     doc.setDrawColor(...TERRACOTTA); doc.setLineWidth(1);
@@ -241,6 +281,16 @@ export default function DietPlanPage() {
                 ))}
               </div>
             </div>
+            {goal === "Manage a condition" && (
+              <div style={{ marginBottom: 26 }}>
+                <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Which condition?</label>
+                <div className="toggle-group">
+                  {CONDITIONS.map((c) => (
+                    <span key={c.key} className={`toggle-opt${condition === c.key ? " on" : ""}`} onClick={() => setCondition(c.key)}>{c.label}</span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ marginBottom: 26 }}>
               <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Food preference</label>
               <div className="toggle-group">
@@ -265,8 +315,19 @@ export default function DietPlanPage() {
               <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Plan length</label>
               <div className="length-toggle">
                 <span className={`length-opt${length === 1 ? " on" : ""}`} onClick={() => setLength(1)}>1 Day</span>
-                <span className={`length-opt${length === 7 ? " on" : ""}`} onClick={() => setLength(7)}>7 Day</span>
+                <span
+                  className={`length-opt${length === 7 ? " on" : ""}`}
+                  style={templateHasMeals ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+                  onClick={() => !templateHasMeals && setLength(7)}
+                >
+                  7 Day
+                </span>
               </div>
+              {templateHasMeals && (
+                <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 8 }}>
+                  This is a prepared one-day plan for your selection, so 7-day isn&apos;t available here.
+                </p>
+              )}
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
               <button className="pill pill-primary" onClick={() => { setGenerated(true); setActiveDay(1); }}>Generate My Plan</button>
@@ -286,10 +347,21 @@ export default function DietPlanPage() {
               </div>
               {pdfStatus && <p style={{ fontSize: ".8rem", marginTop: 10, color: "var(--teal)" }}>{pdfStatus}</p>}
 
-              {goal === "Manage a condition" && (
+              {goal === "Manage a condition" && !templateHasMeals && (
                 <div className="condition-banner">
                   <p>This is general guidance, not a condition-specific plan. For things like diabetes, PCOS, or thyroid, a dietitian should tailor this properly.</p>
                   <a href="/consultation" className="pill pill-outline" style={{ padding: "9px 18px", fontSize: ".8rem" }}>Book a Consultation</a>
+                </div>
+              )}
+
+              {templateHasMeals && (
+                <div style={{ background: "#EAF3EF", border: "1px solid var(--teal)", borderRadius: 14, padding: "16px 20px", marginBottom: 24 }}>
+                  <p style={{ fontSize: ".85rem", color: "var(--teal-deep)", fontWeight: 600 }}>
+                    Prepared by the Health365 team{goal === "Manage a condition" ? ` for ${CONDITIONS.find((c) => c.key === condition)?.label}` : ""}.
+                  </p>
+                  {activeTemplate?.tips && (
+                    <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 6 }}>{activeTemplate.tips}</p>
+                  )}
                 </div>
               )}
 
@@ -310,7 +382,7 @@ export default function DietPlanPage() {
                         <h3>{m.item.name}</h3>
                         <p className="portion">{m.item.portion}</p>
                         <span className="cal">{m.item.cal}</span>
-                        <p className="alt"><b>Alternative:</b> {m.item.alt}</p>
+                        {m.item.alt && <p className="alt"><b>{templateHasMeals ? "Note:" : "Alternative:"}</b> {m.item.alt}</p>}
                       </>
                     ) : (
                       <p className="empty-note">No match for your current filters — a dietitian can help widen these safely.</p>
@@ -324,11 +396,16 @@ export default function DietPlanPage() {
                 <div className="reminder-card"><span className="ic">🚶</span><div><h3>Movement</h3><p>A 20–30 minute walk most days supports whatever goal you picked.</p></div></div>
               </div>
 
-              <p className="disclaimer">This plan was generated automatically from general nutrition guidelines — it has not been reviewed by a dietitian and is not a medically prescribed diet. If you selected &quot;Manage a condition,&quot; please book a consultation before making significant changes to your diet.</p>
+              <p className="disclaimer">
+                {templateHasMeals
+                  ? "This plan was prepared by the Health365 team as general guidance — it is not a medically prescribed diet. Please check with a dietitian before making significant changes if you have a diagnosed condition."
+                  : <>This plan was generated automatically from general nutrition guidelines — it has not been reviewed by a dietitian and is not a medically prescribed diet. If you selected &quot;Manage a condition,&quot; please book a consultation before making significant changes to your diet.</>}
+              </p>
             </div>
           )}
         </div>
       </main>
+
 
       <SiteFooter />
     </>

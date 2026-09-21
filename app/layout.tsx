@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 import AuthModalProvider from "@/components/AuthModalProvider";
+import OfferPopup from "@/components/OfferPopup";
 import ActivityToast from "@/components/ActivityToast";
+import ChatWidget from "@/components/ChatWidget";
 import ThemeInjector from "@/components/ThemeInjector";
 
 const heading = Fredoka({
@@ -79,7 +81,9 @@ export default function RootLayout({
       <body className="font-body">
         <ThemeInjector />
         <AuthModalProvider>{children}</AuthModalProvider>
+        <OfferPopup />
         <ActivityToast />
+        <ChatWidget />
       </body>
     </html>
   );

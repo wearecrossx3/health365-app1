@@ -6,16 +6,19 @@ import { saveContactMessage } from "@/lib/kv";
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const { name, email, message } = body || {};
-  if (!name || !email || !message) {
-    return NextResponse.json({ error: "Please fill in every field." }, { status: 400 });
+  if (!message || !String(message).trim()) {
+    return NextResponse.json({ error: "Please write a message." }, { status: 400 });
   }
+
+  const safeName = name ? String(name) : "Website visitor";
+  const safeEmail = email ? String(email) : "";
 
   await saveContactMessage({
     id: crypto.randomUUID(),
-    name: String(name),
-    email: String(email),
+    name: safeName,
+    email: safeEmail,
     message: String(message),
-    source: "contact_form",
+    source: "chat_widget",
     read: false,
     createdAt: new Date().toISOString(),
   }).catch(() => {});
@@ -24,10 +27,10 @@ export async function POST(req: NextRequest) {
   if (admins.length > 0) {
     await sendEmail({
       to: admins,
-      subject: `New contact message from ${name}`,
+      subject: `New chat message from ${safeName}`,
       html: emailWrapper(
-        "New contact message",
-        `<p><b>${name}</b> (${email})</p><p style="white-space:pre-wrap;">${String(message).replace(/</g, "&lt;")}</p>`
+        "New message from the site chat widget",
+        `<p><b>${safeName}</b>${safeEmail ? ` (${safeEmail})` : " (no email given)"}</p><p style="white-space:pre-wrap;">${String(message).replace(/</g, "&lt;")}</p>`
       ),
     }).catch(() => {});
   }

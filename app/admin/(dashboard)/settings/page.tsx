@@ -1,13 +1,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { getSiteContent } from "@/lib/kv";
 import SettingsForm from "./SettingsForm";
 
 export default async function AdminSettingsPage() {
   const cookieStore = cookies();
-  const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+  const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   if (!isAdmin(session)) redirect("/admin/login");
 
   const content = await getSiteContent();
@@ -29,6 +29,9 @@ export default async function AdminSettingsPage() {
             contactPhone: content.contactPhone,
             whatsappNumber: content.whatsappNumber,
             instagramUrl: content.instagramUrl,
+            youtubeUrl: content.youtubeUrl,
+            pinterestUrl: content.pinterestUrl,
+            linkedinUrl: content.linkedinUrl,
           }}
         />
       </div>

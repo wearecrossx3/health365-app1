@@ -15,10 +15,10 @@ export async function GET() {
       processImages: content.processImages,
       conditionImages: content.conditionImages,
       goalImages: content.goalImages,
-      contactEmail: content.contactEmail,
-      contactPhone: content.contactPhone,
-      whatsappNumber: content.whatsappNumber,
       instagramUrl: content.instagramUrl,
+      youtubeUrl: content.youtubeUrl,
+      pinterestUrl: content.pinterestUrl,
+      linkedinUrl: content.linkedinUrl,
       popup: {
         enabled: content.popupEnabled,
         headline: content.popupHeadline,

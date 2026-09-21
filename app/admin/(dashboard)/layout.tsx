@@ -1,12 +1,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import AdminSidebar from "./AdminSidebar";
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies();
-  const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+  const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   if (!isAdmin(session)) redirect("/admin/login");
 
   return (
