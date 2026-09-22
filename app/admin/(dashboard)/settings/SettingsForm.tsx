@@ -11,6 +11,9 @@ interface Settings {
   youtubeUrl: string;
   pinterestUrl: string;
   linkedinUrl: string;
+  premiumOriginalPrice: string;
+  premiumDiscountedPrice: string;
+  premiumUpiId: string;
 }
 
 export default function SettingsForm({ initial }: { initial: Settings }) {
@@ -80,6 +83,27 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
       <div className="field">
         <label>LinkedIn URL</label>
         <input value={values.linkedinUrl} onChange={(e) => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/company/health365" />
+      </div>
+
+      <div style={{ borderTop: "1px solid var(--line)", margin: "6px 0" }} />
+      <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", margin: "-6px 0 2px" }}>
+        Shown in the &quot;Consult a Dietitian&quot; popup after someone generates a free diet plan. There&apos;s
+        no card payment gateway connected — this is a manual UPI flow: the visitor sees this price, pays you
+        directly via UPI, then confirms, and it lands as a message for you to follow up on.
+      </p>
+      <div className="admin-grid-2" style={{ gap: 16 }}>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>Regular price (₹) <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— shown struck through</span></label>
+          <input value={values.premiumOriginalPrice} onChange={(e) => update("premiumOriginalPrice", e.target.value)} placeholder="2500" />
+        </div>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>Discounted price (₹) <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— what they actually pay</span></label>
+          <input value={values.premiumDiscountedPrice} onChange={(e) => update("premiumDiscountedPrice", e.target.value)} placeholder="1500" />
+        </div>
+      </div>
+      <div className="field">
+        <label>Your UPI ID</label>
+        <input value={values.premiumUpiId} onChange={(e) => update("premiumUpiId", e.target.value)} placeholder="health365@upi" />
       </div>
 
       {error && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{error}</p>}

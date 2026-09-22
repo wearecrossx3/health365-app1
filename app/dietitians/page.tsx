@@ -5,6 +5,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
 import BookingWidget from "@/components/BookingWidget";
+import { SPECIALIZATIONS } from "@/lib/dietConditions";
 
 interface Dietitian {
   id: string; name: string; role: string; verified: boolean; specializations: string[];
@@ -21,7 +22,6 @@ const ASTHA: Dietitian = {
   qualNote: "Qualifications & credentials placeholder — connect Dr. Astha's verified details here before launch.",
 };
 
-const SPECIALIZATIONS = ["Diabetes", "PCOS", "Weight Management", "Thyroid", "Cholesterol", "Digestive Health"];
 const LANGUAGES = ["English", "Hindi", "Gujarati"];
 
 function experienceBand(years: number) {

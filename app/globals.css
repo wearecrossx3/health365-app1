@@ -196,6 +196,9 @@ header.nav.scrolled{background:color-mix(in srgb, var(--cream) 55%, transparent)
 .admin-grid-2{ display:grid; grid-template-columns:1fr 1fr; }
 @media (max-width:640px){ .admin-grid-2{ grid-template-columns:1fr; } }
 
+.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+@media (max-width:760px){ .grid-3{ grid-template-columns:1fr; } }
+
 .hero{padding:24px 0 0;}
 .hero-frame{border-radius:28px; overflow:hidden; position:relative; min-height:88vh; display:flex; flex-direction:column; justify-content:space-between; width:100%;}
 .hero-frame::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,24,18,.15) 0%, rgba(20,24,18,.05) 40%, rgba(20,24,18,.55) 100%); z-index:1;}
@@ -283,6 +286,21 @@ section{padding:110px 0;}
 .approach-row p{margin-top:12px; font-size:.95rem;}
 .approach-tags{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
 .approach-tags span{font-size:.78rem; font-weight:600; background:var(--paper); padding:7px 14px; border-radius:100px; color:var(--teal-deep);}
+
+.oncology-banner{
+  display:grid; grid-template-columns:.75fr 1fr; gap:0; align-items:stretch;
+  background:#FBF4F1; border-radius:24px; overflow:hidden; border:1px solid var(--line);
+}
+.oncology-banner .photo{ border-radius:0; min-height:260px; }
+.oncology-banner-text{ padding:40px 48px; display:flex; flex-direction:column; justify-content:center; }
+.oncology-banner-text h2{ font-size:clamp(1.6rem,3vw,2.1rem); margin-top:10px; }
+.oncology-banner-text p{ margin-top:14px; font-size:.98rem; max-width:46ch; color:var(--ink-soft); }
+.oncology-banner-text .pill{ margin-top:24px; align-self:flex-start; }
+@media (max-width:760px){
+  .oncology-banner{ grid-template-columns:1fr; }
+  .oncology-banner .photo{ min-height:200px; }
+  .oncology-banner-text{ padding:28px 24px; }
+}
 
 .dietitian{display:grid; grid-template-columns:.75fr 1.25fr; gap:56px; align-items:center;}
 @media (max-width:860px){ .dietitian{grid-template-columns:1fr;} }

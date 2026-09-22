@@ -50,12 +50,14 @@ function LinkedinIcon() {
 export default function SiteFooter() {
   const [logoUrlDark, setLogoUrlDark] = useState("");
   const [social, setSocial] = useState({ instagramUrl: "", youtubeUrl: "", pinterestUrl: "", linkedinUrl: "" });
+  const [oncologyEnabled, setOncologyEnabled] = useState(false);
 
   useEffect(() => {
     fetch("/api/public-content")
       .then((r) => r.json())
       .then((d) => {
         setLogoUrlDark(d.logoUrlDark || "");
+        setOncologyEnabled(!!d.oncologyEnabled);
         setSocial({
           instagramUrl: d.instagramUrl || "",
           youtubeUrl: d.youtubeUrl || "",
@@ -95,6 +97,7 @@ export default function SiteFooter() {
                 <Link href="/#how" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>How it works</Link>
                 <Link href="/conditions" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Conditions</Link>
                 <Link href="/dietitians" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Dietitians</Link>
+                {oncologyEnabled && <Link href="/oncology" style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Cancer Care</Link>}
               </div>
             </div>
             <div>

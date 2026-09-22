@@ -33,6 +33,9 @@ export default async function AdminSettingsPage() {
             youtubeUrl: content.youtubeUrl,
             pinterestUrl: content.pinterestUrl,
             linkedinUrl: content.linkedinUrl,
+            premiumOriginalPrice: content.premiumOriginalPrice,
+            premiumDiscountedPrice: content.premiumDiscountedPrice,
+            premiumUpiId: content.premiumUpiId,
           }}
         />
       </div>

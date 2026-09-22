@@ -13,7 +13,7 @@ const TOTAL = STEP_TITLES.length;
 const GOALS = ["Lose weight", "Gain weight", "Maintain weight", "Improve nutrition", "Condition-specific support"];
 const DIETS = ["Vegetarian", "Jain", "Vegan", "Eggetarian", "Non-vegetarian", "Other"];
 const ALLERGENS = ["Nuts", "Dairy", "Gluten", "Soy", "Shellfish", "Eggs"];
-const CONDITIONS = ["Diabetes", "PCOS", "Thyroid", "Hypertension", "Heart condition", "Kidney condition", "Pregnant / breastfeeding"];
+const CONDITIONS = ["Diabetes", "PCOS", "Thyroid", "Hypertension", "Heart condition", "Kidney condition", "Cancer / Oncology", "Pregnant / breastfeeding"];
 
 function Toggle({ options, value, onChange, multi, warnList }: {
   options: string[]; value: string[]; onChange: (v: string[]) => void; multi?: boolean; warnList?: string[];
@@ -58,10 +58,14 @@ function ConsultationForm() {
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [activity, setActivity] = useState<string[]>([]);
-  const [goal, setGoal] = useState<string[]>(params.get("goal") ? [mapGoal(params.get("goal")!)] : []);
+  const [goal, setGoal] = useState<string[]>(
+    params.get("condition") ? ["Condition-specific support"] : params.get("goal") ? [mapGoal(params.get("goal")!)] : []
+  );
   const [dietType, setDietType] = useState<string[]>([]);
   const [allergens, setAllergens] = useState<string[]>([]);
-  const [conditions, setConditions] = useState<string[]>([]);
+  const [conditions, setConditions] = useState<string[]>(
+    params.get("condition") ? [mapCondition(params.get("condition")!)] : []
+  );
   const [error, setError] = useState("");
 
   function mapGoal(g: string) {
@@ -70,6 +74,11 @@ function ConsultationForm() {
       "Eat Better": "Improve nutrition", "Manage a Condition": "Condition-specific support",
     };
     return map[g] || g;
+  }
+
+  function mapCondition(c: string) {
+    const map: Record<string, string> = { Oncology: "Cancer / Oncology" };
+    return map[c] || c;
   }
 
   useEffect(() => {

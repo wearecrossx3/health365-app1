@@ -12,6 +12,7 @@ interface SectionVisibility {
   dietitian: boolean;
   testimonials: boolean;
   join: boolean;
+  oncology: boolean;
 }
 
 interface SiteContent {
@@ -45,6 +46,10 @@ interface SiteContent {
   popupTriggerValue: number;
   popupImageUrl: string;
   popupHeadline: string;
+  oncologyImageUrl: string;
+  oncologyTitle: string;
+  oncologySubtitle: string;
+  oncologyButtonText: string;
   sectionsEnabled: SectionVisibility;
 }
 
@@ -57,6 +62,7 @@ const SECTION_TOGGLES: { key: keyof SectionVisibility; label: string; hint: stri
   { key: "dietitian", label: "Dr. Astha profile section", hint: "" },
   { key: "testimonials", label: "Testimonials", hint: "also hidden automatically if none are published" },
   { key: "join", label: "\"Join as a Dietitian\" banner", hint: "" },
+  { key: "oncology", label: "Oncology / Cancer Care banner", hint: "also controls the menu and footer link" },
 ];
 
 const PROCESS_LABELS = ["Tell us about you", "Understand your needs", "Build your plan", "Keep moving"];
@@ -391,6 +397,35 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
               onChange={(e) => update("popupTriggerValue", Number(e.target.value) || 0)}
               style={{ maxWidth: 140 }}
             />
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Oncology / Cancer Care</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          Shows as its own page at /oncology, as a homepage section, and — when the toggle above in
+          &quot;Homepage sections&quot; is on — as a link in the menu and footer too. The button always sends
+          visitors to book a consultation with oncology pre-selected.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <ImageUploadField
+            label="Banner image"
+            hint="optional — a soft placeholder color shows until you add one"
+            value={content.oncologyImageUrl}
+            onChange={(url) => update("oncologyImageUrl", url)}
+          />
+          <div className="field">
+            <label>Title</label>
+            <input value={content.oncologyTitle} onChange={(e) => update("oncologyTitle", e.target.value)} placeholder="e.g. Cancer care nutrition, personalized for you" />
+          </div>
+          <div className="field">
+            <label>Subtitle</label>
+            <textarea rows={2} value={content.oncologySubtitle} onChange={(e) => update("oncologySubtitle", e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Button text</label>
+            <input value={content.oncologyButtonText} onChange={(e) => update("oncologyButtonText", e.target.value)} placeholder="Talk to an Oncology Dietitian" />
           </div>
         </div>
       </div>

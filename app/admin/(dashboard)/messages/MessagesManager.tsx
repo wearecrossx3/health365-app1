@@ -7,7 +7,7 @@ interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  source: "contact_form" | "chat_widget";
+  source: "contact_form" | "chat_widget" | "premium_consult";
   read: boolean;
   createdAt: string;
 }
@@ -58,11 +58,11 @@ export default function MessagesManager({ initial }: { initial: ContactMessage[]
                   style={{
                     fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".03em",
                     padding: "2px 8px", borderRadius: 100,
-                    background: m.source === "chat_widget" ? "var(--sage)" : "var(--paper)",
-                    color: "var(--ink-soft)",
+                    background: m.source === "premium_consult" ? "var(--terracotta)" : m.source === "chat_widget" ? "var(--sage)" : "var(--paper)",
+                    color: m.source === "premium_consult" ? "#fff" : "var(--ink-soft)",
                   }}
                 >
-                  {m.source === "chat_widget" ? "Chat" : "Contact form"}
+                  {m.source === "premium_consult" ? "Paid request" : m.source === "chat_widget" ? "Chat" : "Contact form"}
                 </span>
                 {!m.read && (
                   <span style={{ fontSize: ".68rem", fontWeight: 700, color: "var(--teal-deep)" }}>● New</span>

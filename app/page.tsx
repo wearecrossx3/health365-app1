@@ -5,6 +5,7 @@ import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+import OncologyBanner from "@/components/OncologyBanner";
 import { getSiteContent, listPublishedTestimonials } from "@/lib/kv";
 
 // Force this page to check the database fresh on every visit instead of
@@ -213,6 +214,21 @@ export default async function Home() {
               <TestimonialsCarousel testimonials={testimonials} />
             </div>
           </section>
+        )}
+
+        {/* ONCOLOGY */}
+        {content.sectionsEnabled.oncology && (
+        <section>
+          <div className="wrap">
+            <OncologyBanner
+              imageUrl={content.oncologyImageUrl}
+              title={content.oncologyTitle}
+              subtitle={content.oncologySubtitle}
+              buttonText={content.oncologyButtonText}
+              buttonHref="/consultation?condition=Oncology"
+            />
+          </div>
+        </section>
         )}
 
         {/* JOIN */}

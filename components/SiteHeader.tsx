@@ -14,6 +14,7 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoUrlLight, setLogoUrlLight] = useState("");
   const [logoUrlDark, setLogoUrlDark] = useState("");
+  const [oncologyEnabled, setOncologyEnabled] = useState(false);
   const { open } = useAuthModal();
 
   // Only the homepage has a photo hero sitting directly behind the
@@ -42,6 +43,7 @@ export default function SiteHeader() {
       .then((d) => {
         setLogoUrlLight(d.logoUrlLight || "");
         setLogoUrlDark(d.logoUrlDark || "");
+        setOncologyEnabled(!!d.oncologyEnabled);
       })
       .catch(() => {});
   }, []);
@@ -63,6 +65,7 @@ export default function SiteHeader() {
           <Link href="/#how" style={{ color: linkColor }}>How it works</Link>
           <Link href="/conditions" style={{ color: linkColor }}>Conditions</Link>
           <Link href="/dietitians" style={{ color: linkColor }}>Dietitians</Link>
+          {oncologyEnabled && <Link href="/oncology" style={{ color: linkColor }}>Cancer Care</Link>}
           <Link href="/#about" style={{ color: linkColor }}>About</Link>
         </nav>
 
@@ -89,6 +92,7 @@ export default function SiteHeader() {
         <Link href="/#how" onClick={() => setMenuOpen(false)}>How it works</Link>
         <Link href="/conditions" onClick={() => setMenuOpen(false)}>Conditions</Link>
         <Link href="/dietitians" onClick={() => setMenuOpen(false)}>Dietitians</Link>
+        {oncologyEnabled && <Link href="/oncology" onClick={() => setMenuOpen(false)}>Cancer Care</Link>}
         <Link href="/#about" onClick={() => setMenuOpen(false)}>About</Link>
         {loggedIn === true && <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>}
         {loggedIn === false && (

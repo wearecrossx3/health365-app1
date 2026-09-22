@@ -5,6 +5,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
 import { DIET_TEMPLATE_OPTIONS, GOAL_TO_TEMPLATE_KEY } from "@/lib/dietConditions";
+import PremiumConsultModal from "@/components/PremiumConsultModal";
 
 const GOALS = ["Lose weight", "Gain weight", "Maintain weight", "Improve nutrition", "Manage a condition"];
 const DIETS: [string, string][] = [
@@ -42,11 +43,26 @@ export default function DietPlanPage() {
   const [activeDay, setActiveDay] = useState(1);
   const [pdfStatus, setPdfStatus] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, DietTemplate>>({});
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [pricing, setPricing] = useState({ originalPrice: "2500", discountedPrice: "1500", upiId: "" });
 
   useEffect(() => {
     fetch("/api/diet-templates")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => data?.templates && setTemplates(data.templates))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/public-content")
+      .then((r) => r.json())
+      .then((d) =>
+        setPricing({
+          originalPrice: d.premiumOriginalPrice || "2500",
+          discountedPrice: d.premiumDiscountedPrice || "1500",
+          upiId: d.premiumUpiId || "",
+        })
+      )
       .catch(() => {});
   }, []);
 
@@ -344,6 +360,9 @@ export default function DietPlanPage() {
                 <button className="pill pill-outline" style={{ background: "transparent", borderColor: "rgba(255,255,255,.35)", color: "#fff" }} onClick={downloadPdf}>
                   Download PDF
                 </button>
+                <button className="pill pill-primary" onClick={() => setShowPremiumModal(true)}>
+                  Consult a Dietitian
+                </button>
               </div>
               {pdfStatus && <p style={{ fontSize: ".8rem", marginTop: 10, color: "var(--teal)" }}>{pdfStatus}</p>}
 
@@ -406,6 +425,15 @@ export default function DietPlanPage() {
         </div>
       </main>
 
+      {showPremiumModal && (
+        <PremiumConsultModal
+          originalPrice={pricing.originalPrice}
+          discountedPrice={pricing.discountedPrice}
+          upiId={pricing.upiId}
+          planSummary={`${goal}${goal === "Manage a condition" ? ` — ${CONDITIONS.find((c) => c.key === condition)?.label}` : ""}, ${dietLabel}, ${length} day${length > 1 ? "s" : ""}`}
+          onClose={() => setShowPremiumModal(false)}
+        />
+      )}
 
       <SiteFooter />
     </>

@@ -19,6 +19,13 @@ export const DIET_TEMPLATE_OPTIONS: DietTemplateOption[] = [
   { key: "weight-management", label: "Weight Management", group: "condition" },
   { key: "cholesterol", label: "Cholesterol", group: "condition" },
   { key: "digestive-health", label: "Digestive Health", group: "condition" },
+  { key: "oncology", label: "Oncology / Cancer Care", group: "condition" },
+];
+
+// Shared specialization list for the dietitian directory filters and the
+// "join as a dietitian" application form, so both always match.
+export const SPECIALIZATIONS = [
+  "Diabetes", "PCOS", "Weight Management", "Thyroid", "Cholesterol", "Digestive Health", "Oncology",
 ];
 
 // Maps the goal labels used on the diet-plan page's toggle group to a

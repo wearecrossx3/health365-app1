@@ -6,8 +6,8 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
 import { useAuthModal } from "@/components/AuthModalProvider";
+import { SPECIALIZATIONS } from "@/lib/dietConditions";
 
-const SPECIALIZATIONS = ["Diabetes", "PCOS", "Weight Management", "Thyroid", "Cholesterol", "Digestive Health"];
 const LANGUAGES = ["English", "Hindi", "Gujarati"];
 
 export default function JoinAsDietitianPage() {

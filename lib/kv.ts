@@ -221,6 +221,7 @@ export interface SectionVisibility {
   dietitian: boolean;
   testimonials: boolean;
   join: boolean;
+  oncology: boolean;
 }
 
 export interface SiteContent {
@@ -262,6 +263,21 @@ export interface SiteContent {
   youtubeUrl: string;
   pinterestUrl: string;
   linkedinUrl: string;
+  // Oncology / Cancer Care banner — shown on its own page, as a homepage
+  // section, in the nav menu, and in the footer, all gated by the one
+  // sectionsEnabled.oncology toggle.
+  oncologyImageUrl: string;
+  oncologyTitle: string;
+  oncologySubtitle: string;
+  oncologyButtonText: string;
+  // Paid 1:1 dietitian consultation upsell shown after a free plan is
+  // generated. No card gateway is wired up — this is the same manual
+  // UPI flow used elsewhere on the site: the visitor sees the price,
+  // pays via UPI on their own, then confirms, and it lands as a message
+  // for the team to follow up on.
+  premiumOriginalPrice: string;
+  premiumDiscountedPrice: string;
+  premiumUpiId: string;
   sectionsEnabled: SectionVisibility;
 }
 
@@ -309,6 +325,13 @@ const DEFAULT_CONTENT: SiteContent = {
   linkedinUrl: "",
   popupImageUrl: "",
   popupHeadline: "",
+  oncologyImageUrl: "",
+  oncologyTitle: "Cancer care nutrition, personalized for you",
+  oncologySubtitle: "Gentle, practical, judgement-free nutrition guidance for people navigating cancer treatment and recovery — shaped around your appetite, energy, and treatment schedule.",
+  oncologyButtonText: "Talk to an Oncology Dietitian",
+  premiumOriginalPrice: "2500",
+  premiumDiscountedPrice: "1500",
+  premiumUpiId: "",
   sectionsEnabled: {
     stats: true,
     goals: true,
@@ -318,6 +341,7 @@ const DEFAULT_CONTENT: SiteContent = {
     dietitian: true,
     testimonials: true,
     join: true,
+    oncology: true,
   },
 };
 
@@ -448,7 +472,7 @@ export interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  source: "contact_form" | "chat_widget";
+  source: "contact_form" | "chat_widget" | "premium_consult";
   read: boolean;
   createdAt: string;
 }
