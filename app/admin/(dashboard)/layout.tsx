@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getAdminAccess } from "@/lib/admin";
 import AdminSidebar from "./AdminSidebar";
+import PushNotificationSetup from "./PushNotificationSetup";
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies();
@@ -13,7 +14,10 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   return (
     <div className="admin-shell">
       <AdminSidebar adminName={session!.name} permissions={access.permissions} isSuperAdmin={access.isSuperAdmin} />
-      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <PushNotificationSetup />
+        {children}
+      </div>
     </div>
   );
 }

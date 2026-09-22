@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { saveConsultation, getConsultationsForUser } from "@/lib/kv";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
+import { sendPushToAdmins } from "@/lib/push";
 
 // Conditions that should always be routed for professional review before
 // any plan is shared — mirrors the pill "warn" flags in the Phase 2 UI.
@@ -59,6 +60,12 @@ export async function POST(req: NextRequest) {  const cookie = req.cookies.get(S
       ),
     }).catch(() => {});
   }
+
+  sendPushToAdmins({
+    title: needsReview ? "⚠️ New consultation — needs review" : "New consultation submitted",
+    body: `${consultation.goal} · ${consultation.dietType}`,
+    url: "/admin",
+  }).catch(() => {});
 
   return NextResponse.json({
     ok: true,

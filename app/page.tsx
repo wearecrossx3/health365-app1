@@ -91,6 +91,21 @@ export default async function Home() {
         </section>
         )}
 
+        {/* ONCOLOGY */}
+        {content.sectionsEnabled.oncology && (
+        <section>
+          <div className="wrap">
+            <OncologyBanner
+              imageUrl={content.oncologyImageUrl}
+              title={content.oncologyTitle}
+              subtitle={content.oncologySubtitle}
+              buttonText={content.oncologyButtonText}
+              buttonHref="/consultation?condition=Oncology"
+            />
+          </div>
+        </section>
+        )}
+
         {/* WHY US */}
         {content.sectionsEnabled.about && (
         <section style={{ background: "var(--paper)" }} id="about">
@@ -214,21 +229,6 @@ export default async function Home() {
               <TestimonialsCarousel testimonials={testimonials} />
             </div>
           </section>
-        )}
-
-        {/* ONCOLOGY */}
-        {content.sectionsEnabled.oncology && (
-        <section>
-          <div className="wrap">
-            <OncologyBanner
-              imageUrl={content.oncologyImageUrl}
-              title={content.oncologyTitle}
-              subtitle={content.oncologySubtitle}
-              buttonText={content.oncologyButtonText}
-              buttonHref="/consultation?condition=Oncology"
-            />
-          </div>
-        </section>
         )}
 
         {/* JOIN */}

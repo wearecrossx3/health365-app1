@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 import { saveContactMessage } from "@/lib/kv";
+import { sendPushToAdmins } from "@/lib/push";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -31,6 +32,8 @@ export async function POST(req: NextRequest) {
       ),
     }).catch(() => {});
   }
+
+  sendPushToAdmins({ title: `New message from ${name}`, body: String(message).slice(0, 120), url: "/admin/messages" }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }

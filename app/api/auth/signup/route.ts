@@ -4,6 +4,7 @@ import { getUserByEmail, createUser } from "@/lib/kv";
 import { hashPassword } from "@/lib/auth";
 import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "@/lib/session";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
+import { sendPushToAdmins } from "@/lib/push";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -46,6 +47,8 @@ export async function POST(req: NextRequest) {
         ),
       }).catch(() => {});
     }
+
+    sendPushToAdmins({ title: "New member joined Health365", body: `${user.name} — ${user.email}`, url: "/admin" }).catch(() => {});
 
     const cookieValue = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
     const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });

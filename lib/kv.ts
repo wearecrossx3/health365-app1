@@ -579,3 +579,34 @@ export async function listAdminAccounts(): Promise<AdminAccount[]> {
 export async function deleteAdminAccount(email: string): Promise<void> {
   await client().del(adminAccountKey(email));
 }
+
+// --- Push notification subscriptions ---
+// One record per browser/device an admin has clicked "Enable
+// notifications" on. Keyed by a hash of the subscription endpoint so the
+// same device re-subscribing (e.g. after clearing site data) just
+// overwrites its old record instead of piling up duplicates.
+
+export interface PushSubscriptionRecord {
+  id: string; // sha256 of endpoint — stable key for this device
+  email: string; // which admin this belongs to
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  createdAt: string;
+}
+
+const pushSubKey = (id: string) => `push_sub:${id}`;
+
+export async function savePushSubscription(s: PushSubscriptionRecord): Promise<void> {
+  await setJSON(pushSubKey(s.id), s);
+}
+
+export async function listAllPushSubscriptions(): Promise<PushSubscriptionRecord[]> {
+  const keys = await client().keys("push_sub:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<PushSubscriptionRecord>(k)));
+  return results.filter((s): s is PushSubscriptionRecord => s !== null);
+}
+
+export async function deletePushSubscription(id: string): Promise<void> {
+  await client().del(pushSubKey(id));
+}

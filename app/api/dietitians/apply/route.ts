@@ -7,6 +7,7 @@ import {
   DietitianApplication,
 } from "@/lib/kv";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
+import { sendPushToAdmins } from "@/lib/push";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -51,6 +52,14 @@ export async function POST(req: NextRequest) {
            <p>Specializations: ${app.specializations.join(", ") || "none"}</p>
            <p style="margin-top:16px;">Review it here: ${adminLink("/admin")}</p>`
         ),
+      }).catch(() => {});
+    }
+
+    if (!existing) {
+      sendPushToAdmins({
+        title: "New dietitian application",
+        body: `${app.name} — ${app.qualification}, ${app.location}`,
+        url: "/admin",
       }).catch(() => {});
     }
 
