@@ -4,6 +4,7 @@ import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import { saveConsultation, getConsultationsForUser } from "@/lib/kv";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 
 // Conditions that should always be routed for professional review before
 // any plan is shared — mirrors the pill "warn" flags in the Phase 2 UI.
@@ -66,6 +67,14 @@ export async function POST(req: NextRequest) {  const cookie = req.cookies.get(S
     body: `${consultation.goal} · ${consultation.dietType}`,
     url: "/admin",
   }).catch(() => {});
+
+  if (body.phone) {
+    sendWhatsAppTemplate({
+      to: String(body.phone),
+      templateName: process.env.WHATSAPP_TEMPLATE_CONSULTATION || "health365_consultation_received",
+      bodyParams: [body.fullName ? String(body.fullName) : "there", consultation.goal],
+    }).catch(() => {});
+  }
 
   return NextResponse.json({
     ok: true,

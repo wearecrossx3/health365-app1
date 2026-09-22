@@ -5,10 +5,11 @@ import { hashPassword } from "@/lib/auth";
 import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "@/lib/session";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
-  const { name, email, password } = body || {};
+  const { name, email, phone, password } = body || {};
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "Name, email, and password are required." }, { status: 400 });
@@ -27,6 +28,7 @@ export async function POST(req: NextRequest) {
       id: crypto.randomUUID(),
       email: String(email).toLowerCase(),
       name: String(name),
+      phone: phone ? String(phone) : undefined,
       passwordHash: hashPassword(password),
       createdAt: new Date().toISOString(),
     };
@@ -49,6 +51,16 @@ export async function POST(req: NextRequest) {
     }
 
     sendPushToAdmins({ title: "New member joined Health365", body: `${user.name} — ${user.email}`, url: "/admin" }).catch(() => {});
+
+    if (user.phone) {
+      // Template name is configurable so it matches whatever you name it
+      // when you submit it for Meta's approval — see lib/whatsapp.ts.
+      sendWhatsAppTemplate({
+        to: user.phone,
+        templateName: process.env.WHATSAPP_TEMPLATE_WELCOME || "health365_welcome",
+        bodyParams: [user.name],
+      }).catch(() => {});
+    }
 
     const cookieValue = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
     const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });

@@ -10,6 +10,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ export default function SignupPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, phone, password }),
     });
     const data = await res.json();
     setLoading(false);
@@ -49,6 +50,10 @@ export default function SignupPage() {
             <div className="field">
               <label htmlFor="email">Email</label>
               <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label htmlFor="phone">Phone <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional, for WhatsApp updates</span></label>
+              <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="98765 43210" />
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>

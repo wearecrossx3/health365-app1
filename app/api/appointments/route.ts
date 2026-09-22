@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
-import { createAppointment, getAppointmentsForUser, isSlotTaken } from "@/lib/kv";
+import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserByEmail } from "@/lib/kv";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -69,6 +70,16 @@ export async function POST(req: NextRequest) {
       title: "New appointment booked",
       body: `${session.name} with ${appointment.dietitianName} — ${prettyDate} at ${appointment.time}`,
       url: "/admin",
+    }).catch(() => {});
+
+    getUserByEmail(session.email).then((u) => {
+      if (u?.phone) {
+        sendWhatsAppTemplate({
+          to: u.phone,
+          templateName: process.env.WHATSAPP_TEMPLATE_APPOINTMENT || "health365_appointment_confirmed",
+          bodyParams: [session.name, appointment.dietitianName, prettyDate, appointment.time],
+        }).catch(() => {});
+      }
     }).catch(() => {});
 
     return NextResponse.json({ ok: true, appointment });

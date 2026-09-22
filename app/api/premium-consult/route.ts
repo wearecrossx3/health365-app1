@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 import { saveContactMessage, getSiteContent } from "@/lib/kv";
 import { sendPushToAdmins } from "@/lib/push";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -46,6 +47,12 @@ export async function POST(req: NextRequest) {
     title: `💰 Paid consultation request from ${name}`,
     body: `₹${content.premiumDiscountedPrice} — ${phone}`,
     url: "/admin/messages",
+  }).catch(() => {});
+
+  sendWhatsAppTemplate({
+    to: String(phone),
+    templateName: process.env.WHATSAPP_TEMPLATE_PREMIUM || "health365_consultation_confirmed",
+    bodyParams: [String(name), content.premiumDiscountedPrice],
   }).catch(() => {});
 
   return NextResponse.json({ ok: true });

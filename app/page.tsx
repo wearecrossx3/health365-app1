@@ -100,7 +100,7 @@ export default async function Home() {
               title={content.oncologyTitle}
               subtitle={content.oncologySubtitle}
               buttonText={content.oncologyButtonText}
-              buttonHref="/consultation?condition=Oncology"
+              buttonHref="/diet-plan?condition=oncology"
             />
           </div>
         </section>

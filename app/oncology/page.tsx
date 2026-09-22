@@ -16,7 +16,7 @@ export default async function OncologyPage() {
             title={content.oncologyTitle}
             subtitle={content.oncologySubtitle}
             buttonText={content.oncologyButtonText}
-            buttonHref="/consultation?condition=Oncology"
+            buttonHref="/diet-plan?condition=oncology"
           />
         </div>
 

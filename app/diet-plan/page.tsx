@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
@@ -35,12 +35,20 @@ interface DietTemplate { key: string; tips: string; meals: Record<string, DietTe
 type DayPlan = { label: string; item: MealItem | null }[];
 
 export default function DietPlanPage() {
+  return (
+    <Suspense fallback={null}>
+      <DietPlanContent />
+    </Suspense>
+  );
+}
+
+function DietPlanContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [goal, setGoal] = useState(GOALS[0]);
   const [condition, setCondition] = useState(CONDITIONS[0].key);
   const [consultName, setConsultName] = useState("");
   const [consultPhone, setConsultPhone] = useState("");
-  const [showConditionConfirm, setShowConditionConfirm] = useState(false);
   const [conditionFormError, setConditionFormError] = useState<string | null>(null);
   const [diet, setDiet] = useState("veg");
   const [allergens, setAllergens] = useState<string[]>([]);
@@ -49,6 +57,10 @@ export default function DietPlanPage() {
   const [generated, setGenerated] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
   const [pdfStatus, setPdfStatus] = useState<string | null>(null);
+  const [waPhone, setWaPhone] = useState("");
+  const [waName, setWaName] = useState("");
+  const [waStatus, setWaStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [waError, setWaError] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, DietTemplate>>({});
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [pricing, setPricing] = useState({ originalPrice: "2500", discountedPrice: "1500", upiId: "" });
@@ -74,6 +86,7 @@ export default function DietPlanPage() {
   }, []);
 
   useEffect(() => {
+    if (searchParams.get("condition")) return; // an explicit condition in the URL takes priority — skip past-consultation prefill
     fetch("/api/consultations")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -92,6 +105,17 @@ export default function DietPlanPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Arriving from the Oncology banner (or any other "talk to a
+  // specialist" link) with ?condition=oncology in the URL — jump
+  // straight to the condition flow instead of the default goal.
+  useEffect(() => {
+    const urlCondition = searchParams.get("condition");
+    if (urlCondition && CONDITIONS.some((c) => c.key === urlCondition)) {
+      setGoal("Manage a condition");
+      setCondition(urlCondition);
+    }
+  }, [searchParams]);
 
   const templateKey = goal === "Manage a condition" ? condition : GOAL_TO_TEMPLATE_KEY[goal];
   const activeTemplate = templates[templateKey];
@@ -283,10 +307,14 @@ export default function DietPlanPage() {
       <main>
         <div className="wrap" style={{ maxWidth: 920, paddingTop: 56, paddingBottom: 90 }}>
           <div style={{ marginBottom: 36 }}>
-            <span className="eyebrow">Diet plan</span>
-            <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.6rem)" }}>Your basic nutrition plan</h1>
+            <span className="eyebrow">{goal === "Manage a condition" ? "Specialist consultation" : "Diet plan"}</span>
+            <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.6rem)" }}>
+              {goal === "Manage a condition" ? "Talk to a specialist dietitian" : "Your basic nutrition plan"}
+            </h1>
             <p style={{ marginTop: 14, fontSize: "1.02rem", maxWidth: "56ch" }}>
-              Set your goal, food preference, and allergies below, and we&apos;ll put together a simple day — or week — of meals as a starting point.
+              {goal === "Manage a condition"
+                ? "Tell us a little about your condition and you'll be connected with a dietitian who specializes in it — no generic plan, no guesswork."
+                : "Set your goal, food preference, and allergies below, and we'll put together a simple day — or week — of meals as a starting point."}
             </p>
           </div>
 
@@ -382,45 +410,23 @@ export default function DietPlanPage() {
             </div>
             )}
 
-            {goal === "Manage a condition" && showConditionConfirm && (
-              <div style={{ background: "var(--paper)", borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
-                <p style={{ fontSize: ".9rem", fontWeight: 600 }}>Ready to continue?</p>
-                <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 6 }}>
-                  Next, you&apos;ll pick a dietitian and an appointment time for your {CONDITIONS.find((c) => c.key === condition)?.label} consultation.
-                </p>
-                <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                  <button
-                    className="pill pill-primary"
-                    onClick={() => {
-                      const mapped = CONSULT_CONDITION_MAP[condition];
-                      const params = new URLSearchParams({ name: consultName, phone: consultPhone });
-                      if (mapped) params.set("condition", mapped);
-                      router.push(`/dietitians?${params.toString()}`);
-                    }}
-                  >
-                    Yes, continue
-                  </button>
-                  <button className="pill pill-outline" onClick={() => setShowConditionConfirm(false)}>Cancel</button>
-                </div>
-              </div>
-            )}
-
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
               {goal === "Manage a condition" ? (
-                !showConditionConfirm && (
-                  <button
-                    className="pill pill-primary"
-                    onClick={() => {
-                      if (!consultName.trim() || !consultPhone.trim()) {
-                        setConditionFormError("Please share your name and phone number.");
-                        return;
-                      }
-                      setShowConditionConfirm(true);
-                    }}
-                  >
-                    Continue
-                  </button>
-                )
+                <button
+                  className="pill pill-primary"
+                  onClick={() => {
+                    if (!consultName.trim() || !consultPhone.trim()) {
+                      setConditionFormError("Please share your name and phone number.");
+                      return;
+                    }
+                    const mapped = CONSULT_CONDITION_MAP[condition];
+                    const params = new URLSearchParams({ name: consultName, phone: consultPhone });
+                    if (mapped) params.set("condition", mapped);
+                    router.push(`/dietitians?${params.toString()}`);
+                  }}
+                >
+                  Continue
+                </button>
               ) : (
                 <button className="pill pill-primary" onClick={() => { setGenerated(true); setActiveDay(1); }}>Generate My Plan</button>
               )}
@@ -442,6 +448,55 @@ export default function DietPlanPage() {
                 </button>
               </div>
               {pdfStatus && <p style={{ fontSize: ".8rem", marginTop: 10, color: "var(--teal)" }}>{pdfStatus}</p>}
+
+              <div style={{ marginTop: 16, background: "var(--paper)", borderRadius: 14, padding: "14px 18px" }}>
+                {waStatus === "sent" ? (
+                  <p style={{ fontSize: ".85rem", color: "var(--teal-deep)", fontWeight: 600 }}>✓ Sent to your WhatsApp</p>
+                ) : (
+                  <>
+                    <p style={{ fontSize: ".85rem", fontWeight: 600 }}>📱 Want this plan on WhatsApp too?</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
+                      <input
+                        value={waName}
+                        onChange={(e) => setWaName(e.target.value)}
+                        placeholder="Your name"
+                        style={{ flex: "1 1 160px", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--line)", fontSize: ".85rem" }}
+                      />
+                      <input
+                        value={waPhone}
+                        onChange={(e) => setWaPhone(e.target.value)}
+                        placeholder="WhatsApp number"
+                        style={{ flex: "1 1 160px", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--line)", fontSize: ".85rem" }}
+                      />
+                      <button
+                        className="pill pill-outline"
+                        style={{ padding: "9px 18px", fontSize: ".82rem" }}
+                        disabled={waStatus === "sending"}
+                        onClick={async () => {
+                          if (!waPhone.trim()) { setWaError("Please enter a phone number."); return; }
+                          setWaError(null);
+                          setWaStatus("sending");
+                          const res = await fetch("/api/whatsapp-plan", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ phone: waPhone, name: waName, planSummary: `${goal}, ${dietLabel}, ${length} day${length > 1 ? "s" : ""}` }),
+                          });
+                          if (!res.ok) {
+                            const data = await res.json().catch(() => ({}));
+                            setWaError(data.error || "Couldn't send — please try again.");
+                            setWaStatus("error");
+                            return;
+                          }
+                          setWaStatus("sent");
+                        }}
+                      >
+                        {waStatus === "sending" ? "Sending…" : "Send"}
+                      </button>
+                    </div>
+                    {waError && <p style={{ color: "var(--terracotta)", fontSize: ".78rem", marginTop: 8 }}>{waError}</p>}
+                  </>
+                )}
+              </div>
 
               {goal === "Manage a condition" && !templateHasMeals && (
                 <div className="condition-banner">
