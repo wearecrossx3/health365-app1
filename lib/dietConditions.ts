@@ -22,10 +22,14 @@ export const DIET_TEMPLATE_OPTIONS: DietTemplateOption[] = [
   { key: "oncology", label: "Oncology / Cancer Care", group: "condition" },
 ];
 
-// Shared specialization list for the dietitian directory filters and the
-// "join as a dietitian" application form, so both always match.
+// Shared specialization list for the dietitian directory filters, the
+// "join as a dietitian" application form, and Dr. Astha's profile picker
+// in admin — so all three always match.
 export const SPECIALIZATIONS = [
-  "Diabetes", "PCOS", "Weight Management", "Thyroid", "Cholesterol", "Digestive Health", "Oncology",
+  "Diabetes", "PCOS", "PCOD", "Thyroid", "Weight Management", "Weight Gain",
+  "Obesity", "Cholesterol", "Hypertension", "Digestive Health", "IBS/IBD",
+  "Constipation", "Ulcerative Colitis", "Kidney", "Pancreatitis", "Anemia",
+  "Psoriasis", "Arthritis", "Pregnancy", "Depression", "Oncology", "Other",
 ];
 
 // Maps the goal labels used on the diet-plan page's toggle group to a
