@@ -11,7 +11,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   if (!access.allowed) redirect("/admin/login");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--paper)" }}>
+    <div className="admin-shell">
       <AdminSidebar adminName={session!.name} permissions={access.permissions} isSuperAdmin={access.isSuperAdmin} />
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>

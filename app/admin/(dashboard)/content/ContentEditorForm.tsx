@@ -119,7 +119,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
           Uncheck a section to hide it from the live homepage. The hero at the very top always stays visible.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className="admin-grid-2" style={{ gap: 14 }}>
           {SECTION_TOGGLES.map(({ key, label, hint }) => (
             <label key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
               <input
@@ -142,7 +142,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
           Two versions, for two backgrounds — the site automatically switches between them.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        <div className="admin-grid-2" style={{ gap: 18 }}>
           <ImageUploadField
             label="Light / white logo"
             hint="used over the dark hero photo, top of the homepage"
@@ -164,7 +164,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
           Changes the sage-green accent and the black buttons/text used across the site. Pick a dark color for
           "Button &amp; text color" — a light one will make text hard to read.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div className="admin-grid-2" style={{ gap: 20 }}>
           <div className="field">
             <label>Accent color</label>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -236,7 +236,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
           The 4 "What brings you here?" cards on the homepage.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div className="admin-grid-2" style={{ gap: 24 }}>
           {content.goalLabels.map((label, i) => (
             <div key={i}>
               <div className="field">
@@ -278,7 +278,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
           The 4 process step images.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <div className="admin-grid-2" style={{ gap: 20 }}>
           {PROCESS_LABELS.map((label, i) => (
             <ImageUploadField
               key={i}

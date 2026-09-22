@@ -162,6 +162,40 @@ header.nav.scrolled{background:color-mix(in srgb, var(--cream) 55%, transparent)
   .footer-nav-cols{ grid-template-columns:1fr; }
 }
 
+/* Admin panel — desktop keeps the fixed vertical sidebar; below 860px
+   it collapses into a sticky top bar with a hamburger-toggled dropdown,
+   the same pattern as the public site's mobile nav, so the page content
+   isn't squeezed into a sliver next to a full-height 240px sidebar. */
+.admin-shell{ display:flex; min-height:100vh; background:var(--paper); }
+.admin-sidebar{
+  width:240px; flex:none; background:#0F1613; color:#fff;
+  display:flex; flex-direction:column; padding:24px 16px;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.admin-mobile-bar{ display:none; }
+.admin-nav-toggle{ display:none; }
+@media (max-width:860px){
+  .admin-shell{ flex-direction:column; min-height:0; }
+  .admin-sidebar{ display:none; }
+  .admin-mobile-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    background:#0F1613; padding:14px 18px; position:sticky; top:0; z-index:70;
+  }
+  .admin-nav-toggle{
+    display:flex; flex-direction:column; justify-content:center; gap:5px;
+    width:32px; height:32px; background:none; border:none; cursor:pointer; padding:0;
+  }
+  .admin-nav-toggle span{ display:block; width:20px; height:2px; background:#fff; border-radius:2px; transition:transform .2s ease, opacity .2s ease; }
+  .admin-mobile-menu{
+    display:none; flex-direction:column; background:#0F1613; padding:8px 18px 20px;
+    max-height:calc(100vh - 60px); overflow-y:auto; position:sticky; top:60px; z-index:69;
+  }
+  .admin-mobile-menu.open{ display:flex; }
+}
+
+.admin-grid-2{ display:grid; grid-template-columns:1fr 1fr; }
+@media (max-width:640px){ .admin-grid-2{ grid-template-columns:1fr; } }
+
 .hero{padding:24px 0 0;}
 .hero-frame{border-radius:28px; overflow:hidden; position:relative; min-height:88vh; display:flex; flex-direction:column; justify-content:space-between; width:100%;}
 .hero-frame::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,24,18,.15) 0%, rgba(20,24,18,.05) 40%, rgba(20,24,18,.55) 100%); z-index:1;}

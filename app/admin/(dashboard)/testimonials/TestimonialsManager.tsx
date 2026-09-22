@@ -64,7 +64,7 @@ export default function TestimonialsManager({ initial }: { initial: Testimonial[
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <form onSubmit={handleAdd} className="panel" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <h2 style={{ fontSize: "1.05rem" }}>Add a testimonial</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="admin-grid-2" style={{ gap: 16 }}>
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Priya S." />

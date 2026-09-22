@@ -12,7 +12,7 @@ interface AdminAccount {
 
 function PermissionChecklist({ permissions, onToggle }: { permissions: string[]; onToggle: (key: string) => void }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <div className="admin-grid-2" style={{ gap: 10 }}>
       {ADMIN_PERMISSIONS.map((p) => (
         <label key={p.key} style={{ display: "flex", alignItems: "flex-start", gap: 9, cursor: "pointer" }}>
           <input
@@ -134,7 +134,7 @@ export default function AdminUsersManager({ initial }: { initial: AdminAccount[]
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <form onSubmit={handleAdd} className="panel" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <h2 style={{ fontSize: "1.05rem" }}>Add an admin user</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="admin-grid-2" style={{ gap: 16 }}>
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Email <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— their existing account</span></label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dietitian@example.com" />
