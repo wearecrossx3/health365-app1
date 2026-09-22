@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSiteContent } from "@/lib/kv";
 
+// Without this, Next.js can statically cache this route at build time
+// (it has no cookies/headers/params to force dynamic rendering on its
+// own) — meaning admin edits would never show up on the live site until
+// a full redeploy. Force it to run fresh on every request instead.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const content = await getSiteContent();

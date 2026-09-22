@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ImageUploadField from "./ImageUploadField";
+import { SPECIALIZATIONS } from "@/lib/dietConditions";
 
 interface SectionVisibility {
   stats: boolean;
@@ -349,15 +350,39 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
           <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", margin: "-8px 0 2px" }}>
             The fields below feed her card and full profile on the Dietitians directory page specifically.
           </p>
-          <div className="admin-grid-2" style={{ gap: 16 }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>Specializations <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— comma separated</span></label>
-              <input value={content.asthaSpecializations} onChange={(e) => update("asthaSpecializations", e.target.value)} placeholder="Diabetes, PCOS, Weight Management, Thyroid" />
+          <div className="field">
+            <label>Specializations</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+              {SPECIALIZATIONS.map((s) => {
+                const current = content.asthaSpecializations.split(",").map((x) => x.trim()).filter(Boolean);
+                const selected = current.includes(s);
+                return (
+                  <label
+                    key={s}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 7, fontSize: ".85rem", fontWeight: 600,
+                      background: selected ? "var(--sage)" : "var(--paper)", color: selected ? "var(--teal-deep)" : "var(--ink-soft)",
+                      padding: "8px 14px", borderRadius: 100, cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => {
+                        const next = selected ? current.filter((x) => x !== s) : [...current, s];
+                        update("asthaSpecializations", next.join(", "));
+                      }}
+                      style={{ width: 15, height: 15 }}
+                    />
+                    {s}
+                  </label>
+                );
+              })}
             </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>Languages <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— comma separated</span></label>
-              <input value={content.asthaLanguages} onChange={(e) => update("asthaLanguages", e.target.value)} placeholder="English, Hindi, Gujarati" />
-            </div>
+          </div>
+          <div className="field">
+            <label>Languages <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— comma separated</span></label>
+            <input value={content.asthaLanguages} onChange={(e) => update("asthaLanguages", e.target.value)} placeholder="English, Hindi, Gujarati" />
           </div>
           <div className="admin-grid-2" style={{ gap: 16 }}>
             <div className="field" style={{ marginBottom: 0 }}>

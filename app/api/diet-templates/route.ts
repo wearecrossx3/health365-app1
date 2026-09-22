@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { listAllDietTemplates } from "@/lib/kv";
 
+// Same reasoning as /api/public-content — force fresh data on every
+// request so admin-edited templates show up without a redeploy.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const templates = await listAllDietTemplates();
