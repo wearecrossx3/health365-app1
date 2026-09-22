@@ -10,16 +10,16 @@ export default async function OncologyPage() {
     <>
       <SiteHeader />
       <main>
-        <div className="wrap" style={{ paddingTop: 48, paddingBottom: 90 }}>
-          <OncologyBanner
-            imageUrl={content.oncologyImageUrl}
-            title={content.oncologyTitle}
-            subtitle={content.oncologySubtitle}
-            buttonText={content.oncologyButtonText}
-            buttonHref="/consultation?condition=Oncology"
-          />
+        <OncologyBanner
+          imageUrl={content.oncologyImageUrl}
+          title={content.oncologyTitle}
+          subtitle={content.oncologySubtitle}
+          buttonText={content.oncologyButtonText}
+          buttonHref="/consultation?condition=Oncology"
+        />
 
-          <div className="grid-3" style={{ marginTop: 56 }}>
+        <div className="wrap" style={{ paddingTop: 56, paddingBottom: 90 }}>
+          <div className="grid-3">
             <div className="panel">
               <span style={{ fontSize: "1.6rem" }}>🍽️</span>
               <h3 style={{ fontSize: "1.05rem", marginTop: 14 }}>Appetite &amp; energy</h3>

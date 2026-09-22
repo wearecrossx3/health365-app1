@@ -16,9 +16,10 @@ export default function OncologyBanner({
   return (
     <div className="oncology-banner">
       <div
-        className={`photo${imageUrl ? "" : " ph-rose grain"}`}
+        className={`oncology-banner-img${imageUrl ? "" : " ph-rose grain"}`}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
       />
+      <div className="oncology-banner-overlay" />
       <div className="oncology-banner-text">
         <span className="luma-eyebrow">Oncology Care</span>
         <h2>{title}</h2>

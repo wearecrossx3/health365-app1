@@ -174,6 +174,7 @@ header.nav.scrolled{background:color-mix(in srgb, var(--cream) 55%, transparent)
 }
 .admin-mobile-bar{ display:none; }
 .admin-nav-toggle{ display:none; }
+.admin-mobile-menu{ display:none; }
 @media (max-width:860px){
   .admin-shell{ flex-direction:column; min-height:0; }
   .admin-sidebar{ display:none; }
@@ -288,18 +289,27 @@ section{padding:110px 0;}
 .approach-tags span{font-size:.78rem; font-weight:600; background:var(--paper); padding:7px 14px; border-radius:100px; color:var(--teal-deep);}
 
 .oncology-banner{
-  display:grid; grid-template-columns:.75fr 1fr; gap:0; align-items:stretch;
-  background:#FBF4F1; border-radius:24px; overflow:hidden; border:1px solid var(--line);
+  position:relative; width:100%; overflow:hidden;
+  min-height:440px; display:flex; align-items:center;
 }
-.oncology-banner .photo{ border-radius:0; min-height:260px; }
-.oncology-banner-text{ padding:40px 48px; display:flex; flex-direction:column; justify-content:center; }
-.oncology-banner-text h2{ font-size:clamp(1.6rem,3vw,2.1rem); margin-top:10px; }
-.oncology-banner-text p{ margin-top:14px; font-size:.98rem; max-width:46ch; color:var(--ink-soft); }
-.oncology-banner-text .pill{ margin-top:24px; align-self:flex-start; }
+.oncology-banner-img{ position:absolute; inset:0; background-color:var(--paper); }
+.oncology-banner-overlay{
+  position:absolute; inset:0;
+  background:linear-gradient(90deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.5) 55%, rgba(255,255,255,.88) 78%);
+}
+.oncology-banner-text{
+  position:relative; z-index:1; width:100%;
+  padding:0 7vw; display:flex; flex-direction:column; align-items:flex-end; text-align:right;
+}
+.oncology-banner-text h2{ font-size:clamp(1.7rem,3.4vw,2.5rem); margin-top:10px; max-width:560px; }
+.oncology-banner-text p{ margin-top:14px; font-size:1rem; color:var(--ink-soft); max-width:460px; }
+.oncology-banner-text .pill{ margin-top:26px; }
 @media (max-width:760px){
-  .oncology-banner{ grid-template-columns:1fr; }
-  .oncology-banner .photo{ min-height:200px; }
-  .oncology-banner-text{ padding:28px 24px; }
+  .oncology-banner{ min-height:360px; }
+  .oncology-banner-text{ padding:0 22px; }
+  .oncology-banner-text h2{ max-width:100%; }
+  .oncology-banner-text p{ max-width:100%; }
+  .oncology-banner-overlay{ background:linear-gradient(180deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.62) 58%, rgba(255,255,255,.92) 100%); }
 }
 
 .dietitian{display:grid; grid-template-columns:.75fr 1.25fr; gap:56px; align-items:center;}

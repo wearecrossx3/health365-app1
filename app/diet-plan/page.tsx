@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
@@ -8,6 +9,7 @@ import { DIET_TEMPLATE_OPTIONS, GOAL_TO_TEMPLATE_KEY } from "@/lib/dietCondition
 import PremiumConsultModal from "@/components/PremiumConsultModal";
 
 const GOALS = ["Lose weight", "Gain weight", "Maintain weight", "Improve nutrition", "Manage a condition"];
+const CONSULT_CONDITION_MAP: Record<string, string> = { diabetes: "Diabetes", pcos: "PCOS", thyroid: "Thyroid", oncology: "Oncology" };
 const DIETS: [string, string][] = [
   ["veg", "Vegetarian"], ["jain", "Jain"], ["vegan", "Vegan"],
   ["eggetarian", "Eggetarian"], ["nonveg", "Non-vegetarian"], ["other", "Other"],
@@ -33,6 +35,7 @@ interface DietTemplate { key: string; tips: string; meals: Record<string, DietTe
 type DayPlan = { label: string; item: MealItem | null }[];
 
 export default function DietPlanPage() {
+  const router = useRouter();
   const [goal, setGoal] = useState(GOALS[0]);
   const [condition, setCondition] = useState(CONDITIONS[0].key);
   const [diet, setDiet] = useState("veg");
@@ -293,7 +296,7 @@ export default function DietPlanPage() {
               <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Your goal</label>
               <div className="toggle-group">
                 {GOALS.map((g) => (
-                  <span key={g} className={`toggle-opt${goal === g ? " on" : ""}`} onClick={() => setGoal(g)}>{g}</span>
+                  <span key={g} className={`toggle-opt${goal === g ? " on" : ""}`} onClick={() => { setGoal(g); setGenerated(false); }}>{g}</span>
                 ))}
               </div>
             </div>
@@ -327,6 +330,7 @@ export default function DietPlanPage() {
                 ))}
               </div>
             </div>
+            {goal !== "Manage a condition" && (
             <div style={{ marginBottom: 8 }}>
               <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Plan length</label>
               <div className="length-toggle">
@@ -345,8 +349,26 @@ export default function DietPlanPage() {
                 </p>
               )}
             </div>
+            )}
+            {goal === "Manage a condition" && (
+              <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 8 }}>
+                Conditions need a dietitian&apos;s eye rather than a generic plan — you&apos;ll go straight to booking a consultation.
+              </p>
+            )}
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-              <button className="pill pill-primary" onClick={() => { setGenerated(true); setActiveDay(1); }}>Generate My Plan</button>
+              {goal === "Manage a condition" ? (
+                <button
+                  className="pill pill-primary"
+                  onClick={() => {
+                    const mapped = CONSULT_CONDITION_MAP[condition];
+                    router.push(mapped ? `/consultation?condition=${encodeURIComponent(mapped)}` : "/consultation?goal=Manage a Condition");
+                  }}
+                >
+                  Book a Consultation
+                </button>
+              ) : (
+                <button className="pill pill-primary" onClick={() => { setGenerated(true); setActiveDay(1); }}>Generate My Plan</button>
+              )}
             </div>
           </div>
 

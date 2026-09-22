@@ -219,15 +219,13 @@ export default async function Home() {
         {/* ONCOLOGY */}
         {content.sectionsEnabled.oncology && (
         <section>
-          <div className="wrap">
-            <OncologyBanner
-              imageUrl={content.oncologyImageUrl}
-              title={content.oncologyTitle}
-              subtitle={content.oncologySubtitle}
-              buttonText={content.oncologyButtonText}
-              buttonHref="/consultation?condition=Oncology"
-            />
-          </div>
+          <OncologyBanner
+            imageUrl={content.oncologyImageUrl}
+            title={content.oncologyTitle}
+            subtitle={content.oncologySubtitle}
+            buttonText={content.oncologyButtonText}
+            buttonHref="/consultation?condition=Oncology"
+          />
         </section>
         )}
 
