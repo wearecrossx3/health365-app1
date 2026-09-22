@@ -9,7 +9,7 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "im
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
-  if (!isAdmin(session)) {
+  if (!(await isAdmin(session))) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
 

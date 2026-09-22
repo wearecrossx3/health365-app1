@@ -19,8 +19,9 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = { userId: user.id, email: user.email, name: user.name };
-    if (!isAdmin({ ...payload, exp: Date.now() + 1 })) {
-      // Correct password, but this account isn't on the ADMIN_EMAILS list —
+    if (!(await isAdmin({ ...payload, exp: Date.now() + 1 }))) {
+      // Correct password, but this account has no admin access at all
+      // (not the owner, and no AdminAccount record granting anything) —
       // don't grant an admin session even though it's a valid site login.
       return NextResponse.json({ error: "This account doesn't have admin access." }, { status: 403 });
     }

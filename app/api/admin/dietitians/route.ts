@@ -7,7 +7,7 @@ import { sendEmail, emailWrapper, adminLink } from "@/lib/email";
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
-  if (!isAdmin(session)) {
+  if (!(await isAdmin(session, "dashboard"))) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
   const body = await req.json().catch(() => null);

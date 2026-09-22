@@ -516,3 +516,42 @@ export async function listAllDietTemplates(): Promise<DietTemplate[]> {
   const results = await Promise.all(keys.map((k) => getJSON<DietTemplate>(k)));
   return results.filter((t): t is DietTemplate => t !== null);
 }
+
+// --- Admin accounts with per-section permissions ---
+// The site owner (whoever's email is in the ADMIN_EMAILS env var) is
+// always a full super-admin and never needs a record here. Everyone
+// else who should get into /admin — a dietitian handling testimonials,
+// someone managing diet templates, etc. — gets one of these records,
+// naming exactly which admin sections they can open. They still log in
+// with their normal email/password (the same account used on the rest
+// of the site); this record only grants the extra admin-panel access.
+
+export interface AdminAccount {
+  email: string; // lowercase — also the record's key
+  name: string;
+  permissions: string[]; // subset of the keys in lib/admin.ts's ADMIN_PERMISSIONS
+  addedAt: string;
+}
+
+const adminAccountKey = (email: string) => `admin_account:${email.toLowerCase()}`;
+
+export async function getAdminAccount(email: string): Promise<AdminAccount | null> {
+  return getJSON<AdminAccount>(adminAccountKey(email));
+}
+
+export async function saveAdminAccount(a: AdminAccount): Promise<void> {
+  await setJSON(adminAccountKey(a.email), { ...a, email: a.email.toLowerCase() });
+}
+
+export async function listAdminAccounts(): Promise<AdminAccount[]> {
+  const keys = await client().keys("admin_account:*");
+  if (keys.length === 0) return [];
+  const results = await Promise.all(keys.map((k) => getJSON<AdminAccount>(k)));
+  return results
+    .filter((a): a is AdminAccount => a !== null)
+    .sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
+}
+
+export async function deleteAdminAccount(email: string): Promise<void> {
+  await client().del(adminAccountKey(email));
+}
