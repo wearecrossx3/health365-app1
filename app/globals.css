@@ -11,7 +11,13 @@ html { scroll-behavior: smooth; }
 /* Safety net: a single stray wide element (a fixed min-width, an
    un-wrapped flex row) can otherwise force sideways scroll on phones,
    clipping the hero, footer, and menu at the right edge. */
-html, body { max-width: 100%; overflow-x: hidden; }
+/* overflow-x:hidden here would work as a horizontal-scroll safety net,
+   but it has a well-known side effect: per the CSS spec, giving body a
+   non-visible overflow-x forces overflow-y to compute to auto too,
+   turning body into its own scroll container — which silently breaks
+   position:sticky for the header (and anything else) inside it.
+   overflow-x:clip gives the same protection without that side effect. */
+html, body { max-width: 100%; overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) {
   html, body { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
