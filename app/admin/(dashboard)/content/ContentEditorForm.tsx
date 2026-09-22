@@ -22,6 +22,11 @@ interface SiteContent {
   asthaBio: string;
   asthaQualifications: string;
   asthaPhotoUrl: string;
+  asthaSpecializations: string;
+  asthaLanguages: string;
+  asthaExperienceYears: string;
+  asthaLocation: string;
+  asthaFee: string;
   heroStatNumber: string;
   heroStatLabel: string;
   heroImageUrl: string;
@@ -339,6 +344,34 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
           <div className="field">
             <label>Qualifications &amp; credentials</label>
             <textarea rows={2} value={content.asthaQualifications} onChange={(e) => update("asthaQualifications", e.target.value)} />
+          </div>
+          <div style={{ borderTop: "1px solid var(--line)", margin: "4px 0" }} />
+          <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", margin: "-8px 0 2px" }}>
+            The fields below feed her card and full profile on the Dietitians directory page specifically.
+          </p>
+          <div className="admin-grid-2" style={{ gap: 16 }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Specializations <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— comma separated</span></label>
+              <input value={content.asthaSpecializations} onChange={(e) => update("asthaSpecializations", e.target.value)} placeholder="Diabetes, PCOS, Weight Management, Thyroid" />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Languages <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— comma separated</span></label>
+              <input value={content.asthaLanguages} onChange={(e) => update("asthaLanguages", e.target.value)} placeholder="English, Hindi, Gujarati" />
+            </div>
+          </div>
+          <div className="admin-grid-2" style={{ gap: 16 }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Years of experience</label>
+              <input value={content.asthaExperienceYears} onChange={(e) => update("asthaExperienceYears", e.target.value)} placeholder="8" />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Location</label>
+              <input value={content.asthaLocation} onChange={(e) => update("asthaLocation", e.target.value)} placeholder="Gujarat, India" />
+            </div>
+          </div>
+          <div className="field">
+            <label>Consultation fee <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional, leave blank to hide</span></label>
+            <input value={content.asthaFee} onChange={(e) => update("asthaFee", e.target.value)} placeholder="e.g. ₹800 / session" />
           </div>
           <ImageUploadField
             label="Photo"

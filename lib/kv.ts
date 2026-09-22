@@ -232,6 +232,15 @@ export interface SiteContent {
   asthaBio: string;
   asthaQualifications: string;
   asthaPhotoUrl: string;
+  // Shown on the Dietitians directory profile card specifically (separate
+  // from the homepage bio above) — specializations/languages are typed as
+  // comma-separated text so a non-technical admin can edit them as one
+  // plain field rather than a tag picker.
+  asthaSpecializations: string;
+  asthaLanguages: string;
+  asthaExperienceYears: string;
+  asthaLocation: string;
+  asthaFee: string;
   heroStatNumber: string;
   heroStatLabel: string;
   heroImageUrl: string;
@@ -294,6 +303,11 @@ const DEFAULT_CONTENT: SiteContent = {
   asthaQualifications:
     "Qualifications & credentials placeholder — connect Dr. Astha's verified details here before launch.",
   asthaPhotoUrl: "",
+  asthaSpecializations: "Diabetes, PCOS, Weight Management, Thyroid",
+  asthaLanguages: "English, Hindi, Gujarati",
+  asthaExperienceYears: "8",
+  asthaLocation: "Gujarat, India",
+  asthaFee: "",
   heroStatNumber: "10K+",
   heroStatLabel: "People supported with real nutrition guidance",
   heroImageUrl: "",

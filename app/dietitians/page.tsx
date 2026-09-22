@@ -14,14 +14,19 @@ interface Dietitian {
   location: string; bio: string; qualNote: string; fee?: string;
 }
 
-const ASTHA: Dietitian = {
+const ASTHA_DEFAULT: Dietitian = {
   id: "dr-astha", name: "Dr. Astha Jadeja", role: "Founder & Lead Dietitian", verified: true,
   specializations: ["Diabetes", "PCOS", "Weight Management", "Thyroid"],
   languages: ["English", "Hindi", "Gujarati"], experienceYears: 8,
   location: "Gujarat, India",
   bio: "Dr. Astha Jadeja leads the nutrition philosophy behind Health365 — practical, judgement-free guidance built for real Indian kitchens and real routines.",
-  qualNote: "Qualifications & credentials placeholder — connect Dr. Astha's verified details here before launch.",
+  qualNote: "",
 };
+
+function splitList(value: string, fallback: string[]): string[] {
+  const list = (value || "").split(",").map((s) => s.trim()).filter(Boolean);
+  return list.length ? list : fallback;
+}
 
 const LANGUAGES = ["English", "Hindi", "Gujarati"];
 
@@ -38,17 +43,43 @@ function DietitiansContent() {
   const prefillPhone = params.get("phone") || "";
   const paidFlow = !!urlCondition;
 
-  const [dietitians, setDietitians] = useState<Dietitian[]>([ASTHA]);
+  const [astha, setAstha] = useState<Dietitian>(ASTHA_DEFAULT);
+  const [approved, setApproved] = useState<Dietitian[]>([]);
+  const dietitians = [astha, ...approved];
   const [spec, setSpec] = useState<string | null>(SPECIALIZATIONS.includes(urlCondition) ? urlCondition : null);
   const [lang, setLang] = useState<string | null>(null);
   const [exp, setExp] = useState<string | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  // Dr. Astha's directory card is admin-editable (Admin → Site Content →
+  // "Dr. Astha's profile") — pull her specializations, languages,
+  // experience, location and fee from there instead of hardcoding them.
+  useEffect(() => {
+    fetch("/api/public-content")
+      .then((r) => r.json())
+      .then((d) => {
+        setAstha({
+          id: "dr-astha",
+          name: d.asthaName || ASTHA_DEFAULT.name,
+          role: d.asthaRole || ASTHA_DEFAULT.role,
+          verified: true,
+          specializations: splitList(d.asthaSpecializations, ASTHA_DEFAULT.specializations),
+          languages: splitList(d.asthaLanguages, ASTHA_DEFAULT.languages),
+          experienceYears: Number(d.asthaExperienceYears) || ASTHA_DEFAULT.experienceYears,
+          location: d.asthaLocation || ASTHA_DEFAULT.location,
+          bio: d.asthaBio || ASTHA_DEFAULT.bio,
+          qualNote: "",
+          fee: d.asthaFee || undefined,
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetch("/api/dietitians")
       .then((r) => r.json())
       .then((data) => {
-        const approved: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; }) => ({
+        const list: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; }) => ({
           id: d.id,
           name: d.name,
           role: d.qualification,
@@ -61,7 +92,7 @@ function DietitiansContent() {
           qualNote: "",
           fee: d.fee,
         }));
-        setDietitians([ASTHA, ...approved]);
+        setApproved(list);
       })
       .catch(() => {});
   }, []);
@@ -155,7 +186,7 @@ function DietitiansContent() {
                 <button
                   onClick={() => setOpenIndex(null)}
                   aria-label="Close"
-                  style={{ position: "absolute", top: 20, right: 20, background: "rgba(255,255,255,.1)", border: "none", color: "#fff", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1 }}
+                  style={{ position: "absolute", top: 18, right: 18, background: "var(--paper)", border: "none", color: "var(--ink)", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1 }}
                 >
                   ×
                 </button>
@@ -172,18 +203,21 @@ function DietitiansContent() {
                       <div className="m">Location<b>{open.location}</b></div>
                       {open.fee && <div className="m">Fee<b>{open.fee}</b></div>}
                     </div>
-                    <a href="/consultation" style={{ fontSize: ".84rem", fontWeight: 600, color: "var(--mint)", display: "inline-block", marginTop: 16 }}>
+                    <a href="/consultation" style={{ fontSize: ".82rem", fontWeight: 600, color: "var(--teal-deep)", display: "inline-block", marginTop: 14 }}>
                       Prefer a full intake instead? Start a consultation →
                     </a>
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,.12)", marginTop: 22, paddingTop: 22 }}>
-                      <BookingWidget
-                        dietitianId={open.id}
-                        dietitianName={open.name}
-                        paidFlow={paidFlow}
-                        prefillName={prefillName}
-                        prefillPhone={prefillPhone}
-                        conditionLabel={urlCondition}
-                      />
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ background: "var(--dark)", borderRadius: 18, padding: "20px 22px" }}>
+                        <p style={{ color: "#fff", fontWeight: 700, fontSize: ".9rem", marginBottom: 2 }}>Book an appointment</p>
+                        <BookingWidget
+                          dietitianId={open.id}
+                          dietitianName={open.name}
+                          paidFlow={paidFlow}
+                          prefillName={prefillName}
+                          prefillPhone={prefillPhone}
+                          conditionLabel={urlCondition}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
