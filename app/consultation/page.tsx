@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import { isValidPhone } from "@/lib/phone";
 import { useAuthModal } from "@/components/AuthModalProvider";
 
 const STEP_TITLES = ["About you", "Your body", "Lifestyle", "Your goal", "Food preference", "Allergies & health", "Review"];
@@ -113,6 +114,7 @@ function ConsultationForm() {
 
   function validate(): boolean {
     if (step === 1 && (!fullName.trim() || !age || !phone.trim() || gender.length === 0)) { setError("Please fill in the required fields."); return false; }
+    if (step === 1 && !isValidPhone(phone)) { setError("Please enter a valid phone number."); return false; }
     if (step === 2 && (!height || !weight)) { setError("Please enter your height and weight."); return false; }
     if (step === 3 && activity.length === 0) { setError("Please select your activity level."); return false; }
     if (step === 4 && goal.length === 0) { setError("Please choose a goal."); return false; }

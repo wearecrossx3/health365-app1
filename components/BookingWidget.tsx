@@ -112,44 +112,36 @@ export default function BookingWidget({
   return (
     <div style={{ marginTop: 18 }}>
       <p style={{ fontSize: ".8rem", fontWeight: 700, color: "rgba(255,255,255,.8)", marginBottom: 8 }}>Pick a date</p>
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-        {days.map((d) => (
-          <span
-            key={d.value}
-            onClick={() => setDate(d.value)}
-            style={{
-              flex: "none", padding: "8px 14px", borderRadius: 100, fontSize: ".78rem", fontWeight: 600, cursor: "pointer",
-              background: date === d.value ? "var(--mint)" : "rgba(255,255,255,.1)",
-              color: date === d.value ? "var(--dark)" : "#fff",
-            }}
-          >
-            {d.label}
-          </span>
-        ))}
-      </div>
+      <input
+        type="date"
+        value={date}
+        min={days[0].value}
+        max={days[days.length - 1].value}
+        onChange={(e) => e.target.value && setDate(e.target.value)}
+        style={{
+          width: "100%", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,.18)",
+          background: "rgba(255,255,255,.08)", color: "#fff", fontSize: ".88rem", fontWeight: 600,
+          colorScheme: "dark",
+        }}
+      />
 
       <p style={{ fontSize: ".8rem", fontWeight: 700, color: "rgba(255,255,255,.8)", margin: "16px 0 8px" }}>Pick a time</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {TIMES.map((t) => {
-          const isTaken = takenTimes.includes(t);
-          return (
-            <span
-              key={t}
-              onClick={() => !isTaken && setTime(t)}
-              style={{
-                padding: "8px 14px", borderRadius: 100, fontSize: ".78rem", fontWeight: 600,
-                cursor: isTaken ? "not-allowed" : "pointer",
-                opacity: isTaken ? 0.35 : 1,
-                background: time === t ? "var(--mint)" : "rgba(255,255,255,.1)",
-                color: time === t ? "var(--dark)" : "#fff",
-                textDecoration: isTaken ? "line-through" : "none",
-              }}
-            >
-              {t}
-            </span>
-          );
-        })}
-      </div>
+      <select
+        value={time || ""}
+        onChange={(e) => setTime(e.target.value || null)}
+        style={{
+          width: "100%", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,.18)",
+          background: "rgba(255,255,255,.08)", color: "#fff", fontSize: ".88rem", fontWeight: 600,
+          colorScheme: "dark",
+        }}
+      >
+        <option value="" style={{ color: "#000" }}>Select a time</option>
+        {TIMES.map((t) => (
+          <option key={t} value={t} disabled={takenTimes.includes(t)} style={{ color: "#000" }}>
+            {t}{takenTimes.includes(t) ? " — unavailable" : ""}
+          </option>
+        ))}
+      </select>
 
       {error && <p style={{ color: "#FFB4A0", fontSize: ".82rem", marginTop: 10 }}>{error}</p>}
 

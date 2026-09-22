@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import { isValidPhone } from "@/lib/phone";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,6 +19,10 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (phone.trim() && !isValidPhone(phone)) {
+      setError("Please enter a valid phone number, or leave it blank.");
+      return;
+    }
     setLoading(true);
     const res = await fetch("/api/auth/signup", {
       method: "POST",

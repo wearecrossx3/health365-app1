@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isValidPhone } from "@/lib/phone";
 
 export default function PremiumConsultModal({
   originalPrice,
@@ -42,6 +43,10 @@ export default function PremiumConsultModal({
     setError(null);
     if (!name.trim() || !phone.trim()) {
       setError("Please share your name and phone number.");
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      setError("Please enter a valid phone number.");
       return;
     }
     setSubmitting(true);

@@ -507,6 +507,11 @@ footer{border-top:1px solid var(--line); padding:52px 0 32px;}
 .profile-card{background:#fff; color:var(--ink); border:1.5px solid var(--line); border-radius:24px; padding:32px; position:relative; box-shadow:0 24px 60px -36px rgba(20,24,18,.25);}
 @media (max-width:700px){ .profile-card{padding:24px 20px;} }
 .profile-grid{display:grid; grid-template-columns:.6fr 1.4fr; gap:36px; align-items:start;}
+.profile-booking-box{
+  background:var(--dark); border-radius:0 0 22px 22px; padding:20px 22px;
+  margin:24px -32px -32px -32px;
+}
+@media (max-width:700px){ .profile-booking-box{ margin:20px -20px -24px -20px; border-radius:0 0 16px 16px; } }
 @media (max-width:800px){ .profile-grid{grid-template-columns:1fr;} }
 .profile-avatar{aspect-ratio:4/5; border-radius:16px;}
 .profile-grid .role{display:inline-block; margin-top:14px; background:var(--sage); color:var(--teal-deep); font-weight:700; font-size:.78rem; padding:6px 13px; border-radius:100px;}

@@ -7,6 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { slotLabels, slotOrder, pickMeal, MealItem } from "@/lib/mealPool";
 import { DIET_TEMPLATE_OPTIONS, GOAL_TO_TEMPLATE_KEY } from "@/lib/dietConditions";
 import PremiumConsultModal from "@/components/PremiumConsultModal";
+import { isValidPhone } from "@/lib/phone";
 
 const GOALS = ["Lose weight", "Gain weight", "Maintain weight", "Improve nutrition", "Manage a condition"];
 const CONSULT_CONDITION_MAP: Record<string, string> = { diabetes: "Diabetes", pcos: "PCOS", thyroid: "Thyroid", oncology: "Oncology" };
@@ -419,6 +420,10 @@ function DietPlanContent() {
                       setConditionFormError("Please share your name and phone number.");
                       return;
                     }
+                    if (!isValidPhone(consultPhone)) {
+                      setConditionFormError("Please enter a valid phone number.");
+                      return;
+                    }
                     const mapped = CONSULT_CONDITION_MAP[condition];
                     const params = new URLSearchParams({ name: consultName, phone: consultPhone });
                     if (mapped) params.set("condition", mapped);
@@ -474,6 +479,7 @@ function DietPlanContent() {
                         disabled={waStatus === "sending"}
                         onClick={async () => {
                           if (!waPhone.trim()) { setWaError("Please enter a phone number."); return; }
+                          if (!isValidPhone(waPhone)) { setWaError("Please enter a valid phone number."); return; }
                           setWaError(null);
                           setWaStatus("sending");
                           const res = await fetch("/api/whatsapp-plan", {

@@ -206,20 +206,18 @@ function DietitiansContent() {
                     <a href="/consultation" style={{ fontSize: ".82rem", fontWeight: 600, color: "var(--teal-deep)", display: "inline-block", marginTop: 14 }}>
                       Prefer a full intake instead? Start a consultation →
                     </a>
-                    <div style={{ marginTop: 20 }}>
-                      <div style={{ background: "var(--dark)", borderRadius: 18, padding: "20px 22px" }}>
-                        <p style={{ color: "#fff", fontWeight: 700, fontSize: ".9rem", marginBottom: 2 }}>Book an appointment</p>
-                        <BookingWidget
-                          dietitianId={open.id}
-                          dietitianName={open.name}
-                          paidFlow={paidFlow}
-                          prefillName={prefillName}
-                          prefillPhone={prefillPhone}
-                          conditionLabel={urlCondition}
-                        />
-                      </div>
-                    </div>
                   </div>
+                </div>
+                <div className="profile-booking-box">
+                  <p style={{ color: "#fff", fontWeight: 700, fontSize: ".9rem", marginBottom: 2 }}>Book an appointment</p>
+                  <BookingWidget
+                    dietitianId={open.id}
+                    dietitianName={open.name}
+                    paidFlow={paidFlow}
+                    prefillName={prefillName}
+                    prefillPhone={prefillPhone}
+                    conditionLabel={urlCondition}
+                  />
                 </div>
               </div>
             </div>
