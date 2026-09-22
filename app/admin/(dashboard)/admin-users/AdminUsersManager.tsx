@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ADMIN_PERMISSIONS } from "@/lib/admin";
+import { ADMIN_PERMISSIONS } from "@/lib/adminPermissions";
 
 interface AdminAccount {
   email: string;
