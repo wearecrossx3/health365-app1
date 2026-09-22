@@ -289,7 +289,7 @@ section{padding:110px 0;}
 .approach-tags span{font-size:.78rem; font-weight:600; background:var(--paper); padding:7px 14px; border-radius:100px; color:var(--teal-deep);}
 
 .oncology-banner{
-  position:relative; width:100%; overflow:hidden;
+  position:relative; width:100%; overflow:hidden; border-radius:24px;
   min-height:440px; display:flex; align-items:center;
 }
 .oncology-banner-img{ position:absolute; inset:0; background-color:var(--paper); }
