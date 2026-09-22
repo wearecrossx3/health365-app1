@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuthModal } from "./AuthModalProvider";
+import PremiumConsultModal from "./PremiumConsultModal";
 
 const TIMES = ["10:00 AM", "11:00 AM", "12:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"];
 
@@ -21,9 +22,21 @@ function nextDays(n: number) {
 export default function BookingWidget({
   dietitianId,
   dietitianName,
+  paidFlow,
+  prefillName,
+  prefillPhone,
+  conditionLabel,
 }: {
   dietitianId: string;
   dietitianName: string;
+  // When set, confirming a slot opens the paid-consultation pricing flow
+  // (payment step, then the appointment is booked) instead of booking
+  // the free slot directly — used when arriving here from the "Manage a
+  // condition" path on the diet-plan page.
+  paidFlow?: boolean;
+  prefillName?: string;
+  prefillPhone?: string;
+  conditionLabel?: string;
 }) {
   const { open } = useAuthModal();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
@@ -34,6 +47,8 @@ export default function BookingWidget({
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
+  const [pricing, setPricing] = useState({ originalPrice: "2500", discountedPrice: "1500", upiId: "" });
 
   useEffect(() => {
     fetch("/api/auth/session")
@@ -41,6 +56,21 @@ export default function BookingWidget({
       .then((d) => setLoggedIn(!!d.user))
       .catch(() => setLoggedIn(false));
   }, []);
+
+  useEffect(() => {
+    if (!paidFlow) return;
+    fetch("/api/public-content")
+      .then((r) => r.json())
+      .then((d) =>
+        setPricing({
+          originalPrice: d.premiumOriginalPrice || "2500",
+          discountedPrice: d.premiumDiscountedPrice || "1500",
+          upiId: d.premiumUpiId || "",
+        })
+      )
+      .catch(() => {});
+  }, [paidFlow]);
+
 
   useEffect(() => {
     fetch(`/api/appointments/availability?dietitianId=${encodeURIComponent(dietitianId)}&date=${date}`)
@@ -71,7 +101,7 @@ export default function BookingWidget({
   if (confirmed) {
     return (
       <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 14, padding: 16, marginTop: 18 }}>
-        <p style={{ color: "#fff", fontWeight: 600, fontSize: ".92rem" }}>✓ Appointment booked</p>
+        <p style={{ color: "#fff", fontWeight: 600, fontSize: ".92rem" }}>✓ Appointment {paidFlow ? "requested" : "booked"}</p>
         <p style={{ color: "rgba(255,255,255,.7)", fontSize: ".85rem", marginTop: 4 }}>
           {new Date(date).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })} at {time} with {dietitianName}
         </p>
@@ -133,12 +163,26 @@ export default function BookingWidget({
             className="pill pill-primary"
             style={{ background: "var(--mint)", color: "var(--dark)", opacity: time ? 1 : 0.5 }}
             disabled={!time || booking}
-            onClick={confirmBooking}
+            onClick={() => (paidFlow ? setShowPricing(true) : confirmBooking())}
           >
-            {booking ? "Booking…" : time ? `Confirm ${time}` : "Select a time"}
+            {booking ? "Booking…" : time ? (paidFlow ? `Continue with ${time}` : `Confirm ${time}`) : "Select a time"}
           </button>
         )}
       </div>
+
+      {showPricing && time && (
+        <PremiumConsultModal
+          originalPrice={pricing.originalPrice}
+          discountedPrice={pricing.discountedPrice}
+          upiId={pricing.upiId}
+          planSummary={`Consultation${conditionLabel ? ` for ${conditionLabel}` : ""} with ${dietitianName}`}
+          prefillName={prefillName}
+          prefillPhone={prefillPhone}
+          booking={{ dietitianId, dietitianName, date, time }}
+          onBooked={() => setConfirmed(true)}
+          onClose={() => setShowPricing(false)}
+        />
+      )}
     </div>
   );
 }

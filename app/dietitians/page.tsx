@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
@@ -30,9 +31,15 @@ function experienceBand(years: number) {
   return "0-3";
 }
 
-export default function DietitiansPage() {
+function DietitiansContent() {
+  const params = useSearchParams();
+  const urlCondition = params.get("condition") || "";
+  const prefillName = params.get("name") || "";
+  const prefillPhone = params.get("phone") || "";
+  const paidFlow = !!urlCondition;
+
   const [dietitians, setDietitians] = useState<Dietitian[]>([ASTHA]);
-  const [spec, setSpec] = useState<string | null>(null);
+  const [spec, setSpec] = useState<string | null>(SPECIALIZATIONS.includes(urlCondition) ? urlCondition : null);
   const [lang, setLang] = useState<string | null>(null);
   const [exp, setExp] = useState<string | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -70,7 +77,6 @@ export default function DietitiansPage() {
 
   return (
     <>
-      <SiteHeader />
       <main>
         <div className="wrap" style={{ maxWidth: 1080, paddingTop: 56, paddingBottom: 90 }}>
           <Reveal style={{ marginBottom: 36, maxWidth: 640 }}>
@@ -78,6 +84,18 @@ export default function DietitiansPage() {
             <h1 style={{ fontSize: "clamp(2rem,4vw,2.8rem)" }}>Find your dietitian.</h1>
             <p style={{ marginTop: 14, fontSize: "1.04rem" }}>Filter by specialization, language, or experience — every profile is reviewed before it goes live.</p>
           </Reveal>
+
+          {paidFlow && (
+            <div style={{ background: "#EAF3EF", border: "1px solid var(--teal)", borderRadius: 14, padding: "14px 20px", marginBottom: 28 }}>
+              <p style={{ fontSize: ".9rem", color: "var(--teal-deep)", fontWeight: 600 }}>
+                Booking a consultation{urlCondition ? ` for ${urlCondition}` : ""}
+                {prefillName ? ` — ${prefillName}` : ""}
+              </p>
+              <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 4 }}>
+                Pick a dietitian below, choose a time, and you&apos;ll see pricing on the next step.
+              </p>
+            </div>
+          )}
 
           <Reveal delay={100} className="filters">
             <div className="filter-row">
@@ -158,7 +176,14 @@ export default function DietitiansPage() {
                       Prefer a full intake instead? Start a consultation →
                     </a>
                     <div style={{ borderTop: "1px solid rgba(255,255,255,.12)", marginTop: 22, paddingTop: 22 }}>
-                      <BookingWidget dietitianId={open.id} dietitianName={open.name} />
+                      <BookingWidget
+                        dietitianId={open.id}
+                        dietitianName={open.name}
+                        paidFlow={paidFlow}
+                        prefillName={prefillName}
+                        prefillPhone={prefillPhone}
+                        conditionLabel={urlCondition}
+                      />
                     </div>
                   </div>
                 </div>
@@ -167,7 +192,17 @@ export default function DietitiansPage() {
           )}
         </div>
       </main>
+    </>
+  );
+}
 
+export default function DietitiansPage() {
+  return (
+    <>
+      <SiteHeader />
+      <Suspense fallback={null}>
+        <DietitiansContent />
+      </Suspense>
       <SiteFooter />
     </>
   );

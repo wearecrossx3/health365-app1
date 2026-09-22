@@ -38,6 +38,10 @@ export default function DietPlanPage() {
   const router = useRouter();
   const [goal, setGoal] = useState(GOALS[0]);
   const [condition, setCondition] = useState(CONDITIONS[0].key);
+  const [consultName, setConsultName] = useState("");
+  const [consultPhone, setConsultPhone] = useState("");
+  const [showConditionConfirm, setShowConditionConfirm] = useState(false);
+  const [conditionFormError, setConditionFormError] = useState<string | null>(null);
   const [diet, setDiet] = useState("veg");
   const [allergens, setAllergens] = useState<string[]>([]);
   const [length, setLength] = useState(1);
@@ -310,26 +314,53 @@ export default function DietPlanPage() {
                 </div>
               </div>
             )}
-            <div style={{ marginBottom: 26 }}>
-              <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Food preference</label>
-              <div className="toggle-group">
-                {DIETS.map(([k, label]) => (
-                  <span key={k} className={`toggle-opt${diet === k ? " on" : ""}`} onClick={() => setDiet(k)}>{label}</span>
-                ))}
+            {goal !== "Manage a condition" && (
+              <>
+                <div style={{ marginBottom: 26 }}>
+                  <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Food preference</label>
+                  <div className="toggle-group">
+                    {DIETS.map(([k, label]) => (
+                      <span key={k} className={`toggle-opt${diet === k ? " on" : ""}`} onClick={() => setDiet(k)}>{label}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginBottom: 26 }}>
+                  <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>
+                    Allergies to avoid <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— select any that apply</span>
+                  </label>
+                  <div className="toggle-group">
+                    {ALLERGENS.map((a) => (
+                      <span key={a} className={`toggle-opt${allergens.includes(a) ? " on" : ""}`} onClick={() => toggleAllergen(a)}>
+                        {a.charAt(0).toUpperCase() + a.slice(1)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+            {goal === "Manage a condition" && (
+              <div style={{ marginBottom: 26 }}>
+                <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Your details</label>
+                <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 14 }}>
+                  Conditions need a dietitian&apos;s eye rather than a generic plan — share your details and you&apos;ll go straight to booking a consultation, no free plan here.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+                  <input
+                    value={consultName}
+                    onChange={(e) => { setConsultName(e.target.value); setConditionFormError(null); }}
+                    placeholder="Your name"
+                    style={{ flex: "1 1 200px", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--line)", fontSize: ".9rem" }}
+                  />
+                  <input
+                    value={consultPhone}
+                    onChange={(e) => { setConsultPhone(e.target.value); setConditionFormError(null); }}
+                    placeholder="Phone number"
+                    style={{ flex: "1 1 200px", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--line)", fontSize: ".9rem" }}
+                  />
+                </div>
+                {conditionFormError && <p style={{ color: "var(--terracotta)", fontSize: ".82rem", marginTop: 10 }}>{conditionFormError}</p>}
               </div>
-            </div>
-            <div style={{ marginBottom: 26 }}>
-              <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>
-                Allergies to avoid <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— select any that apply</span>
-              </label>
-              <div className="toggle-group">
-                {ALLERGENS.map((a) => (
-                  <span key={a} className={`toggle-opt${allergens.includes(a) ? " on" : ""}`} onClick={() => toggleAllergen(a)}>
-                    {a.charAt(0).toUpperCase() + a.slice(1)}
-                  </span>
-                ))}
-              </div>
-            </div>
+            )}
             {goal !== "Manage a condition" && (
             <div style={{ marginBottom: 8 }}>
               <label style={{ fontWeight: 600, fontSize: ".88rem", display: "block", marginBottom: 10 }}>Plan length</label>
@@ -350,22 +381,46 @@ export default function DietPlanPage() {
               )}
             </div>
             )}
-            {goal === "Manage a condition" && (
-              <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 8 }}>
-                Conditions need a dietitian&apos;s eye rather than a generic plan — you&apos;ll go straight to booking a consultation.
-              </p>
+
+            {goal === "Manage a condition" && showConditionConfirm && (
+              <div style={{ background: "var(--paper)", borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
+                <p style={{ fontSize: ".9rem", fontWeight: 600 }}>Ready to continue?</p>
+                <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 6 }}>
+                  Next, you&apos;ll pick a dietitian and an appointment time for your {CONDITIONS.find((c) => c.key === condition)?.label} consultation.
+                </p>
+                <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                  <button
+                    className="pill pill-primary"
+                    onClick={() => {
+                      const mapped = CONSULT_CONDITION_MAP[condition];
+                      const params = new URLSearchParams({ name: consultName, phone: consultPhone });
+                      if (mapped) params.set("condition", mapped);
+                      router.push(`/dietitians?${params.toString()}`);
+                    }}
+                  >
+                    Yes, continue
+                  </button>
+                  <button className="pill pill-outline" onClick={() => setShowConditionConfirm(false)}>Cancel</button>
+                </div>
+              </div>
             )}
+
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
               {goal === "Manage a condition" ? (
-                <button
-                  className="pill pill-primary"
-                  onClick={() => {
-                    const mapped = CONSULT_CONDITION_MAP[condition];
-                    router.push(mapped ? `/consultation?condition=${encodeURIComponent(mapped)}` : "/consultation?goal=Manage a Condition");
-                  }}
-                >
-                  Book a Consultation
-                </button>
+                !showConditionConfirm && (
+                  <button
+                    className="pill pill-primary"
+                    onClick={() => {
+                      if (!consultName.trim() || !consultPhone.trim()) {
+                        setConditionFormError("Please share your name and phone number.");
+                        return;
+                      }
+                      setShowConditionConfirm(true);
+                    }}
+                  >
+                    Continue
+                  </button>
+                )
               ) : (
                 <button className="pill pill-primary" onClick={() => { setGenerated(true); setActiveDay(1); }}>Generate My Plan</button>
               )}

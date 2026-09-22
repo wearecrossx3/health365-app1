@@ -8,16 +8,27 @@ export default function PremiumConsultModal({
   upiId,
   planSummary,
   onClose,
+  prefillName,
+  prefillPhone,
+  booking,
+  onBooked,
 }: {
   originalPrice: string;
   discountedPrice: string;
   upiId: string;
   planSummary: string;
   onClose: () => void;
+  prefillName?: string;
+  prefillPhone?: string;
+  // When set, a successful payment confirmation also reserves this exact
+  // appointment slot — used when this modal is opened from the booking
+  // flow rather than the free-plan page.
+  booking?: { dietitianId: string; dietitianName: string; date: string; time: string };
+  onBooked?: () => void;
 }) {
   const [step, setStep] = useState<"package" | "payment" | "done">("package");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(prefillName || "");
+  const [phone, setPhone] = useState(prefillPhone || "");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,12 +50,23 @@ export default function PremiumConsultModal({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, phone, email, planSummary }),
     });
+    if (booking) {
+      // Best-effort — the payment-confirmation message above is what
+      // actually reaches the team, so a booking race (slot just taken)
+      // shouldn't block showing the success step.
+      await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(booking),
+      }).catch(() => {});
+    }
     setSubmitting(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError(data.error || "Something went wrong — please try again.");
       return;
     }
+    onBooked?.();
     setStep("done");
   }
 
@@ -158,9 +180,11 @@ export default function PremiumConsultModal({
         {step === "done" && (
           <div style={{ textAlign: "center", padding: "10px 0" }}>
             <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--teal)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", margin: "0 auto 16px" }}>✓</div>
-            <h2 style={{ fontSize: "1.25rem" }}>Request received</h2>
+            <h2 style={{ fontSize: "1.25rem" }}>{booking ? "Appointment requested" : "Request received"}</h2>
             <p style={{ fontSize: ".88rem", color: "var(--ink-soft)", marginTop: 8 }}>
-              Thanks — we&apos;ll verify your payment and reach out within 24 hours to schedule your consultation.
+              {booking
+                ? `Thanks — we'll verify your payment and confirm your appointment with ${booking.dietitianName} on ${new Date(booking.date).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })} at ${booking.time}.`
+                : "Thanks — we'll verify your payment and reach out within 24 hours to schedule your consultation."}
             </p>
             <button type="button" onClick={onClose} className="pill pill-outline" style={{ marginTop: 20, padding: "10px 22px" }}>
               Close
