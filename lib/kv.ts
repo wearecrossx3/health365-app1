@@ -487,7 +487,7 @@ export interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  source: "contact_form" | "chat_widget" | "premium_consult";
+  source: "contact_form" | "chat_widget" | "premium_consult" | "mobile_app";
   read: boolean;
   createdAt: string;
 }
@@ -624,4 +624,19 @@ export async function listAllPushSubscriptions(): Promise<PushSubscriptionRecord
 
 export async function deletePushSubscription(id: string): Promise<void> {
   await client().del(pushSubKey(id));
+}
+
+// --- Simple fixed-window rate limiter (used by the mobile-app API) ---
+// Returns true when the caller has gone OVER the limit for this window.
+// Fails open (returns false) if Redis hiccups, so a limiter problem can
+// never block real users.
+export async function isRateLimited(key: string, limit: number, windowSeconds: number): Promise<boolean> {
+  try {
+    const k = `ratelimit:${key}`;
+    const n = await client().incr(k);
+    if (n === 1) await client().expire(k, windowSeconds);
+    return n > limit;
+  } catch {
+    return false;
+  }
 }
