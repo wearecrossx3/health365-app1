@@ -674,7 +674,29 @@ export interface AppIntroSlide {
   imageUrl: string;
 }
 
+export interface AppTodayCard {
+  label: string; // e.g. "Today's target"
+  color: string; // brand palette hex
+  imageUrl: string; // optional background photo
+  ringColor: string; // meals-done ring
+}
+
+export interface AppTexts {
+  upNext: string;
+  water: string;
+  progress: string;
+  reviews: string;
+  premiumTitle: string;
+  premiumText: string;
+}
+
+export const APP_MENU_KEYS = ["details", "weight", "goal", "food", "appointments", "sound", "care", "join", "privacy", "terms", "login", "logout", "delete"] as const;
+
 export interface AppContent {
+  todayCard: AppTodayCard;
+  texts: AppTexts;
+  menuIcons: Record<string, string>; // profile menu item -> image URL
+  apiBase: string; // website address the app talks to (for a future custom domain)
   introSlides: AppIntroSlide[]; // exactly 3
   goalIcons: Record<string, string>; // lose | gain | better | condition -> image URL
   conditionIcons: Record<string, string>; // diabetes | pcos | thyroid | weight | cholesterol | digestive | oncology -> image URL
@@ -694,6 +716,17 @@ export const APP_CONDITION_KEYS = ["diabetes", "pcos", "thyroid", "weight", "cho
 const APP_CONTENT_KEY = "app_content";
 
 export const DEFAULT_APP_CONTENT: AppContent = {
+  todayCard: { label: "Today's target", color: "#287379", imageUrl: "", ringColor: "#CBDB3D" },
+  texts: {
+    upNext: "Up next",
+    water: "Water",
+    progress: "Your progress",
+    reviews: "Real stories, real routines",
+    premiumTitle: "1:1 dietitian consultation",
+    premiumText: "A plan built around your reports, routine and kitchen — with follow-ups.",
+  },
+  menuIcons: {},
+  apiBase: "",
   introSlides: [
     { title: "Your health, your 365.", text: "Small choices. Better habits. A healthier relationship with food — built around you.", imageUrl: "" },
     { title: "Not another diet chart.", text: "A chart tells you what to eat today. We're built for the other 364 days.", imageUrl: "" },
@@ -734,6 +767,9 @@ export async function getAppContent(): Promise<AppContent> {
   return {
     ...d,
     ...stored,
+    todayCard: { ...d.todayCard, ...(stored.todayCard || {}) },
+    texts: { ...d.texts, ...(stored.texts || {}) },
+    menuIcons: { ...(stored.menuIcons || {}) },
     introSlides: [0, 1, 2].map((i) => ({ ...d.introSlides[i], ...(stored.introSlides?.[i] || {}) })),
     goalIcons: { ...d.goalIcons, ...(stored.goalIcons || {}) },
     conditionIcons: { ...d.conditionIcons, ...(stored.conditionIcons || {}) },
@@ -744,4 +780,46 @@ export async function getAppContent(): Promise<AppContent> {
 
 export async function setAppContent(content: AppContent): Promise<void> {
   await setJSON(APP_CONTENT_KEY, content);
+}
+
+// --- Account deletion (required by Google Play for apps with sign-up) ---
+// Removes the user and everything tied to them: consultations, appointments
+// (also from the dietitian's list), a dietitian application if they made
+// one, and contact/app messages sent from their email. Returns counts so the
+// caller can confirm what was removed.
+export async function deleteUserAccount(userId: string): Promise<{ consultations: number; appointments: number; messages: number } | null> {
+  const user = await getUserById(userId);
+  if (!user) return null;
+  const r = client();
+
+  const consultIds = await r.lrange(userConsultationsKey(userId), 0, -1);
+  for (const id of consultIds) await r.del(consultationKey(id));
+  await r.del(userConsultationsKey(userId));
+
+  const apptIds = await r.lrange(userAppointmentsKey(userId), 0, -1);
+  for (const id of apptIds) {
+    const a = await getJSON<Appointment>(appointmentKey(id));
+    if (a) await r.lrem(dietitianAppointmentsKey(a.dietitianId), 0, id);
+    await r.del(appointmentKey(id));
+  }
+  await r.del(userAppointmentsKey(userId));
+
+  const application = await getDietitianApplicationByUserId(userId);
+  if (application) await deleteDietitianApplication(application.id);
+
+  let messages = 0;
+  const email = user.email.toLowerCase();
+  const msgKeys = await r.keys("contact_message:*");
+  for (const k of msgKeys) {
+    const m = await getJSON<ContactMessage>(k);
+    if (m && (m.email || "").toLowerCase() === email) {
+      await r.del(k);
+      messages++;
+    }
+  }
+  await r.srem("newsletter_subscribers", email);
+
+  await r.del(userKey(user.email));
+  await r.del(userByIdKey(user.id));
+  return { consultations: consultIds.length, appointments: apptIds.length, messages };
 }

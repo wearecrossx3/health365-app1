@@ -37,7 +37,14 @@ export default function PrivacyPage() {
               <li>Consultation information — age, gender, body measurements, activity level, food preferences, allergies, and any health conditions you choose to share</li>
               <li>Appointment details — which dietitian you book with, and when</li>
               <li>Dietitian applications, if you apply to join as a dietitian — qualifications, experience, and contact details</li>
+              <li>Messages you send to our care team from the website or the app</li>
             </ul>
+            <p style={{ marginTop: 12 }}>
+              <b>In the Health365 Android app</b>, the same account details and consultation answers are sent to us when you
+              create an account or book a consultation. Your daily meal ticks, water glasses, weight log and generated plan are
+              stored only on your phone and are not uploaded. The app doesn&apos;t use advertising, analytics or tracking SDKs,
+              and doesn&apos;t access your location, contacts, camera or files.
+            </p>
           </Section>
 
           <Section title="How we use it">
@@ -68,15 +75,18 @@ export default function PrivacyPage() {
 
           <Section title="Cookies">
             <p>
-              We use a single session cookie to keep you logged in. We don&apos;t use tracking or advertising
-              cookies.
+              We use a single session cookie to keep you logged in (in the app, an equivalent sign-in token is kept on your
+              phone). We don&apos;t use tracking or advertising cookies.
             </p>
           </Section>
 
           <Section title="Your choices">
             <p>
-              You can update your consultation details anytime by submitting a new consultation. To request
-              a copy of your data, or to have your account and data deleted, please reach out through our{" "}
+              You can update your consultation details anytime by submitting a new consultation. You can permanently
+              delete your account and all linked data yourself — in the app under <b>Profile → Delete my account</b>, or on
+              the web at{" "}
+              <a href="/delete-account" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>health365 / delete-account</a>.
+              Deletion happens immediately. To request a copy of your data, reach out through our{" "}
               <a href="/contact" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>Contact page</a>.
             </p>
           </Section>

@@ -7,7 +7,13 @@ type Action = "consult" | "plan" | "oncology" | "care" | "none";
 interface Banner { id: string; title: string; text: string; buttonText: string; imageUrl: string; color: string; action: Action; enabled: boolean; }
 interface Habit { id: string; tag: string; text: string; imageUrl: string; enabled: boolean; }
 interface Slide { title: string; text: string; imageUrl: string; }
+interface TodayCard { label: string; color: string; imageUrl: string; ringColor: string; }
+interface Texts { upNext: string; water: string; progress: string; reviews: string; premiumTitle: string; premiumText: string; }
 interface AppContent {
+  todayCard: TodayCard;
+  texts: Texts;
+  menuIcons: Record<string, string>;
+  apiBase: string;
   introSlides: Slide[];
   goalIcons: Record<string, string>;
   conditionIcons: Record<string, string>;
@@ -38,6 +44,15 @@ const ACTIONS: { key: Action; label: string }[] = [
 ];
 const GOALS = [["lose", "Lose Weight"], ["gain", "Gain Weight"], ["better", "Eat Better"], ["condition", "Manage a Condition"]];
 const CONDITIONS = [["diabetes", "Diabetes"], ["pcos", "PCOS"], ["thyroid", "Thyroid"], ["weight", "Weight Management"], ["cholesterol", "Cholesterol"], ["digestive", "Digestive Health"], ["oncology", "Cancer Care"]];
+const MENU = [
+  ["details", "My details"], ["weight", "Log weight"], ["goal", "Goal & conditions"], ["food", "Food preferences"],
+  ["appointments", "My appointments"], ["sound", "Sound & vibration"], ["care", "Talk to care team"], ["join", "Join as a Dietitian"],
+  ["privacy", "Privacy Policy"], ["terms", "Terms of Service"], ["login", "Log in / create account"], ["logout", "Log out"], ["delete", "Delete my account"],
+];
+const TEXTS: [keyof Texts, string, number][] = [
+  ["upNext", "“Up next” card title", 40], ["water", "Water card title", 40], ["progress", "Progress card title", 40],
+  ["reviews", "Reviews section title", 60], ["premiumTitle", "Consult tab — paid consultation title", 60], ["premiumText", "Consult tab — paid consultation text", 160],
+];
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 function Toggle({ label, hint, value, onChange }: { label: string; hint: string; value: boolean; onChange: (v: boolean) => void }) {
@@ -49,6 +64,17 @@ function Toggle({ label, hint, value, onChange }: { label: string; hint: string;
         <span style={{ display: "block", fontSize: ".8rem", color: "var(--ink-soft)", marginTop: 2 }}>{hint}</span>
       </span>
     </label>
+  );
+}
+
+function Swatches({ value, onChange, extra }: { value: string; onChange: (hex: string) => void; extra?: { hex: string; name: string }[] }) {
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {[...PALETTE, ...(extra || [])].map((p) => (
+        <button key={p.hex} type="button" title={p.name} aria-label={p.name} onClick={() => onChange(p.hex)}
+          style={{ width: 34, height: 34, borderRadius: 10, background: p.hex, cursor: "pointer", border: value === p.hex ? "3px solid var(--ink)" : "3px solid var(--line)" }} />
+      ))}
+    </div>
   );
 }
 
@@ -73,6 +99,8 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
   function moveIn<T>(list: T[], i: number, d: number): T[] { const n = [...list]; const j = i + d; if (j < 0 || j >= n.length) return n; [n[i], n[j]] = [n[j], n[i]]; return n; }
   const setBanner = (i: number, p: Partial<Banner>) => patch({ banners: c.banners.map((b, k) => (k === i ? { ...b, ...p } : b)) });
   const setHabit = (i: number, p: Partial<Habit>) => patch({ habitCards: c.habitCards.map((h, k) => (k === i ? { ...h, ...p } : h)) });
+  const setToday = (p: Partial<TodayCard>) => patch({ todayCard: { ...c.todayCard, ...p } });
+  const setText = (k: keyof Texts, v: string) => patch({ texts: { ...c.texts, [k]: v } });
   const setSlide = (i: number, p: Partial<Slide>) => patch({ introSlides: c.introSlides.map((s, k) => (k === i ? { ...s, ...p } : s)) });
 
   async function save(e: React.FormEvent) {
@@ -89,6 +117,52 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
 
   return (
     <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Today&apos;s target card</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          The big card at the top of the home screen with calories, protein, carbs and fat. The numbers always come from the user&apos;s own plan.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="field"><label>Label</label><input value={c.todayCard.label} maxLength={40} onChange={(e) => setToday({ label: e.target.value })} /></div>
+          <div className="admin-grid-2" style={{ gap: 14 }}>
+            <div className="field"><label>Card color</label><Swatches value={c.todayCard.color} onChange={(hex) => setToday({ color: hex })} /></div>
+            <div className="field"><label>Meals-done ring color</label><Swatches value={c.todayCard.ringColor} onChange={(hex) => setToday({ ringColor: hex })} extra={[{ hex: "#FFF3E5", name: "Cream" }]} /></div>
+          </div>
+          <ImageUploadField label="Background photo" hint="optional — a soft dark overlay keeps the numbers readable" value={c.todayCard.imageUrl} onChange={(u) => setToday({ imageUrl: u })} />
+          <div style={{ borderRadius: 18, padding: 18, color: c.todayCard.color === "#CBDB3D" ? "#1F2B2C" : "#fff", maxWidth: 360,
+            background: c.todayCard.imageUrl ? `linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)), url("${c.todayCard.imageUrl}") center/cover, ${c.todayCard.color}` : c.todayCard.color }}>
+            <div style={{ fontSize: ".8rem", opacity: .85 }}>{c.todayCard.label || "Today's target"}</div>
+            <div style={{ fontSize: "1.8rem", fontWeight: 700 }}>1,750 <span style={{ fontSize: ".9rem" }}>kcal</span></div>
+            <div style={{ fontSize: ".78rem", opacity: .8, marginTop: 4 }}>Preview</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Home &amp; consult screen text</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>Section titles in the app. Leave a field empty to go back to the default.</p>
+        <div className="admin-grid-2" style={{ gap: 14 }}>
+          {TEXTS.map(([k, label, max]) => (
+            <div className="field" key={k}><label>{label}</label>
+              {k === "premiumText"
+                ? <textarea rows={2} value={c.texts[k]} maxLength={max} onChange={(e) => setText(k, e.target.value)} />
+                : <input value={c.texts[k]} maxLength={max} onChange={(e) => setText(k, e.target.value)} />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Profile menu icons</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
+          Replace any icon on the Profile screen. Square PNG or SVG, transparent background, about 96×96. Empty = the app&apos;s built-in icon.
+        </p>
+        <div className="admin-grid-2" style={{ gap: 18 }}>
+          {MENU.map(([k, label]) => (
+            <ImageUploadField key={k} label={label} value={c.menuIcons[k] || ""} onChange={(u) => patch({ menuIcons: { ...c.menuIcons, [k]: u } })} />
+          ))}
+        </div>
+      </div>
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Home banners</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
@@ -116,12 +190,7 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
               </div>
               <div className="field">
                 <label>Color</label>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {PALETTE.map((p) => (
-                    <button key={p.hex} type="button" title={p.name} onClick={() => setBanner(i, { color: p.hex })}
-                      style={{ width: 34, height: 34, borderRadius: 10, background: p.hex, cursor: "pointer", border: b.color === p.hex ? "3px solid var(--ink)" : "3px solid transparent" }} />
-                  ))}
-                </div>
+                <Swatches value={b.color} onChange={(hex) => setBanner(i, { color: hex })} />
               </div>
               <ImageUploadField label="Background photo" hint="optional — sits behind the text" value={b.imageUrl} onChange={(u) => setBanner(i, { imageUrl: u })} />
             </div>
@@ -215,6 +284,17 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
           <Toggle label="Tap sounds" hint="Soft click on taps and a chime on big moments. Users can still turn this off in their own profile." value={c.soundEnabled} onChange={(v) => patch({ soundEnabled: v })} />
           <Toggle label="Vibration (haptics)" hint="Light buzz on taps, a stronger one when a plan is ready or a booking is confirmed." value={c.hapticsEnabled} onChange={(v) => patch({ hapticsEnabled: v })} />
           <Toggle label="Confetti celebrations" hint="Confetti when a diet plan is generated and when a consultation is booked." value={c.confettiEnabled} onChange={(v) => patch({ confettiEnabled: v })} />
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Website address (advanced)</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 14 }}>
+          Only change this after you connect your own domain in Vercel and it opens this same site. The app checks the new address works
+          before it switches, and the old vercel.app address keeps working too. Example: https://health365.in
+        </p>
+        <div className="field"><label>Website address</label>
+          <input value={c.apiBase} placeholder="https://health365-app1.vercel.app (current)" onChange={(e) => patch({ apiBase: e.target.value.trim() })} />
         </div>
       </div>
 
