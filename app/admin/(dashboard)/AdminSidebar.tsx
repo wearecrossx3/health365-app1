@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/diet-plans", label: "Diet Plan Templates", icon: "🥗", permission: "diet-plans" },
   { href: "/admin/messages", label: "Messages", icon: "✉️", permission: "messages" },
   { href: "/admin/settings", label: "Website Settings", icon: "⚙️", permission: "settings" },
+  { href: "/admin/app-content", label: "Mobile App", icon: "📱", permission: "app" },
 ];
 
 export default function AdminSidebar({

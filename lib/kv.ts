@@ -640,3 +640,108 @@ export async function isRateLimited(key: string, limit: number, windowSeconds: n
     return false;
   }
 }
+
+// --- Mobile app content (icons, banners, carousels, effects) ---
+// Edited from /admin/app-content. The Android app downloads this through
+// /api/app/bootstrap each time it opens, so every change here shows up in
+// the app with no new APK. Any image left blank falls back to the icon or
+// photo that ships inside the app.
+
+export type AppBannerAction = "consult" | "plan" | "oncology" | "care" | "none";
+
+export interface AppBanner {
+  id: string;
+  title: string;
+  text: string;
+  buttonText: string;
+  imageUrl: string;
+  color: string; // one of the brand palette hex values
+  action: AppBannerAction;
+  enabled: boolean;
+}
+
+export interface AppHabitCard {
+  id: string;
+  tag: string;
+  text: string;
+  imageUrl: string;
+  enabled: boolean;
+}
+
+export interface AppIntroSlide {
+  title: string;
+  text: string;
+  imageUrl: string;
+}
+
+export interface AppContent {
+  introSlides: AppIntroSlide[]; // exactly 3
+  goalIcons: Record<string, string>; // lose | gain | better | condition -> image URL
+  conditionIcons: Record<string, string>; // diabetes | pcos | thyroid | weight | cholesterol | digestive | oncology -> image URL
+  banners: AppBanner[];
+  habitCards: AppHabitCard[];
+  habitsTitle: string;
+  autoScroll: boolean;
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
+  confettiEnabled: boolean;
+  updatedAt: string;
+}
+
+export const APP_GOAL_KEYS = ["lose", "gain", "better", "condition"] as const;
+export const APP_CONDITION_KEYS = ["diabetes", "pcos", "thyroid", "weight", "cholesterol", "digestive", "oncology"] as const;
+
+const APP_CONTENT_KEY = "app_content";
+
+export const DEFAULT_APP_CONTENT: AppContent = {
+  introSlides: [
+    { title: "Your health, your 365.", text: "Small choices. Better habits. A healthier relationship with food — built around you.", imageUrl: "" },
+    { title: "Not another diet chart.", text: "A chart tells you what to eat today. We're built for the other 364 days.", imageUrl: "" },
+    { title: "Built for Indian kitchens.", text: "Real ingredients, real routines — reviewed by our dietitians.", imageUrl: "" },
+  ],
+  goalIcons: { lose: "", gain: "", better: "", condition: "" },
+  conditionIcons: { diabetes: "", pcos: "", thyroid: "", weight: "", cholesterol: "", digestive: "", oncology: "" },
+  banners: [
+    {
+      id: "consult",
+      title: "Talk to a real dietitian",
+      text: "1:1 consultation shaped around your kitchen.",
+      buttonText: "Book a consultation",
+      imageUrl: "",
+      color: "#9997C9",
+      action: "consult",
+      enabled: true,
+    },
+  ],
+  habitCards: [
+    { id: "h1", tag: "Seeds", text: "Add 1 tbsp flax or pumpkin seeds to your day", imageUrl: "", enabled: true },
+    { id: "h2", tag: "Habit", text: "Start lunch with a bowl of salad", imageUrl: "", enabled: true },
+    { id: "h3", tag: "Move", text: "A 10-minute walk after dinner steadies blood sugar", imageUrl: "", enabled: true },
+    { id: "h4", tag: "Kitchen", text: "Swap one fried snack for roasted chana this week", imageUrl: "", enabled: true },
+  ],
+  habitsTitle: "Small choices, better habits",
+  autoScroll: true,
+  soundEnabled: true,
+  hapticsEnabled: true,
+  confettiEnabled: true,
+  updatedAt: "",
+};
+
+export async function getAppContent(): Promise<AppContent> {
+  const stored = await getJSON<Partial<AppContent>>(APP_CONTENT_KEY);
+  const d = DEFAULT_APP_CONTENT;
+  if (!stored) return d;
+  return {
+    ...d,
+    ...stored,
+    introSlides: [0, 1, 2].map((i) => ({ ...d.introSlides[i], ...(stored.introSlides?.[i] || {}) })),
+    goalIcons: { ...d.goalIcons, ...(stored.goalIcons || {}) },
+    conditionIcons: { ...d.conditionIcons, ...(stored.conditionIcons || {}) },
+    banners: Array.isArray(stored.banners) ? stored.banners : d.banners,
+    habitCards: Array.isArray(stored.habitCards) ? stored.habitCards : d.habitCards,
+  };
+}
+
+export async function setAppContent(content: AppContent): Promise<void> {
+  await setJSON(APP_CONTENT_KEY, content);
+}

@@ -1,4 +1,4 @@
-import { getSiteContent, listApprovedDietitians, listAllDietTemplates, listPublishedTestimonials } from "@/lib/kv";
+import { getSiteContent, listApprovedDietitians, listAllDietTemplates, listPublishedTestimonials, getAppContent, DEFAULT_APP_CONTENT } from "@/lib/kv";
 import { DIET_TEMPLATE_OPTIONS } from "@/lib/dietConditions";
 import { appJson, appPreflight } from "@/lib/appApi";
 
@@ -18,11 +18,12 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
-    const [c, approved, templates, testimonials] = await Promise.all([
+    const [c, approved, templates, testimonials, appContent] = await Promise.all([
       getSiteContent(),
       listApprovedDietitians().catch(() => []),
       listAllDietTemplates().catch(() => []),
       listPublishedTestimonials().catch(() => []),
+      getAppContent().catch(() => DEFAULT_APP_CONTENT),
     ]);
 
     const astha = {
@@ -86,6 +87,11 @@ export async function GET() {
       templateOptions: DIET_TEMPLATE_OPTIONS,
       testimonials: testimonials.map((t) => ({ id: t.id, name: t.name, role: t.role, quote: t.quote, rating: t.rating, photoUrl: t.photoUrl })),
       bookingTimes: BOOKING_TIMES,
+      app: {
+        ...appContent,
+        banners: appContent.banners.filter((b) => b.enabled),
+        habitCards: appContent.habitCards.filter((h) => h.enabled),
+      },
     });
   } catch (err) {
     console.error("App bootstrap failed:", err);

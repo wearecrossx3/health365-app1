@@ -16,6 +16,7 @@ export const ADMIN_PERMISSIONS = [
   { key: "diet-plans", label: "Diet Plan Templates", hint: "Per-condition diet plans" },
   { key: "messages", label: "Messages", hint: "Contact form and chat widget messages" },
   { key: "settings", label: "Website Settings", hint: "Contact details, social links" },
+  { key: "app", label: "Mobile App", hint: "App icons, banners, carousels, sound & effects" },
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number]["key"];
@@ -29,6 +30,7 @@ const PERMISSION_PATHS: Record<AdminPermission, string> = {
   "diet-plans": "/admin/diet-plans",
   messages: "/admin/messages",
   settings: "/admin/settings",
+  app: "/admin/app-content",
 };
 
 // Where to send an admin who hits a page they don't have permission
