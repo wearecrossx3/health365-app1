@@ -87,6 +87,7 @@ export default function AdminSidebar({
       <Link href="/" style={{ display: "block", padding: "10px 12px", fontSize: ".8rem", color: "rgba(255,255,255,.4)" }}>
         ← Back to site
       </Link>
+      <p style={{ padding: "8px 12px 0", fontSize: ".72rem", color: "rgba(255,255,255,.35)" }}>Made with ❤️ by FrontpageStudios</p>
     </div>
   );
 

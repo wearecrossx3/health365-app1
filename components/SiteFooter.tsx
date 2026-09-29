@@ -132,7 +132,7 @@ export default function SiteFooter() {
 
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
           <span style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>© 2026 Health365. General nutrition guidance, not a medical diagnosis.</span>
-          <span style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Made with care in Gujarat.</span>
+          <span style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Made with ❤️ by FrontpageStudios</span>
         </div>
       </div>
     </footer>

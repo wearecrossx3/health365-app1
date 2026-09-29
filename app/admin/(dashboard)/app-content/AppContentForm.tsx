@@ -291,10 +291,10 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Website address (advanced)</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 14 }}>
           Only change this after you connect your own domain in Vercel and it opens this same site. The app checks the new address works
-          before it switches, and the old vercel.app address keeps working too. Example: https://health365.in
+          before it switches, and the old vercel.app address keeps working too. Example: https://www.thehealth365.in
         </p>
         <div className="field"><label>Website address</label>
-          <input value={c.apiBase} placeholder="https://health365-app1.vercel.app (current)" onChange={(e) => patch({ apiBase: e.target.value.trim() })} />
+          <input value={c.apiBase} placeholder="https://www.thehealth365.in" onChange={(e) => patch({ apiBase: e.target.value.trim() })} />
         </div>
       </div>
 

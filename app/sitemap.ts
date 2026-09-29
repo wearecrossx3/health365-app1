@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://health365-app1.vercel.app";
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in";
   const routes = [
     "",
     "/conditions",
