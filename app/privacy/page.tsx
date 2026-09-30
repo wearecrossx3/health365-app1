@@ -45,6 +45,12 @@ export default function PrivacyPage() {
               stored only on your phone and are not uploaded. The app doesn&apos;t use advertising, analytics or tracking SDKs,
               and doesn&apos;t access your location, contacts, camera or files.
             </p>
+            <p style={{ marginTop: 12 }}>
+              <b>Notifications.</b> If you allow notifications, meal, water, weigh-in and appointment reminders are scheduled
+              on your phone itself. About every 30 minutes the app also checks our server for announcements from the Health365
+              team; this check sends no personal or health details — your phone decides by itself which announcements are
+              relevant to you. You can turn each kind of reminder off in the app under <b>Profile → Reminders</b>.
+            </p>
           </Section>
 
           <Section title="How we use it">

@@ -823,3 +823,36 @@ export async function deleteUserAccount(userId: string): Promise<{ consultations
   await r.del(userByIdKey(user.id));
   return { consultations: consultIds.length, appointments: apptIds.length, messages };
 }
+
+// --- App notifications (sent from Admin -> App Notifications) ---
+// The Android app checks this list in the background every ~30 minutes
+// and shows anything new as a phone notification. No Firebase needed.
+// Audience filtering happens ON THE PHONE (the app knows the user's plan
+// conditions and whether they have an account), so the phone never has
+// to send health details to the server just to receive a notification.
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  body: string;
+  audience: string; // "all" | "account" | "guest" | a condition key like "diabetes"
+  createdAt: string; // ISO
+  sentBy: string; // admin email
+}
+
+const APP_NOTIFS_KEY = "app_notifications";
+const APP_NOTIFS_MAX = 50;
+
+export async function listAppNotifications(): Promise<AppNotification[]> {
+  return (await getJSON<AppNotification[]>(APP_NOTIFS_KEY)) || [];
+}
+
+export async function addAppNotification(n: AppNotification): Promise<void> {
+  const all = await listAppNotifications();
+  await setJSON(APP_NOTIFS_KEY, [n, ...all].slice(0, APP_NOTIFS_MAX));
+}
+
+export async function deleteAppNotification(id: string): Promise<void> {
+  const all = await listAppNotifications();
+  await setJSON(APP_NOTIFS_KEY, all.filter((n) => n.id !== id));
+}

@@ -17,6 +17,7 @@ export const ADMIN_PERMISSIONS = [
   { key: "messages", label: "Messages", hint: "Contact form and chat widget messages" },
   { key: "settings", label: "Website Settings", hint: "Contact details, social links" },
   { key: "app", label: "Mobile App", hint: "App icons, banners, carousels, sound & effects" },
+  { key: "app-notifications", label: "App Notifications", hint: "Send notifications to app users" },
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number]["key"];
@@ -31,6 +32,7 @@ const PERMISSION_PATHS: Record<AdminPermission, string> = {
   messages: "/admin/messages",
   settings: "/admin/settings",
   app: "/admin/app-content",
+  "app-notifications": "/admin/app-notifications",
 };
 
 // Where to send an admin who hits a page they don't have permission

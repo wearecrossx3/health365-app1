@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/messages", label: "Messages", icon: "✉️", permission: "messages" },
   { href: "/admin/settings", label: "Website Settings", icon: "⚙️", permission: "settings" },
   { href: "/admin/app-content", label: "Mobile App", icon: "📱", permission: "app" },
+  { href: "/admin/app-notifications", label: "App Notifications", icon: "🔔", permission: "app-notifications" },
 ];
 
 export default function AdminSidebar({
