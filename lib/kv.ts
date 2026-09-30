@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import type { Coupon } from "./couponMath";
 
 // Vercel's Redis product (the current one, replacing the older "KV"
 // product) gives you a single REDIS_URL connection string — not the
@@ -855,4 +856,30 @@ export async function addAppNotification(n: AppNotification): Promise<void> {
 export async function deleteAppNotification(id: string): Promise<void> {
   const all = await listAppNotifications();
   await setJSON(APP_NOTIFS_KEY, all.filter((n) => n.id !== id));
+}
+
+// --- Coupons (Admin -> Coupons). Maths lives in lib/couponMath.ts ---
+const COUPONS_KEY = "coupons";
+
+export async function listCoupons(): Promise<Coupon[]> {
+  return (await getJSON<Coupon[]>(COUPONS_KEY)) || [];
+}
+
+export async function saveCoupons(list: Coupon[]): Promise<void> {
+  await setJSON(COUPONS_KEY, list.slice(0, 200));
+}
+
+export async function findCoupon(code: string): Promise<Coupon | null> {
+  const all = await listCoupons();
+  return all.find((c) => c.code === code) || null;
+}
+
+// Counts one use after a booking goes through.
+export async function recordCouponUse(code: string, userId: string): Promise<void> {
+  const all = await listCoupons();
+  const c = all.find((x) => x.code === code);
+  if (!c) return;
+  c.used += 1;
+  if (c.onePerUser && !c.usedBy.includes(userId)) c.usedBy = [...c.usedBy, userId].slice(-5000);
+  await saveCoupons(all);
 }

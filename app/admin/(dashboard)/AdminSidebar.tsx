@@ -15,6 +15,7 @@ const NAV = [
   { href: "/admin/settings", label: "Website Settings", icon: "⚙️", permission: "settings" },
   { href: "/admin/app-content", label: "Mobile App", icon: "📱", permission: "app" },
   { href: "/admin/app-notifications", label: "App Notifications", icon: "🔔", permission: "app-notifications" },
+  { href: "/admin/coupons", label: "Coupons", icon: "🏷️", permission: "coupons" },
 ];
 
 export default function AdminSidebar({

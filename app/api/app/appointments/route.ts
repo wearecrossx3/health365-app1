@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
-import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserById, saveContactMessage, getSiteContent } from "@/lib/kv";
+import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserById, saveContactMessage, getSiteContent, findCoupon, recordCouponUse } from "@/lib/kv";
+import { applyCoupon, normalizeCode, priceNumber } from "@/lib/couponMath";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
   const note = str(body?.note, 600);
   const reason = str(body?.reason, 80);
   const utr = str(body?.utr, 40);
+  const couponCode = normalizeCode(body?.coupon);
   if (!dietitianId || !dietitianName || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !time) {
     return appJson({ error: "Missing booking details." }, 400);
   }
@@ -46,6 +48,16 @@ export async function POST(req: NextRequest) {
     if (await isSlotTaken(dietitianId, date, time)) {
       return appJson({ error: "That slot was just booked — please pick another.", code: "taken" }, 409);
     }
+    // Coupon: checked again here so the price can't be changed on the phone.
+    const content = await getSiteContent();
+    const basePrice = priceNumber(content.premiumDiscountedPrice);
+    let coupon: { code: string; price: number; label: string } | null = null;
+    if (couponCode) {
+      const r = applyCoupon(await findCoupon(couponCode), basePrice, session.userId);
+      if (!r.ok) return appJson({ error: r.error, code: "coupon" }, 400);
+      coupon = { code: r.code, price: r.price, label: r.label };
+    }
+    const payable = coupon ? coupon.price : basePrice;
     const user = await getUserById(session.userId);
     const appointment = {
       id: crypto.randomUUID(),
@@ -59,22 +71,38 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await createAppointment(appointment);
+    if (coupon) await recordCouponUse(coupon.code, session.userId).catch(() => {});
+    const couponLine = coupon ? `Coupon: ${coupon.code} (${coupon.label}) — pays ₹${payable} instead of ₹${basePrice}\n` : "";
 
     const prettyDate = new Date(date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
 
     if (utr) {
-      const content = await getSiteContent();
       await saveContactMessage({
         id: crypto.randomUUID(),
         name: session.name,
         email: session.email,
         message:
-          `Paid 1:1 consultation from the app (₹${content.premiumDiscountedPrice} via UPI).\n` +
+          `Paid 1:1 consultation from the app (₹${payable} via UPI).\n` +
+          couponLine +
           `Phone: ${user?.phone || "—"}\nUPI reference (UTR): ${utr}\n` +
           `Slot: ${prettyDate} at ${time} with ${dietitianName}\n` +
           (reason ? `For: ${reason}\n` : "") +
           (note ? `Note: ${note}\n` : "") +
           `Please verify the payment before confirming.`,
+        source: "premium_consult",
+        read: false,
+        createdAt: new Date().toISOString(),
+      }).catch(() => {});
+    } else if (coupon) {
+      await saveContactMessage({
+        id: crypto.randomUUID(),
+        name: session.name,
+        email: session.email,
+        message:
+          `Free consultation from the app with coupon ${coupon.code}.\n` +
+          `Phone: ${user?.phone || "—"}\nSlot: ${prettyDate} at ${time} with ${dietitianName}\n` +
+          (reason ? `For: ${reason}\n` : "") +
+          (note ? `Note: ${note}\n` : ""),
         source: "premium_consult",
         read: false,
         createdAt: new Date().toISOString(),
@@ -106,7 +134,7 @@ export async function POST(req: NextRequest) {
         subject: utr ? "💰 New paid appointment (app)" : "New appointment booked (app)",
         html: emailWrapper(
           "New appointment from the app",
-          `<p><b>${session.name.replace(/</g, "&lt;")}</b> booked with <b>${dietitianName}</b></p><p>${prettyDate} at ${time}</p>${utr ? `<p>UPI reference: <b>${utr.replace(/</g, "&lt;")}</b> — please verify.</p>` : ""}<p>${adminLink("/admin")}</p>`
+          `<p><b>${session.name.replace(/</g, "&lt;")}</b> booked with <b>${dietitianName}</b></p><p>${prettyDate} at ${time}</p>${utr ? `<p>UPI reference: <b>${utr.replace(/</g, "&lt;")}</b> — please verify.</p>` : ""}${coupon ? `<p>Coupon <b>${coupon.code}</b> (${coupon.label}) — ₹${payable} to pay.</p>` : ""}<p>${adminLink("/admin")}</p>`
         ),
       }).catch(() => {});
     }
