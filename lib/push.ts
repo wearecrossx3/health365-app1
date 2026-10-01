@@ -1,5 +1,6 @@
 import webpush from "web-push";
-import { listAllPushSubscriptions, deletePushSubscription } from "./kv";
+import crypto from "crypto";
+import { listAllPushSubscriptions, deletePushSubscription, addAdminEvent } from "./kv";
 
 // Fallback keys so notifications work out of the box without extra setup.
 // For a production deploy, generate your own pair (`npx web-push
@@ -34,6 +35,8 @@ export interface PushPayload {
 // subscriptions the push service reports as gone (410/404) so the list
 // doesn't accumulate dead devices from uninstalled browsers.
 export async function sendPushToAdmins(payload: PushPayload): Promise<void> {
+  // Also feeds the Health365 Admin app (it can't receive browser web-push).
+  await addAdminEvent({ id: crypto.randomUUID(), title: payload.title, body: payload.body, url: payload.url, at: Date.now() }).catch(() => {});
   ensureConfigured();
   const subs = await listAllPushSubscriptions();
   if (subs.length === 0) return;

@@ -883,3 +883,25 @@ export async function recordCouponUse(code: string, userId: string): Promise<voi
   if (c.onePerUser && !c.usedBy.includes(userId)) c.usedBy = [...c.usedBy, userId].slice(-5000);
   await saveCoupons(all);
 }
+
+// --- Admin activity feed for the Health365 Admin Android app ---
+// Browser web-push doesn't work inside the admin app (an Android WebView),
+// so every admin push is ALSO written here. The admin app checks this feed
+// in the background every ~15 minutes and shows new items as notifications.
+export interface AdminEvent {
+  id: string;
+  title: string;
+  body: string;
+  url: string; // admin page, e.g. "/admin/messages"
+  at: number; // ms
+}
+const ADMIN_EVENTS_KEY = "admin_events";
+
+export async function addAdminEvent(e: AdminEvent): Promise<void> {
+  const all = (await getJSON<AdminEvent[]>(ADMIN_EVENTS_KEY)) || [];
+  await setJSON(ADMIN_EVENTS_KEY, [e, ...all].slice(0, 100));
+}
+
+export async function listAdminEvents(): Promise<AdminEvent[]> {
+  return (await getJSON<AdminEvent[]>(ADMIN_EVENTS_KEY)) || [];
+}
