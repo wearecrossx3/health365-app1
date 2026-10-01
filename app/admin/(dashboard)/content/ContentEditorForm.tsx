@@ -324,7 +324,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       </div>
 
       <div className="panel">
-        <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>Dr. Astha's profile</h2>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 18 }}>Dt. Astha's profile</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div className="field">
             <label>Name</label>
