@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/dietitians",
     "/consultation",
     "/diet-plan",
+    "/app",
     "/join-as-dietitian",
     "/privacy",
     "/terms",
