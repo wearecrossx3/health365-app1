@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 
@@ -17,14 +17,17 @@ export default function MetricoolTracker() {
   const pathname = usePathname() || "/";
   const isPrivate = PRIVATE.some((p) => pathname === p || pathname.startsWith(p + "/"));
   const first = useRef(true);
+  // Only count the real site — not Vercel preview links (*.vercel.app) or localhost.
+  const [isLive, setIsLive] = useState(false);
+  useEffect(() => { setIsLive(window.location.hostname.endsWith("thehealth365.in")); }, []);
 
   // Next.js changes pages without a full reload, so log each new page.
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    if (!isPrivate && window.beTracker) window.beTracker.t({ hash: HASH });
+    if (isLive && !isPrivate && window.beTracker) window.beTracker.t({ hash: HASH });
   }, [pathname, isPrivate]);
 
-  if (isPrivate) return null;
+  if (!isLive || isPrivate) return null;
   return (
     <Script
       id="metricool-tracker"
