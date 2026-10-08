@@ -6,6 +6,7 @@ import OfferPopup from "@/components/OfferPopup";
 import ActivityToast from "@/components/ActivityToast";
 import ChatWidget from "@/components/ChatWidget";
 import ThemeInjector from "@/components/ThemeInjector";
+import MetricoolTracker from "@/components/MetricoolTracker";
 
 const heading = Fredoka({
   subsets: ["latin"],
@@ -92,6 +93,7 @@ export default function RootLayout({
         <OfferPopup />
         <ActivityToast />
         <ChatWidget />
+        <MetricoolTracker />
       </body>
     </html>
   );
