@@ -65,7 +65,7 @@ function parseJson(text: string): { items: ScanItem[]; note?: string } | null {
 // Gemini model names change often, so we ask Google which models this key can
 // use (cached for an hour) and pick the configured one if it exists, otherwise
 // the best available Flash model. "Thinking" is switched off where allowed —
-// kept low: a little thinking helps tell similar Indian dishes apart.
+// it adds a lot of time; the Indian-dish hints in the prompt do the accuracy work.
 let modelCache: { at: number; names: string[] } | null = null;
 
 async function availableModels(key: string): Promise<string[]> {
@@ -105,7 +105,7 @@ async function askGemini(key: string, image: string, p: string, signal: AbortSig
   for (const model of models) {
     for (const fast of [true, false]) {
       const generationConfig: Record<string, unknown> = { temperature: 0.2, responseMimeType: "application/json" };
-      if (fast) generationConfig.thinkingConfig = { thinkingLevel: "low" };
+      if (fast) generationConfig.thinkingConfig = { thinkingBudget: 0 };
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
