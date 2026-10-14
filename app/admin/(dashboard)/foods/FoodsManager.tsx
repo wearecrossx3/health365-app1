@@ -48,12 +48,12 @@ export default function FoodsManager() {
       {adding && (
         <div className="panel" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <h3 style={{ fontSize: "1rem" }}>Add a food</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 8 }}>
+          <div className="adm-cols" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 8 }}>
             <input style={cell} placeholder="Name" value={adding.name} onChange={(e) => setAdding({ ...adding, name: e.target.value })} />
             <select style={cell} value={adding.per} onChange={(e) => setAdding({ ...adding, per: e.target.value })}><option value="serving">Per serving</option><option value="100g">Per 100 g</option></select>
             <input style={cell} placeholder="Serving e.g. 1 katori" disabled={adding.per !== "serving"} value={adding.serving} onChange={(e) => setAdding({ ...adding, serving: e.target.value })} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8 }}>
+          <div className="adm-cols5" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8 }}>
             {(["kcal", "protein", "carbs", "fat", "fibre"] as const).map((k) => (
               <label key={k} style={{ fontSize: ".72rem", fontWeight: 700 }}>{k}{k === "kcal" ? "" : " (g)"}<input type="number" style={cell} value={adding[k] as number} onChange={(e) => setAdding({ ...adding, [k]: Number(e.target.value) })} /></label>
             ))}

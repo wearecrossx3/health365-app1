@@ -60,7 +60,7 @@ export default function NudgesManager({ initial }: { initial: NudgeSettings }) {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {s.nudges.map((n, i) => (
-          <div key={n.id} style={{ display: "grid", gridTemplateColumns: "24px 1fr 1.6fr 120px 24px", gap: 8, alignItems: "center", opacity: n.enabled ? 1 : 0.5 }}>
+          <div key={n.id} className="adm-nudge" style={{ display: "grid", gridTemplateColumns: "24px 1fr 1.6fr 120px 24px", gap: 8, alignItems: "center", opacity: n.enabled ? 1 : 0.5 }}>
             <input type="checkbox" checked={n.enabled} onChange={(e) => setN(i, { enabled: e.target.checked })} />
             <input style={box} value={n.title} maxLength={60} onChange={(e) => setN(i, { title: e.target.value })} placeholder="Title" />
             <input style={box} value={n.body} maxLength={160} onChange={(e) => setN(i, { body: e.target.value })} placeholder="Message" />

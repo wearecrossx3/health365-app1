@@ -68,7 +68,7 @@ export default function ConsultationRow({ c }: { c: Consultation }) {
 
       {open && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 16 }}>
+          <div className="adm-cols" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 16 }}>
             <div><span style={{ fontSize: ".72rem", color: "var(--ink-soft)" }}>Name</span><p style={{ fontSize: ".88rem", fontWeight: 600 }}>{field(c.raw, "fullName")}</p></div>
             <div><span style={{ fontSize: ".72rem", color: "var(--ink-soft)" }}>Mobile</span><p style={{ fontSize: ".88rem", fontWeight: 600 }}>{field(c.raw, "phone")}</p></div>
             <div><span style={{ fontSize: ".72rem", color: "var(--ink-soft)" }}>Age / Gender</span><p style={{ fontSize: ".88rem", fontWeight: 600 }}>{field(c.raw, "age")} · {field(c.raw, "gender")}</p></div>

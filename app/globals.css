@@ -772,3 +772,35 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .luma-final-panel .cta-col{ text-align:right; }
 @media (max-width:700px){ .luma-final-panel .cta-col{text-align:left;} }
 .luma-final-panel .cta-col p{ margin-top:10px; font-size:.8rem; }
+
+/* ── Admin: responsive & tidy on phones and tablets ───────────────────── */
+.admin-content input,.admin-content select,.admin-content textarea{min-width:0;max-width:100%;box-sizing:border-box}
+.admin-content [style*="grid-template-columns"]>*{min-width:0}
+.admin-content img,.admin-content video{max-width:100%;height:auto}
+.admin-content table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.admin-content pre,.admin-content code{white-space:pre-wrap;word-break:break-word}
+.admin-content p,.admin-content span,.admin-content a{overflow-wrap:anywhere}
+@media (max-width:1024px){
+  .admin-content main{padding:32px 20px !important}
+}
+@media (max-width:760px){
+  .admin-content main{padding:18px 12px 40px !important}
+  .admin-content .wrap{padding:0 !important}
+  .admin-content .panel{padding:16px !important;border-radius:18px !important}
+  .admin-content h1{font-size:1.45rem !important;line-height:1.2}
+  .admin-content h2{font-size:1.08rem !important}
+  .admin-content input,.admin-content select,.admin-content textarea{font-size:16px !important}
+  .admin-content .pill{padding:9px 14px;font-size:.82rem}
+  .adm-cols,.adm-cols5{grid-template-columns:1fr !important}
+  .adm-cols5{grid-template-columns:1fr 1fr !important}
+  /* plan item: name on its own line, then portion · kcal · remove */
+  .adm-item{grid-template-columns:1fr 72px 28px !important;row-gap:6px !important;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+  .adm-item>:nth-child(1){grid-column:1/-1}
+  /* nudge row: tick · title · remove, then message and audience full width */
+  .adm-nudge{grid-template-columns:24px 1fr 28px !important;row-gap:6px !important;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .adm-nudge>:nth-child(1){grid-column:1;grid-row:1}
+  .adm-nudge>:nth-child(2){grid-column:2;grid-row:1}
+  .adm-nudge>:nth-child(5){grid-column:3;grid-row:1}
+  .adm-nudge>:nth-child(3),.adm-nudge>:nth-child(4){grid-column:1/-1}
+  .admin-row{gap:10px}
+}

@@ -100,7 +100,7 @@ function TemplateCard({ initial }: { initial: DietTemplate }) {
               <p style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--ink-soft)", textTransform: "uppercase", marginBottom: 10 }}>
                 {slotLabels[slot]}
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+              <div className="adm-cols" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <label>Meal name</label>
                   <input

@@ -272,7 +272,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
           The 6 condition tiles under "Made for real-life health goals." — these show as small icons now,
           not big photos. Upload a small square icon image, or leave blank for the default emoji.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+        <div className="adm-cols" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
           {CONDITION_LABELS.map((label, i) => (
             <ImageUploadField
               key={i}

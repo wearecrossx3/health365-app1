@@ -166,7 +166,7 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
                 <p style={{ fontWeight: 700, color: "#287379" }}>{m.kcal} kcal</p>
               </div>
               {m.items.map((it, ii) => (
-                <div key={ii} style={{ display: "grid", gridTemplateColumns: "1fr 120px 74px 24px", gap: 6, marginBottom: 6 }}>
+                <div key={ii} className="adm-item" style={{ display: "grid", gridTemplateColumns: "1fr 120px 74px 24px", gap: 6, marginBottom: 6 }}>
                   <input value={it.name} onChange={(e) => editItem(openDay, mi, ii, { name: e.target.value })} style={{ padding: "7px 10px", border: "1px solid var(--line)", borderRadius: 8, fontSize: ".85rem" }} />
                   <input value={it.portion} onChange={(e) => editItem(openDay, mi, ii, { portion: e.target.value })} style={{ padding: "7px 10px", border: "1px solid var(--line)", borderRadius: 8, fontSize: ".85rem" }} />
                   <input type="number" value={it.kcal} onChange={(e) => editItem(openDay, mi, ii, { kcal: Number(e.target.value) || 0 })} style={{ padding: "7px 8px", border: "1px solid var(--line)", borderRadius: 8, fontSize: ".85rem" }} />
