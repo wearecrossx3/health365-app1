@@ -47,11 +47,45 @@ function parseJson(text: string): { items: ScanItem[]; note?: string } | null {
   }
 }
 
-// Gemini: try the configured model first, then fall back to known-good models if
-// that name isn't available on this key. "Thinking" is switched off where the
-// model allows it — it makes no difference for reading a plate but adds seconds.
+// Gemini model names change often, so we ask Google which models this key can
+// use (cached for an hour) and pick the configured one if it exists, otherwise
+// the best available Flash model. "Thinking" is switched off where allowed —
+// it adds seconds and doesn't help with reading a plate.
+let modelCache: { at: number; names: string[] } | null = null;
+
+async function availableModels(key: string): Promise<string[]> {
+  if (modelCache && Date.now() - modelCache.at < 3600_000) return modelCache.names;
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${encodeURIComponent(key)}`);
+    const d = await r.json().catch(() => ({}));
+    const names: string[] = (d.models || [])
+      .filter((m: { name?: string; supportedGenerationMethods?: string[] }) => (m.supportedGenerationMethods || []).includes("generateContent"))
+      .map((m: { name: string }) => m.name.replace(/^models\//, ""));
+    if (names.length) modelCache = { at: Date.now(), names };
+    return names;
+  } catch {
+    return [];
+  }
+}
+
+function pickModels(names: string[]): string[] {
+  const want = (process.env.GEMINI_MODEL || "").trim();
+  const ok = (n: string) => /flash/.test(n) && !/image|tts|audio|live|embed|native|thinking-exp|computer/.test(n);
+  const ver = (n: string) => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || "0");
+  const stable = names.filter((n) => ok(n) && !/preview|exp/.test(n)).sort((a, b) => ver(b) - ver(a) || (/lite/.test(a) ? 1 : -1));
+  const preview = names.filter((n) => ok(n) && /preview/.test(n)).sort((a, b) => ver(b) - ver(a));
+  const out = [
+    ...(want && (!names.length || names.includes(want)) ? [want] : []),
+    ...["gemini-flash-latest", "gemini-flash-lite-latest"].filter((n) => !names.length || names.includes(n)),
+    ...stable.slice(0, 3),
+    ...preview.slice(0, 1),
+    ...(names.length ? [] : ["gemini-2.5-flash"]),
+  ];
+  return out.filter((m, i, a) => a.indexOf(m) === i).slice(0, 4);
+}
+
 async function askGemini(key: string, image: string, p: string, signal: AbortSignal): Promise<string> {
-  const models = [process.env.GEMINI_MODEL, "gemini-flash-latest", "gemini-2.5-flash"].filter((m, i, a): m is string => !!m && a.indexOf(m) === i);
+  const models = pickModels(await availableModels(key));
   let last = "";
   for (const model of models) {
     for (const fast of [true, false]) {
@@ -64,15 +98,22 @@ async function askGemini(key: string, image: string, p: string, signal: AbortSig
         signal,
       });
       const d = await r.json().catch(() => ({}));
-      if (r.ok) return (d.candidates?.[0]?.content?.parts || []).map((x: { text?: string }) => x.text || "").join("");
-      last = `gemini ${model} ${r.status}: ${JSON.stringify(d).slice(0, 300)}`;
+      if (r.ok) {
+        const text = (d.candidates?.[0]?.content?.parts || []).filter((x: { thought?: boolean }) => !x.thought).map((x: { text?: string }) => x.text || "").join("");
+        if (text) return text;
+        last = `${model}: empty answer (${d.candidates?.[0]?.finishReason || d.promptFeedback?.blockReason || "no text"})`;
+        break;
+      }
+      last = `${model} ${r.status}: ${String(d.error?.message || "").slice(0, 160)}`;
       console.error("scan-food:", last);
       if (r.status === 429) throw new Error("quota " + last);
       if (r.status === 400 && fast) continue; // model doesn't accept the thinking setting — retry without it
+      if (r.status === 400 && /API key/i.test(last)) throw new Error("key " + last);
+      if (r.status === 403) throw new Error("key " + last);
       break; // 404 / other → next model
     }
   }
-  throw new Error(last || "gemini failed");
+  throw new Error(last || "no Gemini model available for this key");
 }
 
 async function askClaude(key: string, image: string, p: string, signal: AbortSignal): Promise<string> {
@@ -130,13 +171,14 @@ async function scan(req: NextRequest) {
     console.error("scan-food failed:", e);
     const msg = String(e);
     if (ctl.signal.aborted) return appJson({ error: "The scanner took too long — please try again.", code: "slow" }, 504);
-    if (msg.startsWith("Error: quota")) return appJson({ error: "The scanner is busy right now — please try again in a minute.", code: "slow" }, 503);
-    return appJson({ error: "Couldn't read the photo right now — please try again, or add food by searching." }, 502);
+    const detail = msg.replace(/^Error:\s*/, "").replace(/key=[^&\s]+/g, "key=…").slice(0, 200);
+    if (msg.startsWith("Error: quota")) return appJson({ error: "The scanner is busy right now — please try again in a minute.", code: "slow", detail }, 503);
+    return appJson({ error: "Couldn't read the photo right now — please try again, or add food by searching.", detail }, 502);
   } finally {
     clearTimeout(timer);
   }
   const j = parseJson(text);
-  if (!j) return appJson({ error: "Couldn't read the photo — try a clearer, well-lit picture from above." }, 422);
+  if (!j) return appJson({ error: "Couldn't read the photo — try a clearer, well-lit picture from above.", detail: "unreadable answer: " + text.slice(0, 120) }, 422);
 
   const byName = new Map(dishes.map((d) => [d.name.toLowerCase(), d]));
   const items = j.items.slice(0, 12).map((it) => {

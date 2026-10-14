@@ -41,8 +41,11 @@ export default function PrivacyPage() {
             </ul>
             <p style={{ marginTop: 12 }}>
               <b>In the Health365 Android app</b>, the same account details and consultation answers are sent to us when you
-              create an account or book a consultation. Your daily meal ticks, water glasses, calorie log, weight log and
-              generated plan are stored only on your phone and are not uploaded. To build a diet plan, the app sends your goal,
+              create an account or book a consultation. If you use the app without an account, your daily meal ticks, water
+              glasses, calorie log, weight log and generated plan stay only on your phone. If you are logged in, the app
+              also backs up this progress (plan, meal ticks, food and water log, weight history and app settings) to your
+              Health365 account, so it comes back when you log in again or change phones; it is deleted together with your
+              account. Your profile photo, if you set one, stays only on your phone. To build a diet plan, the app sends your goal,
               food preference, kitchen style, calorie target and any conditions or allergies you selected to our server, which
               returns the plan — this is not linked to your name and is not stored. If your dietitian prepares a plan for you
               after a consultation, it is stored with your account so it can appear in the app. The app doesn&apos;t use

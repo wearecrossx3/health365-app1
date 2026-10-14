@@ -874,7 +874,7 @@ export async function deleteUserAccount(userId: string): Promise<{ consultations
     const owner = await r.get(userPhoneKey(user.phone));
     if (owner === user.id) await r.del(userPhoneKey(user.phone));
   }
-  await r.del(`user_plans:${userId}`, `user_ent:${userId}`);
+  await r.del(`user_plans:${userId}`, `user_ent:${userId}`, `app_state:${userId}`);
   return { consultations: consultIds.length, appointments: apptIds.length, messages };
 }
 
