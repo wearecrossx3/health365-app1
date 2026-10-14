@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, appPreflight } from "@/lib/appApi";
 import { getFoodDatabase } from "@/lib/foods";
 
-// Calorie-counter database for the app (IFCT 2017 foods + everyday dishes,
+// Calorie-counter database for the app (ingredients + everyday dishes,
 // plus admin edits). The app keeps a copy on the phone and only downloads
 // again when `version` changes (bootstrap tells it the current version).
 export const dynamic = "force-dynamic";

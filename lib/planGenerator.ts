@@ -3,8 +3,8 @@ import foodDb from "./data/health365-foods.json";
 // Realistic Indian 7-day (or 1-day) diet plan generator.
 //
 // Every meal is a real Indian thali/plate built from dishes whose calories
-// and macros are computed from the Indian Food Composition Tables 2017
-// (ICMR-NIN). Plans follow the user's goal, diet type, region and health
+// and macros are computed from openly licensed USDA FoodData Central values
+// (public domain). Plans follow the user's goal, diet type, region and health
 // conditions, rotate dishes across the week, and scale roti / rice / portion
 // sizes so each day lands close to the calorie target.
 //
@@ -40,6 +40,7 @@ export interface PlanInput {
   days?: number; // 1 or 7
   seed?: number;
   name?: string;
+  avoid?: string[]; // allergies / foods avoided: dairy, gluten, nuts, peanut, egg, soy, shellfish, mushroom, spicy, sour
 }
 
 export interface PlanItem { name: string; portion: string; kcal: number; protein: number }
@@ -77,7 +78,7 @@ const D = (id: string) => {
   return d;
 };
 
-// ——— Dish tags, derived from each dish's IFCT recipe ———
+// ——— Dish tags, derived from each dish's ingredient recipe ———
 const codes = (d: Dish) => d.recipe.map(([c]) => c);
 const grams = (d: Dish, pred: (c: string) => boolean) => d.recipe.filter(([c]) => pred(c)).reduce((s, [, g]) => s + g, 0);
 const isMeat = (d: Dish) => codes(d).some((c) => /^[NOPQRS]\d/.test(c));
@@ -89,8 +90,26 @@ const sugarG = (d: Dish) => grams(d, (c) => c === "SUGAR" || c === "I001" || c =
 const isRedMeat = (d: Dish) => codes(d).some((c) => /^O\d/.test(c));
 const isHeavyLegume = (d: Dish) => codes(d).some((c) => ["B002", "B020", "B004"].includes(c));
 
+// Allergy / avoid list → ingredient codes that must not appear.
+const AVOID_CODES: Record<string, (c: string) => boolean> = {
+  dairy: (c) => /^L\d/.test(c) || c === "GHEE" || c === "BUTTER",
+  gluten: (c) => ["A018", "A019", "A020", "A021", "A022", "A023", "A024", "A004"].includes(c),
+  nuts: (c) => ["H001", "H005", "H017", "H018", "H021", "H012"].includes(c),
+  peanut: (c) => c === "H012",
+  egg: (c) => /^M\d/.test(c),
+  shellfish: (c) => /^[QR]\d/.test(c) || ["S007", "S008", "S009", "S010"].includes(c),
+  mushroom: (c) => /^J\d/.test(c),
+  soy: (c) => ["B024", "B025"].includes(c),
+  sour: (c) => ["E033", "E064", "E047", "E034"].includes(c),
+  spicy: (c) => /^G00[1-8]$/.test(c) || c === "G022",
+};
+
 function allowed(d: Dish, inp: PlanInput): boolean {
   const c = new Set(inp.conditions);
+  for (const a of inp.avoid || []) {
+    const hit = AVOID_CODES[a];
+    if (hit && codes(d).some(hit)) return false;
+  }
   if (inp.diet !== "nonveg" && isMeat(d)) return false;
   if ((inp.diet === "veg" || inp.diet === "jain" || inp.diet === "vegan") && isEgg(d)) return false;
   if (inp.diet === "jain" && isRootOrOnion(d)) return false;
@@ -199,8 +218,12 @@ function staples(inp: PlanInput, meal: "lunch" | "dinner"): { id: string; steps:
   const rotis = [{ id: "R01", steps: ROTI_STEPS }];
   const millets = [{ id: "R06", steps: [1, 2] }, { id: "R07", steps: [1, 2, 3] }, { id: "R08", steps: [1, 2, 3] }];
   if (inp.region === "gujarati") rotis.push({ id: "R05", steps: [1, 2, 3] });
-  if (meal === "dinner") return lowGi ? [...millets, ...rotis] : [...rotis, ...millets];
-  return lowGi ? [...rotis, ...millets] : [...rotis, ...millets.slice(0, 1)];
+  const ok = (l: { id: string; steps: number[] }[]) => {
+    const f = l.filter((x) => allowed(D(x.id), inp));
+    return f.length ? f : [{ id: "C01", steps: RICE_STEPS }];
+  };
+  if (meal === "dinner") return ok(lowGi ? [...millets, ...rotis] : [...rotis, ...millets]);
+  return ok(lowGi ? [...rotis, ...millets] : [...rotis, ...millets.slice(0, 1)]);
 }
 
 const DALS: Record<Region, string[]> = {
@@ -309,7 +332,7 @@ function lunchFor(inp: PlanInput, r: () => number, dayIdx: number, used: Set<str
   const main = nonVegDay ? pickUnused(NONVEG_CURRIES.filter((id) => allowed(D(id), inp)), r, used) || dal : dal;
   const parts = [item(s.id, 2), item(main), item(sabzi), salad, ...side];
   // Gujarati thali: a small katori of rice alongside the rotli
-  if (inp.region === "gujarati" && !c.has("diabetes") && inp.goal !== "lose") parts.push(item("C01", 0.5));
+  if (inp.region === "gujarati" && s.id !== "C01" && !c.has("diabetes") && inp.goal !== "lose") parts.push(item("C01", 0.5));
   return mealFrom(parts, 0, s.steps);
 }
 
@@ -328,10 +351,12 @@ function dinnerFor(inp: PlanInput, r: () => number, dayIdx: number, used: Set<st
   }
   if (inp.diet === "nonveg" && kind === 6) {
     const nv = pickUnused(NONVEG_CURRIES.filter((id) => allowed(D(id), inp)), r, used) || "N04";
-    return mealFrom([item("R01", 2), item(nv), item("X01", 0.5)], 0, ROTI_STEPS);
+    const st0 = staples(inp, "dinner")[0];
+    return mealFrom([item(st0.id, 2), item(nv), item("X01", 0.5)], 0, st0.steps);
   }
   if (inp.diet === "eggetarian" && kind === 6) {
-    return mealFrom([item("R01", 2), item(EGG_CURRIES[0]), item("X01", 0.5)], 0, ROTI_STEPS);
+    const st1 = staples(inp, "dinner")[0];
+    return mealFrom([item(st1.id, 2), item(EGG_CURRIES[0]), item("X01", 0.5)], 0, st1.steps);
   }
   if (inp.region === "south") {
     return mealFrom([item("B04"), item("L08"), item(sabzi, 0.75)], 0, ONE_TWO);
@@ -400,7 +425,7 @@ export function generatePlan(input: PlanInput): GeneratedPlan {
   const mids = midMorningOptions(inp, r);
   const evenings = shuffle(eveningOptions(inp), r);
   const earlyIds = ["M13", "M14", "K16", "M10"].filter((id) => allowed(D(id), inp) && !(id === "M10" && sugarG(D(id)) > 0 && (inp.conditions.includes("diabetes") || inp.conditions.includes("pcos"))));
-  const bedtime = inp.diet === "vegan" ? "K16" : "M15";
+  const bedtime = ["M15", "K16", "F02", "M12"].find((id) => allowed(D(id), inp) && !(inp.diet === "vegan" && id === "M15")) || "M12";
 
   const used = new Set<string>();
   const days: PlanDay[] = [];
@@ -414,7 +439,7 @@ export function generatePlan(input: PlanInput): GeneratedPlan {
       if (s.slot === "early") {
         const id = earlyIds[di % earlyIds.length] || "M13";
         draft = mealFrom([item(id)], null, []);
-        if (id !== "K16" && inp.goal === "gain") draft = mealFrom([item(id), item("K16")], null, []);
+        if (id !== "K16" && inp.goal === "gain" && allowed(D("K16"), inp)) draft = mealFrom([item(id), item("K16")], null, []);
       } else if (s.slot === "breakfast") {
         draft = breakfasts[di % breakfasts.length];
         alt = breakfasts[(di + 3) % breakfasts.length].parts[0].d.name;
@@ -429,7 +454,7 @@ export function generatePlan(input: PlanInput): GeneratedPlan {
       } else if (s.slot === "dinner") {
         draft = dinnerFor(inp, r, di, used);
       } else {
-        draft = mealFrom(inp.goal === "gain" ? [item(bedtime), item("K06")] : [item(bedtime)], null, []);
+        draft = mealFrom(inp.goal === "gain" && allowed(D("K06"), inp) ? [item(bedtime), item("K06")] : [item(bedtime)], null, []);
       }
       if (inp.goal === "gain" && draft.scalable !== null && s.slot !== "dinner") {
         const mx = Math.max(...draft.steps);
@@ -521,7 +546,7 @@ export function generatePlan(input: PlanInput): GeneratedPlan {
     targetKcal: target,
     days,
     tips: tipsFor(inp),
-    source: "Health365 plan generator · calories from IFCT 2017 (ICMR-NIN)",
+    source: "Health365 plan generator · calories from USDA FoodData Central values",
     createdAt: new Date().toISOString(),
   };
 }
@@ -539,5 +564,6 @@ export function parsePlanInput(b: Record<string, unknown> | null | undefined): P
     days: Number(b?.days) === 1 ? 1 : 7,
     seed: Number.isFinite(Number(b?.seed)) && b?.seed !== undefined && b?.seed !== "" ? Number(b?.seed) : undefined,
     name: typeof b?.name === "string" ? b.name.trim().slice(0, 80) : undefined,
+    avoid: (Array.isArray(b?.avoid) ? (b!.avoid as unknown[]) : []).map((x) => String(x).toLowerCase()).filter((x) => x in AVOID_CODES).slice(0, 10),
   };
 }

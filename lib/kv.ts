@@ -332,12 +332,12 @@ export interface SiteContent {
 const SITE_CONTENT_KEY = "site_content";
 
 const DEFAULT_CONTENT: SiteContent = {
-  asthaName: "Dr. Astha Jadeja",
+  asthaName: "Dt. Astha Jadeja",
   asthaRole: "Founder & Lead Dietitian",
   asthaQuote:
     "Nutrition guidance should feel like it was written for your kitchen — not translated from someone else's.",
   asthaBio:
-    "Dr. Astha Jadeja leads the nutrition philosophy behind Health365 — practical, judgement-free guidance built for real Indian kitchens and real routines.",
+    "Dt. Astha Jadeja leads the nutrition philosophy behind Health365 — practical, judgement-free guidance built for real Indian kitchens and real routines.",
   asthaQualifications:
     "Qualifications & credentials placeholder — connect Dr. Astha's verified details here before launch.",
   asthaPhotoUrl: "",

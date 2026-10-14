@@ -3,7 +3,7 @@ import { appJson, appPreflight, limit } from "@/lib/appApi";
 import { generatePlan, parsePlanInput } from "@/lib/planGenerator";
 
 // The app's plan builder. Same engine as Admin → Plan Generator, so a plan
-// made in the app is a realistic Indian thali-style plan with IFCT calories.
+// made in the app is a realistic Indian thali-style plan with calculated calories.
 // (Who may open a 7-day plan is decided by /api/app/plans "claim".)
 export async function OPTIONS() {
   return appPreflight();

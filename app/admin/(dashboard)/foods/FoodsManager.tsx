@@ -40,7 +40,7 @@ export default function FoodsManager() {
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button className={`pill ${tab === "dishes" ? "pill-primary" : ""}`} onClick={() => setTab("dishes")}>Dishes ({db.dishes.length}) · per serving</button>
-        <button className={`pill ${tab === "foods" ? "pill-primary" : ""}`} onClick={() => setTab("foods")}>IFCT foods ({db.foods.length}) · per 100 g</button>
+        <button className={`pill ${tab === "foods" ? "pill-primary" : ""}`} onClick={() => setTab("foods")}>Ingredients ({db.foods.length}) · per 100 g</button>
         <button className="pill" onClick={() => setAdding({ name: "", per: tab === "dishes" ? "serving" : "100g", serving: "1 katori", kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, group: "Custom" })}>+ Add food</button>
       </div>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search — e.g. roti, dal, paneer, bajra, kela…" style={{ padding: "12px 16px", border: "1px solid var(--line)", borderRadius: 999, fontSize: ".92rem", background: "#fff" }} />

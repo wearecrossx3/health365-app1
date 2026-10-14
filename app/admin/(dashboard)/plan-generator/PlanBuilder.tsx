@@ -39,6 +39,7 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
   const [userId, setUserId] = useState(fixedUser?.id || "");
   const [note, setNote] = useState("");
   const [startsOn, setStartsOn] = useState("");
+  const [signedAs, setSignedAs] = useState("Dt. Astha Jadeja");
 
   useEffect(() => {
     if (fixedUser) return;
@@ -96,7 +97,7 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
     setBusy(true); setMsg(null);
     const res = await fetch("/api/admin/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "assign", userId: chosen.id, plan, note, startsOn }),
+      body: JSON.stringify({ action: "assign", userId: chosen.id, plan, note, startsOn, signedAs }),
     });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
@@ -142,7 +143,7 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button type="button" className="pill pill-primary" disabled={busy} onClick={generate}>{busy ? "Working…" : plan ? "↻ Generate another" : "Generate plan"}</button>
         </div>
-        <p style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Calories are calculated from the Indian Food Composition Tables 2017 (ICMR-NIN). Every click makes a different week.</p>
+        <p style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Calories are worked out from USDA FoodData Central values (public domain) using standard Indian home recipes. Every click makes a different week.</p>
       </div>
 
       {plan && d && (
@@ -204,6 +205,10 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Personal note <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— shown at the top of their plan</span></label>
             <textarea rows={2} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Start with this for 2 weeks. Message me on WhatsApp if you feel low on energy." />
+          </div>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>From <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— the name the user sees on the plan</span></label>
+            <input value={signedAs} maxLength={60} onChange={(e) => setSignedAs(e.target.value)} />
           </div>
           <div className="field" style={{ marginBottom: 0, maxWidth: 240 }}>
             <label>Start date <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional</span></label>

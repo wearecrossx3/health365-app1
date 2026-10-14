@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       source: txt(p.source, 120) || "Prepared by your Health365 dietitian",
       createdAt: now,
       note: txt(b.note, 600),
-      assignedBy: by,
+      assignedBy: txt(b.signedAs, 60) || by,
       assignedAt: now,
       startsOn: /^\d{4}-\d{2}-\d{2}$/.test(String(b.startsOn || "")) ? String(b.startsOn) : "",
       active: true,

@@ -22,7 +22,7 @@ export const ADMIN_PERMISSIONS = [
   { key: "users", label: "Users & Plans", hint: "App/site users, assign diet plans, grant free 7-day plans, plan generator" },
   { key: "offers", label: "App Offers", hint: "Offer popups shown in the app" },
   { key: "blog", label: "Blog", hint: "Write and publish blog posts (site + app)" },
-  { key: "foods", label: "Food Database", hint: "Calorie counter foods (IFCT) — edit, hide, add" },
+  { key: "foods", label: "Food Database", hint: "Calorie counter foods — edit, hide, add" },
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number]["key"];

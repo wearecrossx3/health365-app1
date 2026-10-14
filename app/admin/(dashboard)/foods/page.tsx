@@ -12,9 +12,10 @@ export default async function FoodsPage() {
           <span className="eyebrow">Admin</span>
           <h1 style={{ fontSize: "2rem" }}>Food Database</h1>
           <p style={{ marginTop: 10, color: "var(--ink-soft)", fontSize: ".95rem" }}>
-            What the app&apos;s calorie counter searches. 528 foods come straight from the Indian Food Composition Tables 2017
-            (ICMR-NIN, per 100 g). The everyday dishes (roti, dal, poha, sabzi…) are worked out from those IFCT values using
-            standard home recipes. Correct a value, hide something, or add your own — the app picks up changes automatically.
+            What the app&apos;s calorie counter searches. Ingredient values come from USDA FoodData Central (public domain) — a
+            few Indian staples USDA doesn&apos;t list (paneer, jaggery, ragi, poha…) use typical values. The everyday dishes (roti, dal,
+            poha, sabzi…) are worked out from those values using standard home recipes. Correct a value, hide something, or add your
+            own — the app picks up changes automatically.
           </p>
         </div>
         <FoodsManager />

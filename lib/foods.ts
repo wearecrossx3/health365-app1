@@ -1,11 +1,12 @@
 import foodDb from "./data/health365-foods.json";
 import { getJSON, setJSON } from "./kv";
 
-// Calorie-counter food database.
-//  • 528 raw foods straight from the Indian Food Composition Tables 2017
-//    (ICMR-NIN), Table 1 — values per 100 g edible portion.
-//  • ~130 everyday Indian dishes (roti, dal, poha, sabzi, chai…) with a
-//    household serving, computed from IFCT raw-ingredient values.
+// Calorie-counter food database (openly licensed data only):
+//  • ingredients per 100 g from USDA FoodData Central, SR Legacy (U.S. public
+//    domain; taken from the TempoLife Food Nutrition Dataset, CC-BY-4.0) — a few
+//    Indian staples USDA doesn't list use typical values (marked as such);
+//  • ~130 everyday Indian dishes with a household serving, worked out from
+//    those values using standard home recipes.
 // Admin → Food Database can correct a value, hide an item, or add a custom
 // food; those changes are stored in Redis and merged on top of the file.
 
