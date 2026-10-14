@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { appJson, appPreflight, getAppSession, limit } from "@/lib/appApi";
 import { isRateLimited } from "@/lib/kv";
 import { getFoodDatabase } from "@/lib/foods";
+import { recordScan } from "@/lib/scanStats";
 
 // Food scanner for the app: a photo of a plate → the dishes on it, with portions
 // and calories. The photo is sent to an AI vision model only to read it — it is
@@ -101,7 +102,7 @@ function pickModels(names: string[]): string[] {
 
 async function askGemini(key: string, image: string, p: string, signal: AbortSignal): Promise<string> {
   const models = pickModels(await availableModels(key));
-  let last = "";
+  let last = "", quota = "";
   for (const model of models) {
     for (const fast of [true, false]) {
       const generationConfig: Record<string, unknown> = { temperature: 0.2, responseMimeType: "application/json" };
@@ -121,13 +122,14 @@ async function askGemini(key: string, image: string, p: string, signal: AbortSig
       }
       last = `${model} ${r.status}: ${String(d.error?.message || "").slice(0, 160)}`;
       console.error("scan-food:", last);
-      if (r.status === 429) throw new Error("quota " + last);
+      if (r.status === 429) { quota = last; break; } // this model's limit is used up — try the next one
       if (r.status === 400 && fast) continue; // model doesn't accept the thinking setting — retry without it
       if (r.status === 400 && /API key/i.test(last)) throw new Error("key " + last);
       if (r.status === 403) throw new Error("key " + last);
       break; // 404 / other → next model
     }
   }
+  if (quota) throw new Error("quota " + quota);
   throw new Error(last || "no Gemini model available for this key");
 }
 
@@ -186,15 +188,19 @@ async function scan(req: NextRequest) {
   } catch (e) {
     console.error("scan-food failed:", e);
     const msg = String(e);
-    if (ctl.signal.aborted) return appJson({ error: "The scanner took too long — please try again.", code: "slow" }, 504);
+    if (ctl.signal.aborted) { await recordScan("fail", "timeout"); return appJson({ error: "The scanner took too long — please try again.", code: "slow" }, 504); }
     const detail = msg.replace(/^Error:\s*/, "").replace(/key=[^&\s]+/g, "key=…").slice(0, 200);
-    if (msg.startsWith("Error: quota")) return appJson({ error: "The scanner is busy right now — please try again in a minute.", code: "slow", detail }, 503);
+    if (msg.startsWith("Error: quota")) {
+      await recordScan("quota", detail);
+      return appJson({ error: "The food scanner has reached its limit for now. Please try again later.", code: "quota", detail }, 503);
+    }
+    await recordScan("fail", detail);
     return appJson({ error: "Couldn't read the photo right now — please try again, or add food by searching.", detail }, 502);
   } finally {
     clearTimeout(timer);
   }
   const j = parseJson(text);
-  if (!j) return appJson({ error: "Couldn't read the photo — try a clearer, well-lit picture from above.", detail: "unreadable answer: " + text.slice(0, 120) }, 422);
+  if (!j) { await recordScan("fail", "unreadable answer"); return appJson({ error: "Couldn't read the photo — try a clearer, well-lit picture from above.", detail: "unreadable answer: " + text.slice(0, 120) }, 422); }
 
   const byName = new Map(dishes.map((d) => [d.name.toLowerCase(), d]));
   type Dish = (typeof dishes)[number];
@@ -216,5 +222,6 @@ async function scan(req: NextRequest) {
     }).filter((a) => a.name && a.name.toLowerCase() !== main.name.toLowerCase() && (a.kcal > 0 || a.source === "db"));
     return { ...main, confidence: n(it.confidence, 1), alts };
   }).filter((x) => x.kcal > 0 || x.source === "db");
+  await recordScan("ok");
   return appJson({ ok: true, items, note: String(j.note || "").slice(0, 200) });
 }

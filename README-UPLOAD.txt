@@ -22,3 +22,7 @@ App Notifications -> Random nudges, Website Settings -> consultation details + 7
 Food data: USDA FoodData Central (public domain) via the TempoLife dataset (CC-BY-4.0).
 IFCT data is NOT used (it needs written permission from NIN Hyderabad).
 Privacy policy page is updated for the food scanner.
+
+FUN NUDGES (159 new):
+  Admin -> App Notifications -> Random nudges -> "Add Health365 fun pack" -> Save nudges.
+  Untick any you don't like, or edit the text. Up to 300 nudges are allowed.

@@ -1,4 +1,5 @@
 import { getJSON, setJSON } from "./kv";
+import { FUN_PACK } from "./nudgePack";
 
 // "Random nudges" — short, playful reminders the Android app shows at random
 // times of day (the way food-delivery apps do). The pool is edited in
@@ -63,6 +64,14 @@ export const DEFAULT_NUDGES: NudgeSettings = {
     n("n25", "Make it yours ✨", "Create a free account to save your plan and progress.", "guest"),
   ],
 };
+// New installs start with the base list + the fun pack (no duplicate titles).
+DEFAULT_NUDGES.nudges = mergeNudges(DEFAULT_NUDGES.nudges, FUN_PACK);
+
+export function mergeNudges(list: Nudge[], add: Nudge[]): Nudge[] {
+  const ids = new Set(list.map((x) => x.id));
+  const titles = new Set(list.map((x) => x.title.trim().toLowerCase()));
+  return [...list, ...add.filter((x) => !ids.has(x.id) && !titles.has(x.title.trim().toLowerCase()))];
+}
 
 export async function getNudges(): Promise<NudgeSettings> {
   const s = await getJSON<Partial<NudgeSettings>>(KEY);

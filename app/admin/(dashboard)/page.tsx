@@ -6,6 +6,7 @@ import { listAllUsers, listAllConsultations, listAllDietitianApplications, listA
 import ConsultationRow from "./ConsultationRow";
 import AppointmentRow from "./AppointmentRow";
 import DietitianActionButtons from "./DietitianActionButtons";
+import { getScanHealth } from "@/lib/scanStats";
 
 export default async function AdminPage() {
   const cookieStore = cookies();
@@ -13,12 +14,19 @@ export default async function AdminPage() {
   const access = await getAdminAccess(session);
   if (!access.permissions.includes("dashboard")) redirect(access.allowed ? defaultAdminPath(access.permissions) : "/admin/login");
 
-  const [users, consultations, dietitianApps, appointments] = await Promise.all([
+  const [users, consultations, dietitianApps, appointments, scan] = await Promise.all([
     listAllUsers(),
     listAllConsultations(),
     listAllDietitianApplications(),
     listAllAppointments(),
+    getScanHealth(),
   ]);
+  const when = (t: number) => (t ? new Date(t).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—");
+  const limitHit = !!scan.lastError && scan.lastError.outcome === "quota" && scan.lastError.at > scan.lastOk;
+  const scanStatus = !scan.configured ? ["Not set up", "var(--ink-soft)", "Add GEMINI_API_KEY in Vercel to switch the scanner on."]
+    : limitHit ? ["Limit reached", "var(--terracotta)", "The AI key has used up its quota. Users see “Scanner is resting”. Turn on billing for the key (paid tier) in Google AI Studio, or wait for the free limit to reset."]
+    : scan.lastError && scan.lastError.at > scan.lastOk ? ["Errors", "var(--terracotta)", "The last scan failed — see the error below."]
+    : ["Working", "var(--teal)", "Scans are going through."];
   const needsReview = consultations.filter(
     (c) => c.status === "submitted" && c.conditions.length > 0
   );
@@ -52,6 +60,28 @@ export default async function AdminPage() {
             <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--teal-deep)", textTransform: "uppercase" }}>Pending dietitians</div>
             <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{pendingDietitians.length}</div>
           </div>
+        </div>
+
+        <div className="panel" style={{ marginBottom: 24, borderColor: scanStatus[1] === "var(--terracotta)" ? "var(--terracotta)" : undefined }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <h2 style={{ fontSize: "1.2rem" }}>Food scanner (AI)</h2>
+            <span style={{ fontSize: ".72rem", fontWeight: 700, padding: "5px 11px", borderRadius: 100, color: "#fff", background: scanStatus[1] }}>{scanStatus[0]}</span>
+          </div>
+          <p className="text-sm" style={{ color: "var(--ink-soft)", marginTop: 8 }}>{scanStatus[2]}</p>
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 14, fontSize: ".9rem" }}>
+            <div><b>{scan.today.ok}</b> scans today</div>
+            <div><b>{scan.today.fail}</b> failed</div>
+            <div><b>{scan.today.quota}</b> hit the limit</div>
+            <div>Last success: <b>{when(scan.lastOk)}</b></div>
+          </div>
+          {scan.lastError && (
+            <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 10, wordBreak: "break-word" }}>
+              Last error ({when(scan.lastError.at)}): {scan.lastError.detail || scan.lastError.outcome}
+            </p>
+          )}
+          <p style={{ fontSize: ".78rem", marginTop: 10 }}>
+            Check usage &amp; limits: <a href="https://aistudio.google.com/usage" target="_blank" rel="noreferrer">Google AI Studio → Usage</a>
+          </p>
         </div>
 
         <div className="panel" style={{ marginBottom: 24 }}>

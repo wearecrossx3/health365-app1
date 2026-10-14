@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     fromHour,
     toHour: Math.max(fromHour + 1, int(b.toHour, 7, 23, 21)),
     quietDays: (Array.isArray(b.quietDays) ? b.quietDays : []).map(Number).filter((d: number) => d >= 0 && d <= 6),
-    nudges: (Array.isArray(b.nudges) ? b.nudges : []).slice(0, 80).map((n: Record<string, unknown>) => ({
+    nudges: (Array.isArray(b.nudges) ? b.nudges : []).slice(0, 300).map((n: Record<string, unknown>) => ({
       id: txt(n.id, 20) || crypto.randomUUID().slice(0, 8),
       title: txt(n.title, 60),
       body: txt(n.body, 160),

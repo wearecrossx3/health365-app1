@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { NudgeSettings, Nudge } from "@/lib/nudges";
+import { FUN_PACK } from "@/lib/nudgePack";
 
 const AUD = [["all", "Everyone"], ["account", "Has account"], ["guest", "No account"], ["diabetes", "Diabetes"], ["pcos", "PCOS"], ["thyroid", "Thyroid"], ["cholesterol", "Cholesterol"], ["digestive", "Digestive"], ["weight", "Weight"]];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -13,6 +14,11 @@ export default function NudgesManager({ initial }: { initial: NudgeSettings }) {
   const [saved, setSaved] = useState(false);
   const set = (p: Partial<NudgeSettings>) => { setS((x) => ({ ...x, ...p })); setSaved(false); };
   const setN = (i: number, p: Partial<Nudge>) => set({ nudges: s.nudges.map((n, k) => (k === i ? { ...n, ...p } : n)) });
+  const packNew = (() => {
+    const ids = new Set(s.nudges.map((x) => x.id));
+    const titles = new Set(s.nudges.map((x) => x.title.trim().toLowerCase()));
+    return FUN_PACK.filter((x) => !ids.has(x.id) && !titles.has(x.title.trim().toLowerCase()));
+  })();
 
   async function save() {
     setSaving(true);
@@ -62,7 +68,13 @@ export default function NudgesManager({ initial }: { initial: NudgeSettings }) {
             <button type="button" onClick={() => set({ nudges: s.nudges.filter((_, k) => k !== i) })} style={{ background: "none", border: "none", color: "var(--terracotta)", cursor: "pointer" }}>✕</button>
           </div>
         ))}
-        <button type="button" className="pill" style={{ alignSelf: "flex-start" }} onClick={() => set({ nudges: [...s.nudges, { id: Math.random().toString(36).slice(2, 9), title: "", body: "", audience: "all", enabled: true }] })}>+ Add nudge</button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <button type="button" className="pill" onClick={() => set({ nudges: [...s.nudges, { id: Math.random().toString(36).slice(2, 9), title: "", body: "", audience: "all", enabled: true }] })}>+ Add nudge</button>
+          {packNew.length > 0 && (
+            <button type="button" className="pill pill-outline" onClick={() => set({ nudges: [...s.nudges, ...packNew] })}>🎉 Add Health365 fun pack (+{packNew.length})</button>
+          )}
+          <span style={{ fontSize: ".8rem", color: "var(--ink-soft)" }}>{s.nudges.length} nudges · {s.nudges.filter((x) => x.enabled).length} on</span>
+        </div>
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="pill pill-primary" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nudges"}</button>
