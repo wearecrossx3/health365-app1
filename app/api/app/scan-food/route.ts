@@ -18,20 +18,35 @@ export async function OPTIONS() {
   return appPreflight();
 }
 
-interface ScanItem { name: string; matched?: string | null; servings?: number; portion?: string; kcal?: number; protein?: number; carbs?: number; fat?: number; confidence?: number }
+interface ScanAlt { name?: string; matched?: string | null; kcal?: number; protein?: number; carbs?: number; fat?: number }
+interface ScanItem { name: string; matched?: string | null; servings?: number; portion?: string; kcal?: number; protein?: number; carbs?: number; fat?: number; confidence?: number; alternatives?: ScanAlt[] }
 
-function prompt(dishList: string) {
-  return `You are a nutrition assistant for an Indian diet app. Look at the photo and list every food or drink you can see.
-It can be a home-cooked plate or thali, a restaurant dish, a drink (chai, coffee, juice, milkshake, soft drink),
+function prompt(dishList: string, hint: string) {
+  return `You are an expert on Indian food from every region (Gujarati, Punjabi, Rajasthani, Maharashtrian, Bengali, South Indian, street food)
+and a nutrition assistant for an Indian diet app. Look at the photo and list every food or drink you can see.
+It can be a home-cooked plate or thali, a restaurant dish, a drink (chai, coffee, juice, lassi, chaas, soft drink),
 fruit, or a packaged product (chips/wafers, namkeen, biscuits, chocolate bars like Munchies, instant noodles, etc.).
-For each item estimate the amount actually shown (number of rotis, katoris, cups, pieces, or the pack size).
+
+Identify Indian dishes carefully from colour, texture, shape and what is normally eaten together. Some look-alikes:
+tindora/kundru (small striped green rounds), bhindi (okra slices with seeds), dudhi/lauki (pale green soft cubes),
+turai (ridge gourd), karela (ridged bitter gourd), sev tameta, undhiyu, ringan/baingan bharta, aloo gobi, aloo matar,
+palak paneer, chole, rajma, kadhi (thin yellow curry), dal tadka/dal fry, sambar (orange, with vegetable pieces),
+rasam (thin red-brown), poriyal, avial, thepla, bhakri, bajra rotla, puri, paratha, dhokla, khandvi, handvo,
+idli, dosa, uttapam, upma, poha, khichdi, pulao, biryani. Use the name an Indian home cook would use
+(you may add the English in brackets). Count items: rotis, puris, idlis, pieces.
+Portions: 1 katori/bowl ≈ 150 ml, 1 roti ≈ 6-inch (30 g atta), 1 cup tea ≈ 150 ml.
+${hint ? `\nThe user says the photo shows: "${hint}". Trust these names; still judge the amounts from the photo.\n` : ""}
+For each item estimate the amount actually shown.
 - If an item matches one of these dishes, put its exact name in "matched" and give "servings" as a multiple of that dish's serving (2 rotis = 2, half a katori = 0.5):
 ${dishList}
 - Otherwise set "matched": null and estimate kcal, protein, carbs and fat (grams) for the amount shown.
 - For packaged products, use the brand and product name you can read (e.g. "Lay's Classic Salted 52 g"); if the nutrition label is readable, use its numbers for the pack.
 - For tea/coffee, assume milk and 1 tsp sugar unless it clearly looks black.
+- If you are not sure what a dish is, give your best guess and put up to 3 other likely dishes in "alternatives"
+  (same amount, each with "matched" from the list or null with your kcal/protein/carbs/fat estimate).
 Reply with JSON only, no other text, exactly in this shape:
-{"items":[{"name":"","matched":null,"servings":1,"portion":"","kcal":0,"protein":0,"carbs":0,"fat":0,"confidence":0.8}],"note":""}
+{"items":[{"name":"","matched":null,"servings":1,"portion":"","kcal":0,"protein":0,"carbs":0,"fat":0,"confidence":0.8,
+"alternatives":[{"name":"","matched":null,"kcal":0,"protein":0,"carbs":0,"fat":0}]}],"note":""}
 If there is no food or drink in the photo, reply {"items":[],"note":"No food found"}.`;
 }
 
@@ -50,7 +65,7 @@ function parseJson(text: string): { items: ScanItem[]; note?: string } | null {
 // Gemini model names change often, so we ask Google which models this key can
 // use (cached for an hour) and pick the configured one if it exists, otherwise
 // the best available Flash model. "Thinking" is switched off where allowed —
-// it adds seconds and doesn't help with reading a plate.
+// kept low: a little thinking helps tell similar Indian dishes apart.
 let modelCache: { at: number; names: string[] } | null = null;
 
 async function availableModels(key: string): Promise<string[]> {
@@ -90,7 +105,7 @@ async function askGemini(key: string, image: string, p: string, signal: AbortSig
   for (const model of models) {
     for (const fast of [true, false]) {
       const generationConfig: Record<string, unknown> = { temperature: 0.2, responseMimeType: "application/json" };
-      if (fast) generationConfig.thinkingConfig = { thinkingBudget: 0 };
+      if (fast) generationConfig.thinkingConfig = { thinkingLevel: "low" };
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -156,6 +171,7 @@ async function scan(req: NextRequest) {
 
   const b = await req.json().catch(() => null);
   const image = String(b?.image || "").replace(/^data:image\/\w+;base64,/, "");
+  const hint = String(b?.hint || "").replace(/["`\\]/g, "'").replace(/\s+/g, " ").trim().slice(0, 200);
   if (image.length < 1000) return appJson({ error: "No photo received." }, 400);
   if (image.length > 2_500_000) return appJson({ error: "That photo is too large." }, 413);
 
@@ -166,7 +182,7 @@ async function scan(req: NextRequest) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 45000);
   try {
-    text = gk ? await askGemini(gk, image, prompt(list), ctl.signal) : await askClaude(ck!, image, prompt(list), ctl.signal);
+    text = gk ? await askGemini(gk, image, prompt(list, hint), ctl.signal) : await askClaude(ck!, image, prompt(list, hint), ctl.signal);
   } catch (e) {
     console.error("scan-food failed:", e);
     const msg = String(e);
@@ -181,21 +197,24 @@ async function scan(req: NextRequest) {
   if (!j) return appJson({ error: "Couldn't read the photo — try a clearer, well-lit picture from above.", detail: "unreadable answer: " + text.slice(0, 120) }, 422);
 
   const byName = new Map(dishes.map((d) => [d.name.toLowerCase(), d]));
+  type Dish = (typeof dishes)[number];
+  const fromDish = (dish: Dish, sv: number) => ({
+    id: dish.id, name: dish.name, portion: sv === 1 ? dish.serving : `${sv} × ${dish.serving}`, servings: sv, serving: dish.serving,
+    kcal: Math.round(dish.kcal * sv), protein: n(dish.protein * sv, 300), carbs: n(dish.carbs * sv, 600), fat: n(dish.fat * sv, 300), source: "db",
+  });
+  const fromAi = (x: ScanAlt & { portion?: string }) => ({
+    id: "", name: String(x.name || "Food").slice(0, 60), portion: String(x.portion || "").slice(0, 40), servings: 1, serving: String(x.portion || "1 portion").slice(0, 40),
+    kcal: Math.round(n(x.kcal, 3000)), protein: n(x.protein, 300), carbs: n(x.carbs, 600), fat: n(x.fat, 300), source: "ai",
+  });
   const items = j.items.slice(0, 12).map((it) => {
     const dish = it.matched ? byName.get(String(it.matched).toLowerCase()) : undefined;
     const sv = Math.max(0.25, Math.min(10, Number(it.servings) || 1));
-    if (dish) {
-      return {
-        id: dish.id, name: dish.name, portion: sv === 1 ? dish.serving : `${sv} × ${dish.serving}`, servings: sv, serving: dish.serving,
-        kcal: Math.round(dish.kcal * sv), protein: n(dish.protein * sv, 300), carbs: n(dish.carbs * sv, 600), fat: n(dish.fat * sv, 300),
-        source: "db", confidence: n(it.confidence, 1),
-      };
-    }
-    return {
-      id: "", name: String(it.name || "Food").slice(0, 60), portion: String(it.portion || "").slice(0, 40), servings: 1, serving: String(it.portion || "1 portion").slice(0, 40),
-      kcal: Math.round(n(it.kcal, 3000)), protein: n(it.protein, 300), carbs: n(it.carbs, 600), fat: n(it.fat, 300),
-      source: "ai", confidence: n(it.confidence, 1),
-    };
+    const main = dish ? fromDish(dish, sv) : fromAi(it);
+    const alts = (Array.isArray(it.alternatives) ? it.alternatives : []).slice(0, 3).map((a) => {
+      const d = a.matched ? byName.get(String(a.matched).toLowerCase()) : byName.get(String(a.name || "").toLowerCase());
+      return d ? fromDish(d, sv) : fromAi({ ...a, portion: main.portion });
+    }).filter((a) => a.name && a.name.toLowerCase() !== main.name.toLowerCase() && (a.kcal > 0 || a.source === "db"));
+    return { ...main, confidence: n(it.confidence, 1), alts };
   }).filter((x) => x.kcal > 0 || x.source === "db");
   return appJson({ ok: true, items, note: String(j.note || "").slice(0, 200) });
 }
