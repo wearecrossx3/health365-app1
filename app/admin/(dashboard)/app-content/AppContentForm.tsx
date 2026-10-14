@@ -5,7 +5,7 @@ import ImageUploadField from "../content/ImageUploadField";
 
 type Action = "consult" | "plan" | "oncology" | "care" | "none";
 interface Banner { id: string; title: string; text: string; buttonText: string; imageUrl: string; color: string; action: Action; enabled: boolean; }
-interface Habit { id: string; tag: string; text: string; imageUrl: string; enabled: boolean; }
+interface Habit { id: string; tag: string; text: string; imageUrl: string; enabled: boolean; blogSlug?: string; }
 interface Slide { title: string; text: string; imageUrl: string; }
 interface TodayCard { label: string; color: string; imageUrl: string; ringColor: string; }
 interface Texts { upNext: string; water: string; progress: string; reviews: string; premiumTitle: string; premiumText: string; }
@@ -223,6 +223,7 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
               <div className="admin-grid-2" style={{ gap: 14 }}>
                 <div className="field"><label>Tag</label><input value={h.tag} maxLength={20} onChange={(e) => setHabit(i, { tag: e.target.value })} placeholder="e.g. Habit" /></div>
                 <div className="field"><label>Text</label><input value={h.text} maxLength={120} onChange={(e) => setHabit(i, { text: e.target.value })} /></div>
+                <div className="field"><label>Opens blog post <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— slug from Admin → Blog, empty = not tappable</span></label><input value={h.blogSlug || ""} maxLength={80} onChange={(e) => setHabit(i, { blogSlug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} placeholder="e.g. start-lunch-with-salad" /></div>
               </div>
               <ImageUploadField label="Photo" hint="optional — a built-in photo is used if empty" value={h.imageUrl} onChange={(u) => setHabit(i, { imageUrl: u })} />
             </div>

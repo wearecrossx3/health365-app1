@@ -19,6 +19,10 @@ export const ADMIN_PERMISSIONS = [
   { key: "app", label: "Mobile App", hint: "App icons, banners, carousels, sound & effects" },
   { key: "app-notifications", label: "App Notifications", hint: "Send notifications to app users" },
   { key: "coupons", label: "Coupons", hint: "Discount codes for paid consultations" },
+  { key: "users", label: "Users & Plans", hint: "App/site users, assign diet plans, grant free 7-day plans, plan generator" },
+  { key: "offers", label: "App Offers", hint: "Offer popups shown in the app" },
+  { key: "blog", label: "Blog", hint: "Write and publish blog posts (site + app)" },
+  { key: "foods", label: "Food Database", hint: "Calorie counter foods (IFCT) — edit, hide, add" },
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number]["key"];
@@ -35,6 +39,10 @@ const PERMISSION_PATHS: Record<AdminPermission, string> = {
   app: "/admin/app-content",
   "app-notifications": "/admin/app-notifications",
   coupons: "/admin/coupons",
+  users: "/admin/users",
+  offers: "/admin/offers",
+  blog: "/admin/blog",
+  foods: "/admin/foods",
 };
 
 // Where to send an admin who hits a page they don't have permission

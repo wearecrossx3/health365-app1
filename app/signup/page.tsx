@@ -20,7 +20,7 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     if (phone.trim() && !isValidPhone(phone)) {
-      setError("Please enter a valid phone number, or leave it blank.");
+      setError("Please enter a valid 10-digit mobile number, or leave it blank.");
       return;
     }
     setLoading(true);
@@ -58,7 +58,7 @@ export default function SignupPage() {
             </div>
             <div className="field">
               <label htmlFor="phone">Phone <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional, for WhatsApp updates</span></label>
-              <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="98765 43210" />
+              <input id="phone" type="tel" inputMode="numeric" maxLength={14} value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d+ ]/g, ""))} placeholder="98765 43210" />
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>

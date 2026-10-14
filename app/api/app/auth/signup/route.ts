@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
-import { getUserByEmail, createUser } from "@/lib/kv";
+import { getUserByEmail, createUser, getUserIdByPhone } from "@/lib/kv";
 import { hashPassword } from "@/lib/auth";
 import { createSessionCookieValue } from "@/lib/session";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
-import { isValidPhone } from "@/lib/phone";
+import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { appJson, appPreflight, limit, str } from "@/lib/appApi";
 
 // Same account as the website — someone who signs up in the app can log
@@ -22,17 +22,21 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const name = str(body?.name, 80);
   const email = str(body?.email, 120).toLowerCase();
-  const phone = str(body?.phone, 20);
+  const rawPhone = str(body?.phone, 20);
+  const phone = rawPhone ? normalizePhone(rawPhone) : "";
   const password = String(body?.password ?? "");
 
   if (!name || !email || !password) return appJson({ error: "Name, email, and password are required." }, 400);
   if (!/^\S+@\S+\.\S+$/.test(email)) return appJson({ error: "Please enter a valid email address." }, 400);
   if (password.length < 8) return appJson({ error: "Password must be at least 8 characters." }, 400);
-  if (phone && !isValidPhone(phone)) return appJson({ error: "Please enter a valid phone number." }, 400);
+  if (phone === null) return appJson({ error: PHONE_ERROR, code: "phone" }, 400);
 
   try {
     if (await getUserByEmail(email)) {
       return appJson({ error: "An account with this email already exists. Please log in.", code: "exists" }, 409);
+    }
+    if (phone && (await getUserIdByPhone(phone))) {
+      return appJson({ error: "This mobile number is already linked to another account. Please log in, or use a different number.", code: "phone_exists" }, 409);
     }
     const user = {
       id: crypto.randomUUID(),

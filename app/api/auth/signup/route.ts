@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { getUserByEmail, createUser } from "@/lib/kv";
+import { getUserByEmail, createUser, getUserIdByPhone } from "@/lib/kv";
+import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { hashPassword } from "@/lib/auth";
 import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "@/lib/session";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
@@ -18,17 +19,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
 
+  if (!/^\S+@\S+\.\S+$/.test(String(email))) {
+    return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+  }
+  const cleanPhone = phone ? normalizePhone(String(phone)) : "";
+  if (cleanPhone === null) return NextResponse.json({ error: PHONE_ERROR }, { status: 400 });
+
   try {
-    const existing = await getUserByEmail(email);
+    const existing = await getUserByEmail(String(email).trim());
     if (existing) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+    }
+    if (cleanPhone && (await getUserIdByPhone(cleanPhone))) {
+      return NextResponse.json({ error: "This mobile number is already linked to another account." }, { status: 409 });
     }
 
     const user = {
       id: crypto.randomUUID(),
-      email: String(email).toLowerCase(),
+      email: String(email).trim().toLowerCase(),
       name: String(name),
-      phone: phone ? String(phone) : undefined,
+      phone: cleanPhone || undefined,
       passwordHash: hashPassword(password),
       createdAt: new Date().toISOString(),
     };

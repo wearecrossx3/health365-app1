@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isValidPhone } from "@/lib/phone";
 
 export default function PremiumConsultModal({
@@ -28,6 +28,23 @@ export default function PremiumConsultModal({
   onBooked?: () => void;
 }) {
   const [step, setStep] = useState<"package" | "payment" | "done">("package");
+  // Validity / what's included / repeat-consult policy (Admin → Website Settings).
+  const [details, setDetails] = useState<{ days: string; includes: string[]; policy: string } | null>(null);
+  useEffect(() => {
+    fetch("/api/public-content")
+      .then((r) => r.json())
+      .then((d) =>
+        setDetails({
+          days: String(d.premiumValidityDays || ""),
+          includes: String(d.premiumIncludes || "").split(",").map((x: string) => x.trim()).filter(Boolean),
+          policy: String(d.premiumPolicy || ""),
+        })
+      )
+      .catch(() => {});
+  }, []);
+  const o = Number(String(originalPrice).replace(/[^\d.]/g, "")) || 0;
+  const dp = Number(String(discountedPrice).replace(/[^\d.]/g, "")) || 0;
+  const saving = o > dp && dp > 0 ? o - dp : 0;
   const [name, setName] = useState(prefillName || "");
   const [phone, setPhone] = useState(prefillPhone || "");
   const [email, setEmail] = useState("");
@@ -46,7 +63,7 @@ export default function PremiumConsultModal({
       return;
     }
     if (!isValidPhone(phone)) {
-      setError("Please enter a valid phone number.");
+      setError("Please enter a valid 10-digit mobile number.");
       return;
     }
     setSubmitting(true);
@@ -114,6 +131,24 @@ export default function PremiumConsultModal({
               <span style={{ fontSize: "1rem", color: "var(--ink-soft)", textDecoration: "line-through" }}>₹{originalPrice}</span>
               <span style={{ fontSize: "1.8rem", fontWeight: 700 }}>₹{discountedPrice}</span>
             </div>
+            {saving > 0 && (
+              <p style={{ display: "inline-block", marginTop: 8, fontSize: ".8rem", fontWeight: 700, color: "#256B3C", background: "#E6F3E9", padding: "4px 10px", borderRadius: 999 }}>
+                You save ₹{saving} · {Math.round((saving / o) * 100)}% off
+              </p>
+            )}
+            {details && (details.days || details.includes.length > 0 || details.policy) && (
+              <div style={{ marginTop: 14, background: "var(--paper)", borderRadius: 14, padding: "12px 16px", fontSize: ".84rem", lineHeight: 1.55 }}>
+                {details.includes.length > 0 && (
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {details.includes.map((x) => <li key={x}>{x}</li>)}
+                  </ul>
+                )}
+                {details.days && Number(details.days) > 0 && (
+                  <p style={{ marginTop: details.includes.length ? 8 : 0, fontWeight: 600 }}>Valid for {details.days} days from your consultation.</p>
+                )}
+                {details.policy && <p style={{ marginTop: 6, color: "var(--ink-soft)" }}>{details.policy}</p>}
+              </div>
+            )}
             <button
               type="button"
               className="pill pill-primary"

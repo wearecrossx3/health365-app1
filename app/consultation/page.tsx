@@ -114,7 +114,7 @@ function ConsultationForm() {
 
   function validate(): boolean {
     if (step === 1 && (!fullName.trim() || !age || !phone.trim() || gender.length === 0)) { setError("Please fill in the required fields."); return false; }
-    if (step === 1 && !isValidPhone(phone)) { setError("Please enter a valid phone number."); return false; }
+    if (step === 1 && !isValidPhone(phone)) { setError("Please enter a valid 10-digit mobile number."); return false; }
     if (step === 2 && (!height || !weight)) { setError("Please enter your height and weight."); return false; }
     if (step === 3 && activity.length === 0) { setError("Please select your activity level."); return false; }
     if (step === 4 && goal.length === 0) { setError("Please choose a goal."); return false; }

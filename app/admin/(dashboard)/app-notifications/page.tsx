@@ -4,6 +4,8 @@ import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/sessi
 import { getAdminAccess, defaultAdminPath } from "@/lib/admin";
 import { listAppNotifications } from "@/lib/kv";
 import AppNotificationsManager from "./AppNotificationsManager";
+import NudgesManager from "./NudgesManager";
+import { getNudges } from "@/lib/nudges";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +14,7 @@ export default async function AdminAppNotificationsPage() {
   const access = await getAdminAccess(session);
   if (!access.permissions.includes("app-notifications")) redirect(access.allowed ? defaultAdminPath(access.permissions) : "/admin/login");
 
-  const notifications = await listAppNotifications();
+  const [notifications, nudges] = await Promise.all([listAppNotifications(), getNudges()]);
 
   return (
     <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "48px 24px" }}>
@@ -27,6 +29,7 @@ export default async function AdminAppNotificationsPage() {
           </p>
         </div>
         <AppNotificationsManager initial={notifications} />
+        <NudgesManager initial={nudges} />
       </div>
     </main>
   );

@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       text: txt(x.text, 120),
       imageUrl: url(x.imageUrl),
       enabled: bool(x.enabled, true),
+      blogSlug: txt(x.blogSlug, 80).toLowerCase().replace(/[^a-z0-9-]/g, ""),
     })),
     habitsTitle: txt(b.habitsTitle, 60) || d.habitsTitle,
     autoScroll: bool(b.autoScroll, true),

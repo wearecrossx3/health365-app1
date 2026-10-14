@@ -16,6 +16,11 @@ const NAV = [
   { href: "/admin/app-content", label: "Mobile App", icon: "📱", permission: "app" },
   { href: "/admin/app-notifications", label: "App Notifications", icon: "🔔", permission: "app-notifications" },
   { href: "/admin/coupons", label: "Coupons", icon: "🏷️", permission: "coupons" },
+  { href: "/admin/users", label: "Users & Plans", icon: "🧑‍🤝‍🧑", permission: "users" },
+  { href: "/admin/plan-generator", label: "Plan Generator", icon: "🍱", permission: "users" },
+  { href: "/admin/offers", label: "App Offers", icon: "🎁", permission: "offers" },
+  { href: "/admin/blog", label: "Blog", icon: "📰", permission: "blog" },
+  { href: "/admin/foods", label: "Food Database", icon: "🥦", permission: "foods" },
 ];
 
 export default function AdminSidebar({
@@ -42,7 +47,7 @@ export default function AdminSidebar({
   }
 
   function navLink(item: (typeof NAV)[number]) {
-    const active = pathname === item.href;
+    const active = item.href === "/admin" ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
     return (
       <Link
         key={item.href}

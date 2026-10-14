@@ -35,6 +35,10 @@ async function setJSON(key: string, value: unknown): Promise<void> {
   await client().set(key, JSON.stringify(value));
 }
 
+// Shared with the newer feature modules (offers, blog, plans, nudges, foods)
+// so they use the same single Redis connection.
+export { client as redis, getJSON, setJSON };
+
 export interface User {
   id: string;
   email: string;
@@ -58,6 +62,7 @@ export interface Consultation {
 
 const userKey = (email: string) => `user:${email.toLowerCase()}`;
 const userByIdKey = (id: string) => `user_id:${id}`;
+const userPhoneKey = (phone: string) => `user_phone:${phone}`;
 const consultationKey = (id: string) => `consultation:${id}`;
 const userConsultationsKey = (userId: string) => `user_consultations:${userId}`;
 
@@ -72,6 +77,27 @@ export async function getUserById(id: string): Promise<User | null> {
 export async function createUser(user: User): Promise<void> {
   await setJSON(userKey(user.email), user);
   await setJSON(userByIdKey(user.id), user);
+  if (user.phone) await client().set(userPhoneKey(user.phone), user.id);
+}
+
+// One account per mobile number. Uses the phone index first; accounts made
+// before the index existed are found with a one-off scan (and indexed then).
+export async function getUserIdByPhone(phone: string): Promise<string | null> {
+  const id = await client().get(userPhoneKey(phone));
+  if (id) return id;
+  const all = await listAllUsers();
+  const digits = (v: string) => {
+    let d = String(v || "").replace(/\D/g, "");
+    if (d.length === 12 && d.startsWith("91")) d = d.slice(2);
+    if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
+    return d;
+  };
+  const hit = all.find((u) => u.phone && digits(u.phone) === phone);
+  if (hit) {
+    await client().set(userPhoneKey(phone), hit.id);
+    return hit.id;
+  }
+  return null;
 }
 
 export async function saveConsultation(c: Consultation): Promise<void> {
@@ -289,6 +315,17 @@ export interface SiteContent {
   premiumOriginalPrice: string;
   premiumDiscountedPrice: string;
   premiumUpiId: string;
+  // Shown under the consultation price (app + site): how long the fee
+  // covers follow-ups, what's included, and the repeat-consult policy.
+  premiumValidityDays: string;
+  premiumIncludes: string; // comma-separated
+  premiumPolicy: string;
+  // 7-day plan access: the first 7-day plan is free; after that it's locked
+  // and unlocked by a consultation (or a free grant from admin). The 1-day
+  // plan always stays free.
+  planLockTitle: string;
+  planLockText: string;
+  planPriceLabel: string; // e.g. "Included with consultation" or "₹499"
   sectionsEnabled: SectionVisibility;
 }
 
@@ -348,6 +385,12 @@ const DEFAULT_CONTENT: SiteContent = {
   premiumOriginalPrice: "2500",
   premiumDiscountedPrice: "1500",
   premiumUpiId: "",
+  premiumValidityDays: "30",
+  premiumIncludes: "1:1 video/phone call with a dietitian, Personal 7-day plan in the app, Follow-ups on WhatsApp",
+  premiumPolicy: "Follow-ups within the validity period are included. After it ends, a new consultation is charged again.",
+  planLockTitle: "Your free 7-day plan is used",
+  planLockText: "Book a consultation and your dietitian will build your next 7-day plan — it appears right here in the app.",
+  planPriceLabel: "",
   sectionsEnabled: {
     stats: true,
     goals: true,
@@ -667,6 +710,7 @@ export interface AppHabitCard {
   text: string;
   imageUrl: string;
   enabled: boolean;
+  blogSlug?: string; // tapping the card opens this blog post in the app
 }
 
 export interface AppIntroSlide {
@@ -748,10 +792,10 @@ export const DEFAULT_APP_CONTENT: AppContent = {
     },
   ],
   habitCards: [
-    { id: "h1", tag: "Seeds", text: "Add 1 tbsp flax or pumpkin seeds to your day", imageUrl: "", enabled: true },
-    { id: "h2", tag: "Habit", text: "Start lunch with a bowl of salad", imageUrl: "", enabled: true },
-    { id: "h3", tag: "Move", text: "A 10-minute walk after dinner steadies blood sugar", imageUrl: "", enabled: true },
-    { id: "h4", tag: "Kitchen", text: "Swap one fried snack for roasted chana this week", imageUrl: "", enabled: true },
+    { id: "h1", tag: "Seeds", text: "Add 1 tbsp flax or pumpkin seeds to your day", imageUrl: "", enabled: true, blogSlug: "add-seeds-to-your-day" },
+    { id: "h2", tag: "Habit", text: "Start lunch with a bowl of salad", imageUrl: "", enabled: true, blogSlug: "start-lunch-with-salad" },
+    { id: "h3", tag: "Move", text: "A 10-minute walk after dinner steadies blood sugar", imageUrl: "", enabled: true, blogSlug: "10-minute-walk-after-dinner" },
+    { id: "h4", tag: "Kitchen", text: "Swap one fried snack for roasted chana this week", imageUrl: "", enabled: true, blogSlug: "swap-fried-snack-for-roasted-chana" },
   ],
   habitsTitle: "Small choices, better habits",
   autoScroll: true,
@@ -775,7 +819,11 @@ export async function getAppContent(): Promise<AppContent> {
     goalIcons: { ...d.goalIcons, ...(stored.goalIcons || {}) },
     conditionIcons: { ...d.conditionIcons, ...(stored.conditionIcons || {}) },
     banners: Array.isArray(stored.banners) ? stored.banners : d.banners,
-    habitCards: Array.isArray(stored.habitCards) ? stored.habitCards : d.habitCards,
+    // Older saved cards have no blog link yet — give the four starter cards
+    // their starter article so tapping them opens something on day one.
+    habitCards: (Array.isArray(stored.habitCards) ? stored.habitCards : d.habitCards).map((h) =>
+      h.blogSlug !== undefined ? h : { ...h, blogSlug: d.habitCards.find((x) => x.id === h.id)?.blogSlug || "" }
+    ),
   };
 }
 
@@ -822,6 +870,11 @@ export async function deleteUserAccount(userId: string): Promise<{ consultations
 
   await r.del(userKey(user.email));
   await r.del(userByIdKey(user.id));
+  if (user.phone) {
+    const owner = await r.get(userPhoneKey(user.phone));
+    if (owner === user.id) await r.del(userPhoneKey(user.phone));
+  }
+  await r.del(`user_plans:${userId}`, `user_ent:${userId}`);
   return { consultations: consultIds.length, appointments: apptIds.length, messages };
 }
 

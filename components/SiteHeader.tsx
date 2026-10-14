@@ -66,7 +66,7 @@ export default function SiteHeader() {
           <Link href="/conditions" style={{ color: linkColor }}>Conditions</Link>
           <Link href="/dietitians" style={{ color: linkColor }}>Dietitians</Link>
           {oncologyEnabled && <Link href="/oncology" style={{ color: linkColor }}>Cancer Care</Link>}
-          <Link href="/#about" style={{ color: linkColor }}>About</Link>
+          <Link href="/blog" style={{ color: linkColor }}>Blog</Link>
           <Link href="/app" style={{ color: linkColor }}>Get the app</Link>
         </nav>
 
@@ -95,6 +95,7 @@ export default function SiteHeader() {
         <Link href="/dietitians" onClick={() => setMenuOpen(false)}>Dietitians</Link>
         {oncologyEnabled && <Link href="/oncology" onClick={() => setMenuOpen(false)}>Cancer Care</Link>}
         <Link href="/#about" onClick={() => setMenuOpen(false)}>About</Link>
+        <Link href="/blog" onClick={() => setMenuOpen(false)}>Blog</Link>
         <Link href="/app" onClick={() => setMenuOpen(false)}>Get the app</Link>
         {loggedIn === true && <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>}
         {loggedIn === false && (

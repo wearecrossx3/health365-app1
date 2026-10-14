@@ -14,7 +14,15 @@ interface Settings {
   premiumOriginalPrice: string;
   premiumDiscountedPrice: string;
   premiumUpiId: string;
+  premiumValidityDays: string;
+  premiumIncludes: string;
+  premiumPolicy: string;
+  planLockTitle: string;
+  planLockText: string;
+  planPriceLabel: string;
 }
+
+const hint = { fontWeight: 400, color: "var(--ink-soft)" } as const;
 
 export default function SettingsForm({ initial }: { initial: Settings }) {
   const [values, setValues] = useState<Settings>(initial);
@@ -104,6 +112,50 @@ export default function SettingsForm({ initial }: { initial: Settings }) {
       <div className="field">
         <label>Your UPI ID</label>
         <input value={values.premiumUpiId} onChange={(e) => update("premiumUpiId", e.target.value)} placeholder="health365@upi" />
+      </div>
+
+      {(() => {
+        const o = Number(values.premiumOriginalPrice) || 0;
+        const d = Number(values.premiumDiscountedPrice) || 0;
+        return o > d && d > 0 ? (
+          <p style={{ fontSize: ".88rem", background: "#E6F3E9", color: "#256B3C", padding: "10px 14px", borderRadius: 12 }}>
+            App &amp; site will show: <s>₹{o}</s> → <b>₹{d}</b> · you save ₹{o - d} ({Math.round(((o - d) / o) * 100)}% off)
+            {values.premiumValidityDays ? ` · valid for ${values.premiumValidityDays} days` : ""}
+          </p>
+        ) : null;
+      })()}
+      <div className="admin-grid-2" style={{ gap: 16 }}>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>Fee valid for (days) <span style={hint}>— follow-ups free within this time</span></label>
+          <input type="number" min={0} value={values.premiumValidityDays} onChange={(e) => update("premiumValidityDays", e.target.value)} placeholder="30" />
+        </div>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>What&apos;s included <span style={hint}>— comma-separated</span></label>
+          <input value={values.premiumIncludes} onChange={(e) => update("premiumIncludes", e.target.value)} placeholder="1:1 call, Personal 7-day plan, WhatsApp follow-ups" />
+        </div>
+      </div>
+      <div className="field">
+        <label>Repeat consultation policy <span style={hint}>— shown under the price</span></label>
+        <textarea rows={2} value={values.premiumPolicy} onChange={(e) => update("premiumPolicy", e.target.value)} placeholder="Follow-ups within the validity period are included. After it ends, a new consultation is charged again." />
+      </div>
+
+      <div style={{ borderTop: "1px solid var(--line)", margin: "6px 0" }} />
+      <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", margin: "-6px 0 2px" }}>
+        <b>7-day plan lock (app).</b> Everyone gets their first 7-day plan free and unlimited 1-day plans. After that,
+        new 7-day plans are locked and this message is shown with a &quot;Book a consultation&quot; button. You can give a
+        particular user a free 7-day plan from <b>Users &amp; Plans</b>.
+      </p>
+      <div className="field">
+        <label>Lock title</label>
+        <input value={values.planLockTitle} maxLength={60} onChange={(e) => update("planLockTitle", e.target.value)} />
+      </div>
+      <div className="field">
+        <label>Lock message</label>
+        <textarea rows={2} maxLength={220} value={values.planLockText} onChange={(e) => update("planLockText", e.target.value)} />
+      </div>
+      <div className="field">
+        <label>Price line on the lock popup <span style={hint}>— optional, e.g. &quot;Included with your consultation&quot;. Empty = shows the consultation price above.</span></label>
+        <input value={values.planPriceLabel} maxLength={60} onChange={(e) => update("planPriceLabel", e.target.value)} />
       </div>
 
       {error && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{error}</p>}

@@ -421,7 +421,7 @@ function DietPlanContent() {
                       return;
                     }
                     if (!isValidPhone(consultPhone)) {
-                      setConditionFormError("Please enter a valid phone number.");
+                      setConditionFormError("Please enter a valid 10-digit mobile number.");
                       return;
                     }
                     const mapped = CONSULT_CONDITION_MAP[condition];
@@ -479,7 +479,7 @@ function DietPlanContent() {
                         disabled={waStatus === "sending"}
                         onClick={async () => {
                           if (!waPhone.trim()) { setWaError("Please enter a phone number."); return; }
-                          if (!isValidPhone(waPhone)) { setWaError("Please enter a valid phone number."); return; }
+                          if (!isValidPhone(waPhone)) { setWaError("Please enter a valid 10-digit mobile number."); return; }
                           setWaError(null);
                           setWaStatus("sending");
                           const res = await fetch("/api/whatsapp-plan", {

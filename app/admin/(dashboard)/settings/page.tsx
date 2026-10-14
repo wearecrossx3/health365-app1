@@ -36,6 +36,12 @@ export default async function AdminSettingsPage() {
             premiumOriginalPrice: content.premiumOriginalPrice,
             premiumDiscountedPrice: content.premiumDiscountedPrice,
             premiumUpiId: content.premiumUpiId,
+            premiumValidityDays: content.premiumValidityDays,
+            premiumIncludes: content.premiumIncludes,
+            premiumPolicy: content.premiumPolicy,
+            planLockTitle: content.planLockTitle,
+            planLockText: content.planLockText,
+            planPriceLabel: content.planPriceLabel,
           }}
         />
       </div>
