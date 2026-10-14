@@ -8,6 +8,9 @@ TURN ON THE FOOD SCANNER (one time):
   1. Go to https://aistudio.google.com/apikey -> "Create API key" (free tier available).
   2. Vercel -> your project -> Settings -> Environment Variables -> Add:
         Name:  GEMINI_API_KEY      Value: (paste the key)   Environments: Production
+        Name:  GEMINI_MODEL        Value: gemini-3.5-flash-lite   (cheapest; optional)
+     Turn on billing for the key (paid tier) so photos are not used by Google, and set
+     a small budget alert in Google Cloud -> Billing -> Budgets.
   3. Vercel -> Deployments -> latest -> "Redeploy".
   (Claude works too: add ANTHROPIC_API_KEY instead.)
   Until a key is added, the app simply hides the scan button.

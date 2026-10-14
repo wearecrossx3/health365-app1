@@ -21,14 +21,18 @@ export async function OPTIONS() {
 interface ScanItem { name: string; matched?: string | null; servings?: number; portion?: string; kcal?: number; protein?: number; carbs?: number; fat?: number; confidence?: number }
 
 function prompt(dishList: string) {
-  return `You are a nutrition assistant for an Indian diet app. Look at the photo and list every food or drink item you can see.
-For each item, estimate the portion actually on the plate.
-If an item matches one of these dishes, use its exact name in "matched" and give "servings" as a multiple of that dish's serving (e.g. 2 rotis = 2, half a katori = 0.5):
+  return `You are a nutrition assistant for an Indian diet app. Look at the photo and list every food or drink you can see.
+It can be a home-cooked plate or thali, a restaurant dish, a drink (chai, coffee, juice, milkshake, soft drink),
+fruit, or a packaged product (chips/wafers, namkeen, biscuits, chocolate bars like Munchies, instant noodles, etc.).
+For each item estimate the amount actually shown (number of rotis, katoris, cups, pieces, or the pack size).
+- If an item matches one of these dishes, put its exact name in "matched" and give "servings" as a multiple of that dish's serving (2 rotis = 2, half a katori = 0.5):
 ${dishList}
-If nothing in the list fits, set "matched": null and estimate kcal, protein, carbs and fat (grams) yourself for the portion shown.
-Reply with JSON only, no other text, in exactly this shape:
+- Otherwise set "matched": null and estimate kcal, protein, carbs and fat (grams) for the amount shown.
+- For packaged products, use the brand and product name you can read (e.g. "Lay's Classic Salted 52 g"); if the nutrition label is readable, use its numbers for the pack.
+- For tea/coffee, assume milk and 1 tsp sugar unless it clearly looks black.
+Reply with JSON only, no other text, exactly in this shape:
 {"items":[{"name":"","matched":null,"servings":1,"portion":"","kcal":0,"protein":0,"carbs":0,"fat":0,"confidence":0.8}],"note":""}
-If there is no food in the photo, reply {"items":[],"note":"No food found"}.`;
+If there is no food or drink in the photo, reply {"items":[],"note":"No food found"}.`;
 }
 
 function parseJson(text: string): { items: ScanItem[]; note?: string } | null {
