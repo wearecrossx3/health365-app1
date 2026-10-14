@@ -12,7 +12,7 @@ import { getFoodDatabase } from "@/lib/foods";
 //   GEMINI_API_KEY      (Google AI Studio — has a free tier)   optional GEMINI_MODEL
 //   ANTHROPIC_API_KEY   (Claude)                               optional CLAUDE_MODEL
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function OPTIONS() {
   return appPreflight();
@@ -47,22 +47,35 @@ function parseJson(text: string): { items: ScanItem[]; note?: string } | null {
   }
 }
 
-async function askGemini(key: string, image: string, p: string): Promise<string> {
-  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ inline_data: { mime_type: "image/jpeg", data: image } }, { text: p }] }],
-      generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
-    }),
-  });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`gemini ${r.status}: ${JSON.stringify(d).slice(0, 200)}`);
-  return (d.candidates?.[0]?.content?.parts || []).map((x: { text?: string }) => x.text || "").join("");
+// Gemini: try the configured model first, then fall back to known-good models if
+// that name isn't available on this key. "Thinking" is switched off where the
+// model allows it — it makes no difference for reading a plate but adds seconds.
+async function askGemini(key: string, image: string, p: string, signal: AbortSignal): Promise<string> {
+  const models = [process.env.GEMINI_MODEL, "gemini-flash-latest", "gemini-2.5-flash"].filter((m, i, a): m is string => !!m && a.indexOf(m) === i);
+  let last = "";
+  for (const model of models) {
+    for (const fast of [true, false]) {
+      const generationConfig: Record<string, unknown> = { temperature: 0.2, responseMimeType: "application/json" };
+      if (fast) generationConfig.thinkingConfig = { thinkingBudget: 0 };
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ inline_data: { mime_type: "image/jpeg", data: image } }, { text: p }] }], generationConfig }),
+        signal,
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) return (d.candidates?.[0]?.content?.parts || []).map((x: { text?: string }) => x.text || "").join("");
+      last = `gemini ${model} ${r.status}: ${JSON.stringify(d).slice(0, 300)}`;
+      console.error("scan-food:", last);
+      if (r.status === 429) throw new Error("quota " + last);
+      if (r.status === 400 && fast) continue; // model doesn't accept the thinking setting — retry without it
+      break; // 404 / other → next model
+    }
+  }
+  throw new Error(last || "gemini failed");
 }
 
-async function askClaude(key: string, image: string, p: string): Promise<string> {
+async function askClaude(key: string, image: string, p: string, signal: AbortSignal): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
@@ -71,6 +84,7 @@ async function askClaude(key: string, image: string, p: string): Promise<string>
       max_tokens: 1200,
       messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } }, { type: "text", text: p }] }],
     }),
+    signal,
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`claude ${r.status}: ${JSON.stringify(d).slice(0, 200)}`);
@@ -80,6 +94,15 @@ async function askClaude(key: string, image: string, p: string): Promise<string>
 const n = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.round((Number(v) || 0) * 10) / 10));
 
 export async function POST(req: NextRequest) {
+  try {
+    return await scan(req);
+  } catch (e) {
+    console.error("scan-food crashed:", e);
+    return appJson({ error: "Couldn't read the photo right now — please try again, or add food by searching." }, 500);
+  }
+}
+
+async function scan(req: NextRequest) {
   const session = getAppSession(req);
   if (!session) return appJson({ error: "Please log in to use the food scanner.", code: "auth" }, 401);
   const limited = await limit(req, "app-scan", 60, 3600);
@@ -99,11 +122,18 @@ export async function POST(req: NextRequest) {
   const dishes = db.dishes;
   const list = dishes.map((d) => `- ${d.name} (${d.serving})`).join("\n");
   let text = "";
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 45000);
   try {
-    text = gk ? await askGemini(gk, image, prompt(list)) : await askClaude(ck!, image, prompt(list));
+    text = gk ? await askGemini(gk, image, prompt(list), ctl.signal) : await askClaude(ck!, image, prompt(list), ctl.signal);
   } catch (e) {
     console.error("scan-food failed:", e);
+    const msg = String(e);
+    if (ctl.signal.aborted) return appJson({ error: "The scanner took too long — please try again.", code: "slow" }, 504);
+    if (msg.startsWith("Error: quota")) return appJson({ error: "The scanner is busy right now — please try again in a minute.", code: "slow" }, 503);
     return appJson({ error: "Couldn't read the photo right now — please try again, or add food by searching." }, 502);
+  } finally {
+    clearTimeout(timer);
   }
   const j = parseJson(text);
   if (!j) return appJson({ error: "Couldn't read the photo — try a clearer, well-lit picture from above." }, 422);
