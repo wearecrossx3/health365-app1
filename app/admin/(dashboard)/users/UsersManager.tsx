@@ -6,7 +6,7 @@ import PlanBuilder from "../plan-generator/PlanBuilder";
 interface Row { id: string; name: string; email: string; phone: string; createdAt: string; freeUsed: boolean; grants: number; plans: number; access: string }
 interface PlanSummary { id: string; title: string; assignedAt: string; assignedBy: string; active: boolean; targetKcal: number; days: { kcal: number }[]; note: string }
 interface Detail {
-  user: { id: string; name: string; email: string; phone: string; createdAt: string };
+  user: { id: string; name: string; email: string; phone: string; phoneFrom?: string; createdAt: string };
   ent: { freeUsed: boolean; freeUsedAt: string; grants: number; grantLog: { at: string; by: string; note: string; kind: string }[] };
   access: { allowed: boolean; reason: string };
   plans: PlanSummary[];
@@ -55,7 +55,17 @@ export default function UsersManager() {
         <button onClick={() => setSel(null)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: "#287379", fontWeight: 700, cursor: "pointer", padding: 0 }}>← All users</button>
         <div className="panel">
           <h2 style={{ fontSize: "1.3rem" }}>{detail.user.name}</h2>
-          <p style={{ color: "var(--ink-soft)", fontSize: ".9rem", marginTop: 4 }}>{detail.user.email}{detail.user.phone ? ` · ${detail.user.phone}` : ""} · joined {fmt(detail.user.createdAt)}</p>
+          <p style={{ color: "var(--ink-soft)", fontSize: ".9rem", marginTop: 4 }}>{detail.user.email} · joined {fmt(detail.user.createdAt)}</p>
+          {detail.user.phone ? (
+            <p style={{ marginTop: 8, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", fontSize: ".95rem" }}>
+              <b>📞 +91 {detail.user.phone}</b>
+              <a href={`tel:+91${detail.user.phone}`} className="pill pill-outline" style={{ padding: "4px 12px", fontSize: ".78rem" }}>Call</a>
+              <a href={`https://wa.me/91${detail.user.phone}`} target="_blank" rel="noreferrer" className="pill pill-outline" style={{ padding: "4px 12px", fontSize: ".78rem" }}>WhatsApp</a>
+              {detail.user.phoneFrom && detail.user.phoneFrom !== "account" && <span style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>(from their {detail.user.phoneFrom === "consultation" ? "consultation form" : "app profile"})</span>}
+            </p>
+          ) : (
+            <p style={{ marginTop: 8, fontSize: ".85rem", color: "var(--ink-soft)" }}>📞 No mobile number — this account was made before the number was required.</p>
+          )}
           <p style={{ marginTop: 12, fontWeight: 700, color: col }}>● {label}</p>
           <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 4 }}>
             First free 7-day plan: {detail.ent.freeUsed ? `used on ${fmt(detail.ent.freeUsedAt)}` : "not used yet"} · Unused grants: {detail.ent.grants}
@@ -112,7 +122,7 @@ export default function UsersManager() {
           <button key={u.id} onClick={() => setSel(u.id)} className="panel" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: 16, textAlign: "left", cursor: "pointer", border: "1px solid var(--line)" }}>
             <div style={{ minWidth: 0 }}>
               <p style={{ fontWeight: 700 }}>{u.name}</p>
-              <p style={{ fontSize: ".8rem", color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}{u.phone ? ` · ${u.phone}` : ""} · {fmt(u.createdAt)}</p>
+              <p style={{ fontSize: ".8rem", color: "var(--ink-soft)", overflow: "hidden", textOverflow: "ellipsis" }}>{u.phone ? `📞 ${u.phone} · ` : "📞 no number · "}{u.email} · {fmt(u.createdAt)}</p>
             </div>
             <div style={{ textAlign: "right", flex: "none", fontSize: ".75rem" }}>
               <p style={{ color: col, fontWeight: 700 }}>● {label}</p>

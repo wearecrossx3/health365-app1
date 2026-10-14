@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { adminFromRequest, denied } from "@/lib/adminGuard";
-import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser } from "@/lib/kv";
+import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON } from "@/lib/kv";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 
@@ -9,6 +9,19 @@ export const dynamic = "force-dynamic";
 
 const txt = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
 const num = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));
+
+// Mobile number: from the account, else the latest consultation form, else the
+// app's saved profile — older accounts were made before the number was required.
+const digits = (v: unknown) => String(v ?? "").replace(/\D/g, "").slice(-10);
+async function bestPhone(u: { id: string; phone?: string }, consults?: { raw?: Record<string, unknown>; createdAt: string }[]) {
+  if (u.phone) return { phone: digits(u.phone) || u.phone, phoneFrom: "account" };
+  const cs = consults || (await getConsultationsForUser(u.id).catch(() => []));
+  const c = [...cs].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).find((x) => digits(x.raw?.phone).length === 10);
+  if (c) return { phone: digits(c.raw?.phone), phoneFrom: "consultation" };
+  const st = await getJSON<{ state?: { phone?: string } }>(`app_state:${u.id}`).catch(() => null);
+  if (st?.state?.phone && digits(st.state.phone).length === 10) return { phone: digits(st.state.phone), phoneFrom: "app" };
+  return { phone: "", phoneFrom: "" };
+}
 
 // GET            → all users with plan/access summary
 // GET ?id=<uid>  → one user with plans, consultations and appointments
@@ -22,15 +35,15 @@ export async function GET(req: NextRequest) {
       getEntitlement(id), listUserPlans(id), getConsultationsForUser(id).catch(() => []), getAppointmentsForUser(id).catch(() => []),
     ]);
     return NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, phone: user.phone || "", createdAt: user.createdAt },
+      user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt, ...(await bestPhone(user, consultations)) },
       ent, access: sevenDayAccess(ent), plans, consultations, appointments,
     });
   }
   const users = await listAllUsers();
   const rows = await Promise.all(users.map(async (u) => {
-    const [ent, plans] = await Promise.all([getEntitlement(u.id), listUserPlans(u.id)]);
+    const [ent, plans, ph] = await Promise.all([getEntitlement(u.id), listUserPlans(u.id), bestPhone(u)]);
     return {
-      id: u.id, name: u.name, email: u.email, phone: u.phone || "", createdAt: u.createdAt,
+      id: u.id, name: u.name, email: u.email, createdAt: u.createdAt, ...ph,
       freeUsed: ent.freeUsed, grants: ent.grants, plans: plans.length, access: sevenDayAccess(ent).reason,
     };
   }));

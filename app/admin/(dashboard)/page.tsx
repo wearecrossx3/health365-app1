@@ -154,6 +154,7 @@ export default async function AdminPage() {
                 <div key={u.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--line)", padding: "10px 0" }}>
                   <span style={{ fontSize: ".9rem", fontWeight: 600 }}>{u.name}</span>
                   <span style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{u.email}</span>
+                  <span style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{u.phone ? `📞 ${u.phone}` : "—"}</span>
                   <span style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Joined {new Date(u.createdAt).toLocaleDateString()}</span>
                 </div>
               ))}
