@@ -1,17 +1,20 @@
-Health365 — v1.0.7 Website + Admin (FINAL — use this zip, not the earlier "Phase1" zip)
-====================================================================================
+Health365 — v1.0.7 Website + Admin (FINAL — use this zip only)
+==============================================================
 GitHub repo (health365-app1) -> "Add file" -> "Upload files" -> drag the folders
 inside this zip (app, components, lib) -> Commit. Vercel deploys in 2–3 minutes.
 The 1.0.6 app in review keeps working exactly the same.
 
-New in Admin:
-  • Users & Plans   – assign a diet after a paid consultation, give a free 7-day plan
-  • Plan Generator  – realistic Indian 7-day / 1-day plans in one click
-  • App Offers      – offer popups in the app (dates, coupon, button)
-  • Blog            – posts from a template; on the website at /blog and in the app
-  • Food Database   – calorie-counter foods: edit, hide, add your own
-  • App Notifications -> "Random nudges"
-  • Website Settings -> consultation validity / what's included / policy + 7-day lock text
+TURN ON THE FOOD SCANNER (one time):
+  1. Go to https://aistudio.google.com/apikey -> "Create API key" (free tier available).
+  2. Vercel -> your project -> Settings -> Environment Variables -> Add:
+        Name:  GEMINI_API_KEY      Value: (paste the key)   Environments: Production
+  3. Vercel -> Deployments -> latest -> "Redeploy".
+  (Claude works too: add ANTHROPIC_API_KEY instead.)
+  Until a key is added, the app simply hides the scan button.
+
+New in Admin: Users & Plans, Plan Generator, App Offers, Blog, Food Database,
+App Notifications -> Random nudges, Website Settings -> consultation details + 7-day lock.
 
 Food data: USDA FoodData Central (public domain) via the TempoLife dataset (CC-BY-4.0).
 IFCT data is NOT used (it needs written permission from NIN Hyderabad).
+Privacy policy page is updated for the food scanner.

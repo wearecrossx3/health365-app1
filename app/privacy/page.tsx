@@ -41,9 +41,19 @@ export default function PrivacyPage() {
             </ul>
             <p style={{ marginTop: 12 }}>
               <b>In the Health365 Android app</b>, the same account details and consultation answers are sent to us when you
-              create an account or book a consultation. Your daily meal ticks, water glasses, weight log and generated plan are
-              stored only on your phone and are not uploaded. The app doesn&apos;t use advertising, analytics or tracking SDKs,
-              and doesn&apos;t access your location, contacts, camera or files.
+              create an account or book a consultation. Your daily meal ticks, water glasses, calorie log, weight log and
+              generated plan are stored only on your phone and are not uploaded. To build a diet plan, the app sends your goal,
+              food preference, kitchen style, calorie target and any conditions or allergies you selected to our server, which
+              returns the plan — this is not linked to your name and is not stored. If your dietitian prepares a plan for you
+              after a consultation, it is stored with your account so it can appear in the app. The app doesn&apos;t use
+              advertising, analytics or tracking SDKs, and doesn&apos;t access your location or contacts.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              <b>Food scanner (camera).</b> If you use &quot;Scan your plate&quot;, the app asks for camera permission and shows
+              the camera only inside the scanner. When you take or choose a photo, that one photo is sent to our server and to
+              our AI image-recognition provider (Google Gemini or Anthropic Claude) only to identify the food and portions. The
+              photo is processed on the spot and is not saved by Health365, and you can always add food by searching instead.
+              Calorie values are estimates for general guidance.
             </p>
             <p style={{ marginTop: 12 }}>
               <b>Notifications.</b> If you allow notifications, meal, water, weigh-in and appointment reminders are scheduled

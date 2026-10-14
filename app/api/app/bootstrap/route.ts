@@ -85,6 +85,7 @@ export async function GET() {
         premiumValidityDays: c.premiumValidityDays,
         premiumIncludes: split(c.premiumIncludes),
         premiumPolicy: c.premiumPolicy,
+        scanEnabled: Boolean(process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY),
         premiumSaving: orig > disc && disc > 0 ? orig - disc : 0,
         premiumDiscountPct: orig > disc && disc > 0 ? Math.round(((orig - disc) / orig) * 100) : 0,
         goalLabels: c.goalLabels,
