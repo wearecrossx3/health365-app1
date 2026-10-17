@@ -6,7 +6,7 @@ import { useState } from "react";
 // Makes a one-time link (24 h) and gives quick ways to send it.
 export default function ResetLinkBox({ userId, email, phone, name }: { userId?: string; email?: string; phone?: string; name?: string }) {
   const [busy, setBusy] = useState(false);
-  const [res, setRes] = useState<{ link: string; hours: number; emailed: boolean; user: { name: string; email: string; phone: string } } | null>(null);
+  const [res, setRes] = useState<{ link: string; hours: number; emailed: boolean; whatsapped?: boolean; user: { name: string; email: string; phone: string } } | null>(null);
   const [err, setErr] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -56,7 +56,7 @@ export default function ResetLinkBox({ userId, email, phone, name }: { userId?: 
       </div>
       <p style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>
         Works once · expires in {res.hours} hours · the user picks their own new password.
-        {res.emailed ? " We also emailed this link to them automatically." : ""}
+        {res.whatsapped ? " Also sent to their WhatsApp automatically." : ""}{res.emailed ? " We also emailed this link to them automatically." : ""}
       </p>
     </div>
   );

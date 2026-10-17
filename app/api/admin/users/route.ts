@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { adminFromRequest, denied } from "@/lib/adminGuard";
 import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON, deleteUserAccount } from "@/lib/kv";
 import { getAdminEmails } from "@/lib/email";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 
@@ -128,6 +129,14 @@ export async function POST(req: NextRequest) {
     const plans = await listUserPlans(userId);
     // Only one active plan at a time — the newest one is what the app shows.
     await saveUserPlans(userId, [plan, ...plans.map((x) => ({ ...x, active: false }))]);
+    const ph = user.phone || (await bestPhone(user)).phone;
+    if (ph) {
+      sendWhatsAppTemplate({
+        to: ph,
+        templateName: process.env.WHATSAPP_TEMPLATE_DIETITIAN_PLAN || "health365_dietitian_plan",
+        bodyParams: [user.name.split(" ")[0], by],
+      }).catch(() => {});
+    }
     return NextResponse.json({ ok: true, plan });
   }
 

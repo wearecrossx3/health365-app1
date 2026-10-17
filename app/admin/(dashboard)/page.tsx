@@ -8,6 +8,7 @@ import AppointmentRow from "./AppointmentRow";
 import DietitianActionButtons from "./DietitianActionButtons";
 import { getScanHealth } from "@/lib/scanStats";
 import AdminAlertsCard from "./AdminAlertsCard";
+import { getWhatsAppHealth } from "@/lib/whatsapp";
 
 export default async function AdminPage() {
   const cookieStore = cookies();
@@ -22,6 +23,7 @@ export default async function AdminPage() {
     listAllAppointments(),
     getScanHealth(),
   ]);
+  const wa = await getWhatsAppHealth().catch(() => null);
   const when = (t: number) => (t ? new Date(t).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—");
   const limitHit = !!scan.lastError && scan.lastError.outcome === "quota" && scan.lastError.at > scan.lastOk;
   const scanStatus = !scan.configured ? ["Not set up", "var(--ink-soft)", "Add GEMINI_API_KEY in Vercel to switch the scanner on."]
@@ -64,6 +66,24 @@ export default async function AdminPage() {
         </div>
 
         <AdminAlertsCard />
+
+        {wa && (() => {
+          const st: [string, string, string] = !wa.configured
+            ? ["Not set up", "var(--ink-soft)", "Add your WhatsApp Business keys in Vercel to start sending welcome, booking and plan messages to users."]
+            : wa.failedToday > 0 && (!wa.lastOk || (wa.lastError && wa.lastError.at > wa.lastOk.at))
+              ? ["Errors", "var(--terracotta)", `Last error: ${wa.lastError?.error || "unknown"} (template: ${wa.lastError?.template || "—"})`]
+              : ["Working", "#2E7D4F", wa.lastOk ? `Last message sent ${new Date(wa.lastOk.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}` : "Ready — no messages sent yet."];
+          return (
+            <div className="panel" style={{ marginBottom: 24, borderColor: st[0] === "Errors" ? "var(--terracotta)" : undefined }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <h2 style={{ fontSize: "1.2rem" }}>WhatsApp messages to users</h2>
+                <span style={{ fontSize: ".72rem", fontWeight: 700, padding: "5px 11px", borderRadius: 100, color: "#fff", background: st[1] }}>{st[0]}</span>
+              </div>
+              <p className="text-sm" style={{ color: "var(--ink-soft)", marginTop: 8, overflowWrap: "anywhere" }}>{st[2]}</p>
+              {wa.configured && <p className="text-sm" style={{ marginTop: 6 }}><b>{wa.sentToday}</b> sent today · <b>{wa.failedToday}</b> failed</p>}
+            </div>
+          );
+        })()}
 
         <div className="panel" style={{ marginBottom: 24, borderColor: scanStatus[1] === "var(--terracotta)" ? "var(--terracotta)" : undefined }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { saveConsultation } from "@/lib/kv";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { appJson, appPreflight, getAppSession, limit, str } from "@/lib/appApi";
 
 // Saves the app's onboarding answers as a normal consultation, so it shows
@@ -76,6 +77,13 @@ export async function POST(req: NextRequest) {
       url: "/admin",
     }).catch(() => {});
 
+    if (raw.phone) {
+      sendWhatsAppTemplate({
+        to: raw.phone,
+        templateName: process.env.WHATSAPP_TEMPLATE_CONSULTATION || "health365_consultation_received",
+        bodyParams: [raw.fullName || "there", raw.goal],
+      }).catch(() => {});
+    }
     return appJson({ ok: true, consultationId: consultation.id, needsProfessionalReview: needsReview });
   } catch (err) {
     console.error("App consultation failed:", err);

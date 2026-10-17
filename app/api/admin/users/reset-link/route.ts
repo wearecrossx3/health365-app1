@@ -3,6 +3,7 @@ import { adminFromRequest, denied } from "@/lib/adminGuard";
 import { getUserById, getUserByEmail } from "@/lib/kv";
 import { createResetLink } from "@/lib/passwordReset";
 import { sendEmail, emailWrapper } from "@/lib/email";
+import { sendWhatsAppTemplate, isWhatsAppConfigured } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -39,5 +40,14 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
   }
 
-  return NextResponse.json({ link, hours, emailed: emailOn, user: { id: user.id, name: user.name, email: user.email, phone: user.phone || "" } });
+  const waOn = isWhatsAppConfigured() && !!user.phone;
+  if (waOn) {
+    await sendWhatsAppTemplate({
+      to: user.phone!,
+      templateName: process.env.WHATSAPP_TEMPLATE_PASSWORD_RESET || "health365_password_reset",
+      bodyParams: [user.name.split(" ")[0], link],
+    });
+  }
+
+  return NextResponse.json({ link, hours, emailed: emailOn, whatsapped: waOn, user: { id: user.id, name: user.name, email: user.email, phone: user.phone || "" } });
 }

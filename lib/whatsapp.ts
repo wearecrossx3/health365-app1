@@ -16,6 +16,28 @@
 // every call below silently does nothing — safe to leave wired in before
 // you've set any of this up.
 
+import { redis } from "./kv";
+
+// Last send result + daily counts, shown on the admin dashboard so setup
+// problems (wrong token, template not approved…) are visible.
+export interface WhatsAppHealth { configured: boolean; sentToday: number; failedToday: number; lastOk: { at: string; template: string } | null; lastError: { at: string; template: string; error: string } | null }
+const day = () => new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
+async function recordWhatsApp(ok: boolean, template: string, error: string) {
+  try {
+    const r = redis(); const k = `wa_stats:${day()}`;
+    await r.hincrby(k, ok ? "sent" : "failed", 1); await r.expire(k, 60 * 60 * 24 * 40);
+    const at = new Date().toISOString();
+    if (ok) await r.set("wa_last_ok", JSON.stringify({ at, template }));
+    else await r.set("wa_last_error", JSON.stringify({ at, template, error }));
+  } catch { /* stats must never break sending */ }
+}
+export async function getWhatsAppHealth(): Promise<WhatsAppHealth> {
+  const r = redis();
+  const [st, ok, er] = await Promise.all([r.hgetall(`wa_stats:${day()}`).catch(() => ({} as Record<string, string>)), r.get("wa_last_ok").catch(() => null), r.get("wa_last_error").catch(() => null)]);
+  const parse = (v: string | null) => { try { return v ? JSON.parse(v) : null; } catch { return null; } };
+  return { configured: isWhatsAppConfigured(), sentToday: Number(st?.sent || 0), failedToday: Number(st?.failed || 0), lastOk: parse(ok), lastError: parse(er) };
+}
+
 interface WhatsAppTemplateMessage {
   to: string; // phone number in any common format — normalized below
   templateName: string;
@@ -45,7 +67,7 @@ export async function sendWhatsAppTemplate(msg: WhatsAppTemplateMessage): Promis
   const languageCode = process.env.WHATSAPP_TEMPLATE_LANG || "en";
 
   try {
-    await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
+    const res = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -61,7 +83,14 @@ export async function sendWhatsAppTemplate(msg: WhatsAppTemplateMessage): Promis
         },
       }),
     });
+    if (res.ok) await recordWhatsApp(true, msg.templateName, "");
+    else {
+      const d = await res.json().catch(() => ({}));
+      const e = (d && d.error) || {};
+      await recordWhatsApp(false, msg.templateName, String(e.error_user_msg || e.message || `HTTP ${res.status}`).slice(0, 240));
+    }
   } catch {
+    await recordWhatsApp(false, msg.templateName, "Couldn't reach WhatsApp").catch(() => {});
     // A WhatsApp failure should never break the request that triggered it
     // (signup, booking a consultation, etc.) — swallow and move on.
   }
