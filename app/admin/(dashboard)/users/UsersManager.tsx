@@ -13,7 +13,11 @@ interface Detail {
   plans: PlanSummary[];
   consultations: { id: string; goal: string; conditions: string[]; createdAt: string; status: string }[];
   appointments: { id: string; date: string; time: string; dietitianName: string; status: string }[];
+  backup?: { current: Backup | null; older: (Backup & { index: number })[] };
 }
+interface Backup { updatedAt: number; name: string; onboarded: boolean; hasPlan: boolean; planTitle: string; weights: number; foodDays: number; trackDays: number; lastActive: string; size: number }
+const when = (ms: number) => new Date(ms).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+const bsum = (b: Backup) => [b.hasPlan ? `Plan: ${b.planTitle}` : "No plan", `${b.weights} weight entr${b.weights === 1 ? "y" : "ies"}`, `${b.foodDays} day${b.foodDays === 1 ? "" : "s"} of food log`, `${b.trackDays} day${b.trackDays === 1 ? "" : "s"} tracked`, b.lastActive ? `last activity ${b.lastActive}` : ""].filter(Boolean).join(" · ");
 
 const fmt = (iso: string) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—");
 const ACCESS: Record<string, [string, string]> = {
@@ -123,6 +127,27 @@ export default function UsersManager() {
             {detail.consultations.slice(0, 5).map((c) => <p key={c.id}>📝 {fmt(c.createdAt)} · {c.goal}{c.conditions?.length ? ` · ${c.conditions.join(", ")}` : ""} — {c.status}</p>)}
           </div>
         )}
+
+        <div className="panel" style={{ fontSize: ".88rem" }}>
+          <h2 style={{ fontSize: "1.05rem", marginBottom: 6 }}>App progress backup</h2>
+          <p style={{ color: "var(--ink-soft)", fontSize: ".82rem", marginBottom: 10 }}>
+            What the app saved for this account (plan, ticks, food log, water, weight). If their progress went missing, restore an older copy — then ask them to close and reopen the app.
+          </p>
+          {!detail.backup?.current ? (
+            <p style={{ color: "var(--ink-soft)" }}>Nothing saved from the app yet.</p>
+          ) : (
+            <p><b>Current — saved {when(detail.backup.current.updatedAt)}</b><br /><span style={{ color: "var(--ink-soft)" }}>{bsum(detail.backup.current)}</span></p>
+          )}
+          {(detail.backup?.older || []).map((b) => (
+            <div key={b.index} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: "1px solid var(--line)", alignItems: "center", flexWrap: "wrap" }}>
+              <p style={{ flex: "1 1 260px" }}>Older copy — {when(b.updatedAt)}<br /><span style={{ color: "var(--ink-soft)" }}>{bsum(b)}</span></p>
+              <button className="pill pill-outline" disabled={busy} style={{ padding: "6px 14px", fontSize: ".8rem" }}
+                onClick={() => confirm(`Restore the copy from ${when(b.updatedAt)}? The current one is kept in this list too.`) && act({ action: "restoreBackup", index: b.index }).then(() => alert("Restored. Ask them to close and reopen the app."))}>
+                Restore this
+              </button>
+            </div>
+          ))}
+        </div>
 
         <h2 style={{ fontSize: "1.1rem" }}>Make a plan for {detail.user.name.split(" ")[0]}</h2>
         <PlanBuilder fixedUser={detail.user} onAssigned={() => loadDetail(detail.user.id)} />

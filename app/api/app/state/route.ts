@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { appJson, appPreflight, getAppSession, limit } from "@/lib/appApi";
-import { getJSON, setJSON } from "@/lib/kv";
+import { getJSON } from "@/lib/kv";
+import { saveBackup } from "@/lib/appBackup";
 
 // The app's own progress for a signed-in user — plan, ticked meals, food log,
 // water, weight history and settings — so logging out, reinstalling or
@@ -41,8 +42,7 @@ export async function POST(req: NextRequest) {
     if (!b || typeof b.state !== "object" || Array.isArray(b.state)) return appJson({ error: "Nothing to save." }, 400);
     const state = b.state as Record<string, unknown>;
     for (const k of ["token", "user", "avatarImg", "editing"]) delete state[k];
-    const updatedAt = Date.now();
-    await setJSON(key(session.userId), { state, updatedAt });
+    const updatedAt = await saveBackup(session.userId, state);
     return appJson({ ok: true, updatedAt });
   } catch (err) {
     console.error("App state POST failed:", err);

@@ -5,6 +5,7 @@ import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForU
 import { getAdminEmails } from "@/lib/email";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
+import { listBackups, restoreBackup } from "@/lib/appBackup";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 
 export const dynamic = "force-dynamic";
@@ -33,12 +34,13 @@ export async function GET(req: NextRequest) {
   if (id) {
     const user = await getUserById(id);
     if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
-    const [ent, plans, consultations, appointments] = await Promise.all([
+    const [ent, plans, consultations, appointments, backup] = await Promise.all([
       getEntitlement(id), listUserPlans(id), getConsultationsForUser(id).catch(() => []), getAppointmentsForUser(id).catch(() => []),
+      listBackups(id).catch(() => ({ current: null, older: [] })),
     ]);
     return NextResponse.json({
       user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt, ...(await bestPhone(user, consultations)) },
-      ent, access: sevenDayAccess(ent), plans, consultations, appointments,
+      ent, access: sevenDayAccess(ent), plans, consultations, appointments, backup,
     });
   }
   const users = await listAllUsers();
@@ -80,6 +82,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
   const by = session.name || session.email;
   const now = new Date().toISOString();
+
+  if (b.action === "restoreBackup") {
+    const ok = await restoreBackup(user.id, Math.max(0, Math.floor(Number(b.index) || 0)));
+    if (!ok) return NextResponse.json({ error: "That backup copy wasn't found." }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  }
 
   if (b.action === "grant" || b.action === "revoke" || b.action === "resetFree") {
     const ent = await getEntitlement(userId);
