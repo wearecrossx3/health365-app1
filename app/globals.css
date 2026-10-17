@@ -804,3 +804,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .adm-nudge>:nth-child(3),.adm-nudge>:nth-child(4){grid-column:1/-1}
   .admin-row{gap:10px}
 }
+
+/* ── Smooth page loading (no blink) ── */
+@keyframes h365spin { to { transform: rotate(360deg); } }
+@keyframes h365show { from { opacity: 0; } to { opacity: 1; } }
+.h365-spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--line, rgba(32,36,31,.14)); border-top-color: var(--teal, #3F7F70);
+  opacity: 0;
+  animation: h365show .25s ease .6s forwards, h365spin .8s linear infinite;
+}
+/* no hover/colour transitions while the page is first painting */
+html.h365-preload *, html.h365-preload *::before, html.h365-preload *::after { transition: none !important; }

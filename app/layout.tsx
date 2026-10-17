@@ -79,9 +79,15 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${heading.variable} ${inter.variable}`}>
+    <html lang="en" className={`${heading.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#C96A3C" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.documentElement.classList.add('h365-preload');var r=function(){document.documentElement.classList.remove('h365-preload')};addEventListener('load',function(){setTimeout(r,150)});setTimeout(r,4000);",
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
