@@ -17,7 +17,11 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "No Health365 account found with this email." }, { status: 404 });
 
   const { token, hours } = await createResetLink(user.id, session.email || "admin");
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin).replace(/\/$/, "");
+  // Build the link on the same domain the admin is using right now, so it
+  // always points at this live site (not an old/preview address).
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const base = (host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin).replace(/\/$/, "");
   const link = `${base}/reset-password?t=${token}`;
 
   // Also email it when an email service is set up (RESEND_API_KEY).
