@@ -18,7 +18,7 @@ export default async function ContactPage() {
             <span className="eyebrow">Get in touch</span>
             <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.5rem)" }}>Contact us</h1>
             <p style={{ marginTop: 14, fontSize: "1.02rem", color: "var(--ink-soft)" }}>
-              Questions about a consultation, a booking, or joining as a dietitian — send us a message and we&apos;ll get back to you.
+              Questions about a consultation, a booking, or joining as a dietitian — send us a message and we&apos;ll get back to you. Forgot your password? Pick &ldquo;Forgot password&rdquo; below.
             </p>
           </div>
 

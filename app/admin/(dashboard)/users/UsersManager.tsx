@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import PlanBuilder from "../plan-generator/PlanBuilder";
+import ResetLinkBox from "../ResetLinkBox";
 
 interface Row { id: string; name: string; email: string; phone: string; createdAt: string; freeUsed: boolean; grants: number; plans: number; access: string }
 interface PlanSummary { id: string; title: string; assignedAt: string; assignedBy: string; active: boolean; targetKcal: number; days: { kcal: number }[]; note: string }
@@ -66,6 +67,9 @@ export default function UsersManager() {
           ) : (
             <p style={{ marginTop: 8, fontSize: ".85rem", color: "var(--ink-soft)" }}>📞 No mobile number — this account was made before the number was required.</p>
           )}
+          <div style={{ marginTop: 12 }}>
+            <ResetLinkBox key={detail.user.id} userId={detail.user.id} phone={detail.user.phone} name={detail.user.name} />
+          </div>
           <p style={{ marginTop: 12, fontWeight: 700, color: col }}>● {label}</p>
           <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 4 }}>
             First free 7-day plan: {detail.ent.freeUsed ? `used on ${fmt(detail.ent.freeUsedAt)}` : "not used yet"} · Unused grants: {detail.ent.grants}

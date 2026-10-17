@@ -531,7 +531,7 @@ export interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  source: "contact_form" | "chat_widget" | "premium_consult" | "mobile_app";
+  source: "contact_form" | "chat_widget" | "premium_consult" | "mobile_app" | "password_reset";
   read: boolean;
   createdAt: string;
 }

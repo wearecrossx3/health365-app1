@@ -1,0 +1,39 @@
+import { NextRequest, NextResponse } from "next/server";
+import { adminFromRequest, denied } from "@/lib/adminGuard";
+import { getUserById, getUserByEmail } from "@/lib/kv";
+import { createResetLink } from "@/lib/passwordReset";
+import { sendEmail, emailWrapper } from "@/lib/email";
+
+export const dynamic = "force-dynamic";
+
+// POST { userId } or { email } → a one-time link the admin sends to the user.
+export async function POST(req: NextRequest) {
+  const session = await adminFromRequest(req, "users");
+  if (!session) return denied();
+  const body = await req.json().catch(() => ({}));
+  const user = body.userId
+    ? await getUserById(String(body.userId))
+    : body.email ? await getUserByEmail(String(body.email).trim()) : null;
+  if (!user) return NextResponse.json({ error: "No Health365 account found with this email." }, { status: 404 });
+
+  const { token, hours } = await createResetLink(user.id, session.email || "admin");
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin).replace(/\/$/, "");
+  const link = `${base}/reset-password?t=${token}`;
+
+  // Also email it when an email service is set up (RESEND_API_KEY).
+  const emailOn = !!process.env.RESEND_API_KEY;
+  if (emailOn) {
+    await sendEmail({
+      to: user.email,
+      subject: "Reset your Health365 password",
+      html: emailWrapper(
+        "Reset your password",
+        `<p>Hi ${user.name.split(" ")[0].replace(/</g, "&lt;")},</p><p>Tap the button below to choose a new password for your Health365 account. The link works once and expires in ${hours} hours.</p>
+         <p><a href="${link}" style="display:inline-block;background:#20241F;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600;">Choose a new password</a></p>
+         <p style="font-size:12px;color:#888;">If you didn't ask for this, you can ignore this email.</p>`
+      ),
+    }).catch(() => {});
+  }
+
+  return NextResponse.json({ link, hours, emailed: emailOn, user: { id: user.id, name: user.name, email: user.email, phone: user.phone || "" } });
+}

@@ -7,16 +7,19 @@ import { sendPushToAdmins } from "@/lib/push";
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const { name, email, message } = body || {};
+  const forgot = body?.topic === "forgot";
   if (!name || !email || !message) {
     return NextResponse.json({ error: "Please fill in every field." }, { status: 400 });
   }
+  const phone = String(body?.phone || "").replace(/\D/g, "").slice(-10);
+  const text = String(message).slice(0, 4000) + (forgot && phone ? `\nMobile: ${phone}` : "");
 
   await saveContactMessage({
     id: crypto.randomUUID(),
     name: String(name),
     email: String(email),
-    message: String(message),
-    source: "contact_form",
+    message: text,
+    source: forgot ? "password_reset" : "contact_form",
     read: false,
     createdAt: new Date().toISOString(),
   }).catch(() => {});
@@ -25,15 +28,15 @@ export async function POST(req: NextRequest) {
   if (admins.length > 0) {
     await sendEmail({
       to: admins,
-      subject: `New contact message from ${name}`,
+      subject: forgot ? `Password reset request from ${email}` : `New contact message from ${name}`,
       html: emailWrapper(
         "New contact message",
-        `<p><b>${name}</b> (${email})</p><p style="white-space:pre-wrap;">${String(message).replace(/</g, "&lt;")}</p>`
+        `<p><b>${name}</b> (${email})</p><p style="white-space:pre-wrap;">${text.replace(/</g, "&lt;")}</p>`
       ),
     }).catch(() => {});
   }
 
-  sendPushToAdmins({ title: `New message from ${name}`, body: String(message).slice(0, 120), url: "/admin/messages" }).catch(() => {});
+  sendPushToAdmins({ title: forgot ? "🔑 Password reset request" : `New message from ${name}`, body: forgot ? String(email) : text.slice(0, 120), url: "/admin/messages" }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }

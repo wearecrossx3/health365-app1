@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import ResetLinkBox from "../ResetLinkBox";
 
 interface ContactMessage {
   id: string;
   name: string;
   email: string;
   message: string;
-  source: "contact_form" | "chat_widget" | "premium_consult" | "mobile_app";
+  source: "contact_form" | "chat_widget" | "premium_consult" | "mobile_app" | "password_reset";
   read: boolean;
   createdAt: string;
 }
@@ -58,11 +59,11 @@ export default function MessagesManager({ initial }: { initial: ContactMessage[]
                   style={{
                     fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".03em",
                     padding: "2px 8px", borderRadius: 100,
-                    background: m.source === "premium_consult" ? "var(--terracotta)" : m.source === "chat_widget" ? "var(--sage)" : "var(--paper)",
-                    color: m.source === "premium_consult" ? "#fff" : "var(--ink-soft)",
+                    background: m.source === "premium_consult" ? "var(--terracotta)" : m.source === "password_reset" ? "#287379" : m.source === "chat_widget" ? "var(--sage)" : "var(--paper)",
+                    color: m.source === "premium_consult" || m.source === "password_reset" ? "#fff" : "var(--ink-soft)",
                   }}
                 >
-                  {m.source === "premium_consult" ? "Paid request" : m.source === "chat_widget" ? "Chat" : m.source === "mobile_app" ? "App" : "Contact form"}
+                  {m.source === "password_reset" ? "🔑 Forgot password" : m.source === "premium_consult" ? "Paid request" : m.source === "chat_widget" ? "Chat" : m.source === "mobile_app" ? "App" : "Contact form"}
                 </span>
                 {!m.read && (
                   <span style={{ fontSize: ".68rem", fontWeight: 700, color: "var(--teal-deep)" }}>● New</span>
@@ -86,6 +87,11 @@ export default function MessagesManager({ initial }: { initial: ContactMessage[]
             </div>
           </div>
           <p style={{ fontSize: ".88rem", marginTop: 12, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{m.message}</p>
+          {m.email && (m.source === "password_reset" || /password|passwd|forgot|login|log in/i.test(m.message)) && (
+            <div style={{ marginTop: 12 }}>
+              <ResetLinkBox email={m.email} name={m.name} phone={(m.message.match(/Mobile:\s*(\d{10})/) || [])[1]} />
+            </div>
+          )}
         </div>
       ))}
     </div>
