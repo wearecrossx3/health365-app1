@@ -7,6 +7,7 @@ import ConsultationRow from "./ConsultationRow";
 import AppointmentRow from "./AppointmentRow";
 import DietitianActionButtons from "./DietitianActionButtons";
 import { getScanHealth } from "@/lib/scanStats";
+import AdminAlertsCard from "./AdminAlertsCard";
 
 export default async function AdminPage() {
   const cookieStore = cookies();
@@ -61,6 +62,8 @@ export default async function AdminPage() {
             <div style={{ fontSize: "2rem", fontWeight: 700, marginTop: 6 }}>{pendingDietitians.length}</div>
           </div>
         </div>
+
+        <AdminAlertsCard />
 
         <div className="panel" style={{ marginBottom: 24, borderColor: scanStatus[1] === "var(--terracotta)" ? "var(--terracotta)" : undefined }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
