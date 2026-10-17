@@ -29,11 +29,15 @@ export default function UsersManager() {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [busy, setBusy] = useState(false);
   const [grantNote, setGrantNote] = useState("");
+  const [delOpen, setDelOpen] = useState(false);
+  const [delText, setDelText] = useState("");
+  const [delErr, setDelErr] = useState("");
+  const [notice, setNotice] = useState("");
 
   const load = () => fetch("/api/admin/users").then((r) => r.json()).then((d) => setRows(d.users || [])).catch(() => setRows([]));
   const loadDetail = (id: string) => fetch(`/api/admin/users?id=${encodeURIComponent(id)}`).then((r) => r.json()).then((d) => setDetail(d.user ? d : null));
   useEffect(() => { load(); }, []);
-  useEffect(() => { setDetail(null); if (sel) loadDetail(sel); }, [sel]);
+  useEffect(() => { setDetail(null); setDelOpen(false); setDelText(""); setDelErr(""); if (sel) loadDetail(sel); }, [sel]);
 
   const list = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -46,6 +50,18 @@ export default function UsersManager() {
     await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: sel, ...body }) });
     setBusy(false);
     await loadDetail(sel);
+    load();
+  }
+
+  async function deleteUser() {
+    if (!sel || !detail) return;
+    setBusy(true); setDelErr("");
+    const r = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: sel, action: "deleteUser", confirm: delText.trim() }) });
+    const d = await r.json().catch(() => ({}));
+    setBusy(false);
+    if (!r.ok) { setDelErr(d.error || "Couldn't delete — try again."); return; }
+    setNotice(`${detail.user.name} (${detail.user.email}) was deleted.`);
+    setSel(null);
     load();
   }
 
@@ -110,6 +126,29 @@ export default function UsersManager() {
 
         <h2 style={{ fontSize: "1.1rem" }}>Make a plan for {detail.user.name.split(" ")[0]}</h2>
         <PlanBuilder fixedUser={detail.user} onAssigned={() => loadDetail(detail.user.id)} />
+
+        <div className="panel" style={{ borderColor: "#F2C4C9" }}>
+          <h2 style={{ fontSize: "1.05rem", color: "#A51F31" }}>Delete this user</h2>
+          <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 6 }}>
+            Permanently removes the account and everything linked to it — plans, app progress backup, consultations, bookings and messages. This can&apos;t be undone.
+          </p>
+          {!delOpen ? (
+            <button className="pill" onClick={() => setDelOpen(true)} style={{ marginTop: 14, background: "#FBE3E3", color: "#A51F31", padding: "8px 18px", fontSize: ".85rem" }}>🗑️ Delete user</button>
+          ) : (
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+              <label style={{ fontSize: ".85rem", fontWeight: 600 }}>Type <b>{detail.user.email}</b> to confirm</label>
+              <input value={delText} onChange={(e) => setDelText(e.target.value)} placeholder={detail.user.email} autoCapitalize="none" autoCorrect="off" style={{ padding: "10px 14px", border: "1px solid #F2C4C9", borderRadius: 12, fontSize: "16px" }} />
+              {delErr && <p style={{ color: "#A51F31", fontSize: ".82rem" }}>{delErr}</p>}
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button className="pill" disabled={busy || delText.trim().toLowerCase() !== detail.user.email.toLowerCase()} onClick={deleteUser}
+                  style={{ background: "#A51F31", color: "#fff", padding: "8px 18px", fontSize: ".85rem", opacity: delText.trim().toLowerCase() === detail.user.email.toLowerCase() ? 1 : 0.45 }}>
+                  {busy ? "Deleting…" : "Delete permanently"}
+                </button>
+                <button className="pill pill-outline" onClick={() => { setDelOpen(false); setDelText(""); setDelErr(""); }} style={{ padding: "8px 18px", fontSize: ".85rem" }}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -117,6 +156,7 @@ export default function UsersManager() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email or phone…" style={{ padding: "12px 16px", border: "1px solid var(--line)", borderRadius: 999, fontSize: ".92rem", background: "#fff" }} />
+      {notice && <p style={{ background: "#E7F0DC", color: "#2E7D4F", borderRadius: 12, padding: "10px 14px", fontSize: ".88rem", fontWeight: 600 }}>✓ {notice}</p>}
       {rows === null && <p style={{ color: "var(--ink-soft)" }}>Loading…</p>}
       {rows && <p style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>{list.length} of {rows.length} users</p>}
       {sel && !detail && <p style={{ color: "var(--ink-soft)" }}>Opening…</p>}

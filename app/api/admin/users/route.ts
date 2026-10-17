@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { adminFromRequest, denied } from "@/lib/adminGuard";
-import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON } from "@/lib/kv";
+import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON, deleteUserAccount } from "@/lib/kv";
+import { getAdminEmails } from "@/lib/email";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 
@@ -137,6 +138,21 @@ export async function POST(req: NextRequest) {
     else plans = plans.map((x) => ({ ...x, active: x.id === planId }));
     await saveUserPlans(userId, plans);
     return NextResponse.json({ ok: true, plans });
+  }
+
+  // Permanently delete the account and everything linked to it (same as the
+  // user's own "Delete my account"). The admin must type the user's email.
+  if (b.action === "deleteUser") {
+    if (txt(b.confirm, 200).toLowerCase() !== user.email.toLowerCase()) {
+      return NextResponse.json({ error: "Type the user's email exactly to confirm." }, { status: 400 });
+    }
+    const protectedEmails = [...getAdminEmails(), session.email].map((e) => (e || "").toLowerCase());
+    if (protectedEmails.includes(user.email.toLowerCase())) {
+      return NextResponse.json({ error: "This is an admin account — it can't be deleted from here." }, { status: 400 });
+    }
+    const removed = await deleteUserAccount(userId);
+    console.log(`[admin] ${by} deleted user ${user.email}`);
+    return NextResponse.json({ ok: true, removed });
   }
 
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });
