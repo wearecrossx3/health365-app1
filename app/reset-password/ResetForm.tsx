@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PasswordInput from "@/components/PasswordInput";
 
 type State = "checking" | "ready" | "bad" | "done";
 
@@ -10,7 +11,6 @@ export default function ResetForm() {
   const [who, setWho] = useState<{ name: string; email: string } | null>(null);
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -71,15 +71,12 @@ export default function ResetForm() {
       </div>
       <div className="field">
         <label>New password</label>
-        <input type={show ? "text" : "password"} value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" placeholder="At least 8 characters" required />
+        <PasswordInput value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" placeholder="At least 8 characters" required />
       </div>
       <div className="field">
         <label>Type it again</label>
-        <input type={show ? "text" : "password"} value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" required />
+        <PasswordInput value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" required />
       </div>
-      <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: ".88rem", color: "var(--ink-soft)" }}>
-        <input type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} /> Show password
-      </label>
       {err && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{err}</p>}
       <button type="submit" disabled={busy} className="pill pill-primary" style={{ textAlign: "center" }}>{busy ? "Saving…" : "Save new password"}</button>
     </form>

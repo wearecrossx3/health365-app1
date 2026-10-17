@@ -58,6 +58,14 @@ const conditions: Condition[] = [
     moderation: ["Very spicy or heavily fried food, if it triggers discomfort", "Carbonated drinks", "Sudden large increases in fibre"],
     consult: "Persistent digestive symptoms — pain, blood, unexplained weight loss — need a doctor's evaluation, not just a dietary tweak.",
   },
+  {
+    key: "oncology", name: "Cancer Care", photo: "ph-plum", tag: "Gentle nutrition through treatment.",
+    overview: "During cancer treatment, food is about keeping strength, protein and energy up while dealing with changing appetite, taste and side effects — always planned around your oncologist's advice.",
+    considerations: ["Small, frequent meals are easier when appetite is low", "Protein at every meal helps maintain strength", "Strict food hygiene matters when immunity is lower", "Needs change with each phase of treatment"],
+    included: ["Freshly cooked, soft, easy-to-digest meals", "Protein foods — dal, paneer, curd, eggs if part of your diet", "Well-washed, peeled or cooked fruits and vegetables", "Fluids through the day — water, buttermilk, soups"],
+    moderation: ["Raw, undercooked or street food", "Unpasteurised milk and juices", "Unproven supplements or 'cure' diets without your doctor's approval"],
+    consult: "Cancer care nutrition should always be planned with your oncologist and a dietitian — your plan depends on the type of cancer, treatment and how you're feeling week to week.",
+  },
 ];
 
 export default function ConditionsPage() {
@@ -121,7 +129,7 @@ export default function ConditionsPage() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-                <a href={`/consultation?goal=${encodeURIComponent("Manage a Condition")}`} className="luma-pill">
+                <a href={`/consultation?goal=${encodeURIComponent("Manage a Condition")}${active.key === "oncology" ? "&condition=Oncology" : ""}`} className="luma-pill">
                   Start a Consultation for {active.name} <span>→</span>
                 </a>
                 <button

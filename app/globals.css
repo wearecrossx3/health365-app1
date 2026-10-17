@@ -119,6 +119,7 @@ h1,h2,h3,.serif{ font-family: var(--font-instrument), sans-serif; font-weight:50
 .ph-rose{background:radial-gradient(circle at 30% 20%, #E5AFB1, transparent 55%), radial-gradient(circle at 75% 75%, #8C4A4D, transparent 55%), #C97F82;}
 .ph-sand{background:radial-gradient(circle at 30% 25%, #EFE4C6, transparent 55%), radial-gradient(circle at 78% 75%, #A9925C, transparent 55%), #D8C9A3;}
 .ph-ink{background:radial-gradient(circle at 30% 20%, #3A4238, transparent 55%), radial-gradient(circle at 75% 75%, #12140F, transparent 55%), #20241F;}
+.ph-plum{background:radial-gradient(circle at 30% 22%, #C9A6D8, transparent 55%), radial-gradient(circle at 76% 78%, #5E3B6E, transparent 55%), #8E6AA0;}
 
 header.nav{position:sticky; top:0; z-index:60; background:transparent; border-bottom:1px solid transparent; transition:background .3s ease, backdrop-filter .3s ease, border-color .3s ease;}
 header.nav.scrolled{background:color-mix(in srgb, var(--cream) 55%, transparent); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-color:var(--line);}
@@ -477,6 +478,10 @@ footer{border-top:1px solid var(--line); padding:52px 0 32px;}
 .cond-tile .body{padding:16px 18px;}
 .cond-tile h3{font-size:1.02rem;}
 .cond-tile p{font-size:.82rem; margin-top:4px;}
+.cond-grid > .cond-tile:last-child:nth-child(3n+1){grid-column:1/-1; display:grid; grid-template-columns:1fr 2fr; align-items:center;}
+.cond-grid > .cond-tile:last-child:nth-child(3n+1) .photo{aspect-ratio:auto; height:100%; min-height:120px;}
+@media (max-width:760px){ .cond-grid > .cond-tile:last-child:nth-child(3n+1){grid-template-columns:1fr 1.4fr;} }
+@media (max-width:480px){ .cond-grid > .cond-tile:last-child:nth-child(3n+1){display:block;} .cond-grid > .cond-tile:last-child:nth-child(3n+1) .photo{aspect-ratio:5/3; height:auto; min-height:0;} }
 .detail-head{display:flex; gap:28px; align-items:center; margin-bottom:36px; flex-wrap:wrap;}
 .detail-head .photo{width:110px; height:110px; border-radius:22px; flex:none;}
 .detail-head h2{font-size:clamp(1.8rem,3.6vw,2.4rem);}
@@ -673,9 +678,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* Compact icon-tile grid — replaces large photo cards for the       */
 /* homepage conditions preview, matching a small icon+label layout   */
 /* ---------------------------------------------------------------- */
-.icon-tile-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-top:44px;}
+.icon-tile-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:14px; margin-top:44px;}
 @media (max-width:900px){ .icon-tile-grid{grid-template-columns:repeat(4,1fr);} }
-@media (max-width:520px){ .icon-tile-grid{grid-template-columns:repeat(3,1fr); gap:10px;} }
+@media (max-width:520px){ .icon-tile-grid{grid-template-columns:repeat(3,1fr); gap:10px;} .icon-tile-grid > :nth-child(7):last-child{grid-column:2;} }
 .icon-tile{
   background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px 8px 14px;
   text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;
@@ -816,3 +821,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 /* no hover/colour transitions while the page is first painting */
 html.h365-preload *, html.h365-preload *::before, html.h365-preload *::after { transition: none !important; }
+
+/* Password show / hide */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 46px !important; width: 100%; }
+.pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: 0; border-radius: 8px; color: var(--ink-soft, #5b6b66); cursor: pointer; }
+.pw-eye:hover { color: var(--ink, #1f2b2c); background: rgba(0,0,0,.04); }

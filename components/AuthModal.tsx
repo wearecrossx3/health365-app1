@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function AuthModal({
   mode,
@@ -119,9 +120,8 @@ export default function AuthModal({
           </div>
           <div className="field">
             <label htmlFor="modal-password">Password</label>
-            <input
+            <PasswordInput
               id="modal-password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               minLength={mode === "signup" ? 8 : undefined}

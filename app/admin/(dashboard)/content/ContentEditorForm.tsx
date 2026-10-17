@@ -72,7 +72,7 @@ const SECTION_TOGGLES: { key: keyof SectionVisibility; label: string; hint: stri
 ];
 
 const PROCESS_LABELS = ["Tell us about you", "Understand your needs", "Build your plan", "Keep moving"];
-const CONDITION_LABELS = ["Diabetes", "PCOS", "Thyroid", "Weight Management", "Cholesterol", "Digestive Health"];
+const CONDITION_LABELS = ["Diabetes", "PCOS", "Thyroid", "Weight Management", "Cholesterol", "Digestive Health", "Cancer Care"];
 
 export default function ContentEditorForm({ initial }: { initial: SiteContent }) {
   const [content, setContent] = useState<SiteContent>(initial);
@@ -269,7 +269,7 @@ export default function ContentEditorForm({ initial }: { initial: SiteContent })
       <div className="panel">
         <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>Conditions</h2>
         <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 18 }}>
-          The 6 condition tiles under "Made for real-life health goals." — these show as small icons now,
+          The 7 condition tiles under "Made for real-life health goals." — these show as small icons now,
           not big photos. Upload a small square icon image, or leave blank for the default emoji.
         </p>
         <div className="adm-cols" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>

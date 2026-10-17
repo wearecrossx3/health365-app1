@@ -360,7 +360,7 @@ const DEFAULT_CONTENT: SiteContent = {
   finalCtaImageUrl: "",
   approachImageUrl: "",
   processImages: ["", "", "", ""],
-  conditionImages: ["", "", "", "", "", ""],
+  conditionImages: ["", "", "", "", "", "", ""],
   goalImages: ["", "", "", ""],
   popupEnabled: false,
   popupMessage: "",

@@ -155,6 +155,7 @@ export default async function Home() {
                 ["Weight Management", "⚖️"],
                 ["Cholesterol", "❤️"],
                 ["Digestive Health", "🌱"],
+                ["Cancer Care", "🎗️"],
               ].map(([name, icon], i) => {
                 const img = content.conditionImages[i];
                 return (

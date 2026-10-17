@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function DeleteAccountForm() {
   const [email, setEmail] = useState("");
@@ -44,7 +45,7 @@ export default function DeleteAccountForm() {
       </div>
       <div className="field">
         <label>Password</label>
-        <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <PasswordInput autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
       <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: ".9rem", cursor: "pointer" }}>
         <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2 }} />
