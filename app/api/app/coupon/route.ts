@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
-import { findCoupon, getSiteContent } from "@/lib/kv";
-import { applyCoupon, normalizeCode, priceNumber } from "@/lib/couponMath";
+import { findCoupon } from "@/lib/kv";
+import { consultPrice } from "@/lib/dietitianFee";
+import { applyCoupon, normalizeCode } from "@/lib/couponMath";
 import { appJson, appPreflight, getAppSession, limit } from "@/lib/appApi";
 
 // The app checks a coupon on the payment step and shows the new price.
@@ -20,8 +21,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const code = normalizeCode(body?.code);
   if (!code) return appJson({ error: "Enter a coupon code." }, 400);
-  const content = await getSiteContent();
-  const base = priceNumber(content.premiumDiscountedPrice);
+  const base = (await consultPrice(String(body?.dietitianId || ""))).price;
   const r = applyCoupon(await findCoupon(code), base, session.userId);
   if (!r.ok) return appJson({ error: r.error }, 400);
   return appJson(r);

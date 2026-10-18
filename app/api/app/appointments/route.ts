@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
-import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserById, saveContactMessage, getSiteContent, findCoupon, recordCouponUse } from "@/lib/kv";
-import { applyCoupon, normalizeCode, priceNumber } from "@/lib/couponMath";
+import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserById, saveContactMessage, findCoupon, recordCouponUse } from "@/lib/kv";
+import { applyCoupon, normalizeCode } from "@/lib/couponMath";
+import { consultPrice } from "@/lib/dietitianFee";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -49,8 +50,7 @@ export async function POST(req: NextRequest) {
       return appJson({ error: "That slot was just booked — please pick another.", code: "taken" }, 409);
     }
     // Coupon: checked again here so the price can't be changed on the phone.
-    const content = await getSiteContent();
-    const basePrice = priceNumber(content.premiumDiscountedPrice);
+    const basePrice = (await consultPrice(dietitianId)).price;
     let coupon: { code: string; price: number; label: string } | null = null;
     if (couponCode) {
       const r = applyCoupon(await findCoupon(couponCode), basePrice, session.userId);

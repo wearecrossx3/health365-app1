@@ -70,7 +70,7 @@ export default function PremiumConsultModal({
     const res = await fetch("/api/premium-consult", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, email, planSummary }),
+      body: JSON.stringify({ name, phone, email, planSummary, dietitianId: booking?.dietitianId || "" }),
     });
     if (booking) {
       // Best-effort — the payment-confirmation message above is what
@@ -128,7 +128,7 @@ export default function PremiumConsultModal({
               follow-up support as you go.
             </p>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 20 }}>
-              <span style={{ fontSize: "1rem", color: "var(--ink-soft)", textDecoration: "line-through" }}>₹{originalPrice}</span>
+              {o > dp && <span style={{ fontSize: "1rem", color: "var(--ink-soft)", textDecoration: "line-through" }}>₹{originalPrice}</span>}
               <span style={{ fontSize: "1.8rem", fontWeight: 700 }}>₹{discountedPrice}</span>
             </div>
             {saving > 0 && (

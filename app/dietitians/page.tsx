@@ -217,6 +217,7 @@ function DietitiansContent() {
                     prefillName={prefillName}
                     prefillPhone={prefillPhone}
                     conditionLabel={urlCondition}
+                    fee={open.fee}
                   />
                 </div>
               </div>

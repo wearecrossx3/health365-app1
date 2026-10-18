@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuthModal } from "./AuthModalProvider";
 import PremiumConsultModal from "./PremiumConsultModal";
+import { feeNumber } from "@/lib/feeNumber";
 
 const TIMES = ["10:00 AM", "11:00 AM", "12:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"];
 
@@ -26,6 +27,7 @@ export default function BookingWidget({
   prefillName,
   prefillPhone,
   conditionLabel,
+  fee,
 }: {
   dietitianId: string;
   dietitianName: string;
@@ -37,6 +39,7 @@ export default function BookingWidget({
   prefillName?: string;
   prefillPhone?: string;
   conditionLabel?: string;
+  fee?: string; // a joined dietitian's own fee, e.g. "₹800"
 }) {
   const { open } = useAuthModal();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
@@ -61,15 +64,17 @@ export default function BookingWidget({
     if (!paidFlow) return;
     fetch("/api/public-content")
       .then((r) => r.json())
-      .then((d) =>
+      .then((d) => {
+        // Dr. Astha uses the Settings price; other dietitians charge their own fee.
+        const own = dietitianId !== "dr-astha" ? feeNumber(fee) : 0;
         setPricing({
-          originalPrice: d.premiumOriginalPrice || "2500",
-          discountedPrice: d.premiumDiscountedPrice || "1500",
+          originalPrice: own ? String(own) : d.premiumOriginalPrice || "2500",
+          discountedPrice: own ? String(own) : d.premiumDiscountedPrice || "1500",
           upiId: d.premiumUpiId || "",
-        })
-      )
+        });
+      })
       .catch(() => {});
-  }, [paidFlow]);
+  }, [paidFlow, dietitianId, fee]);
 
 
   useEffect(() => {
