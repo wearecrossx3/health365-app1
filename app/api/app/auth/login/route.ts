@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return appJson({ error: "Incorrect email or password." }, 401);
     }
     const token = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
-    return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "" } });
+    return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "", google: !!user.google } });
   } catch (err) {
     console.error("App login failed:", err);
     return appJson({ error: "Couldn't log in right now — please try again." }, 500);

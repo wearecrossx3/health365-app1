@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getUserByEmail, getUserById, deleteUserAccount } from "@/lib/kv";
+import { getUserByEmail, getUserById, deleteUserAccount, type User } from "@/lib/kv";
 import { verifyPassword } from "@/lib/auth";
 import { getAdminEmails, sendEmail, emailWrapper } from "@/lib/email";
 import { appJson, appPreflight, getAppSession, limit, str } from "@/lib/appApi";
@@ -18,13 +18,27 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null);
   const password = String(body?.password ?? "");
-  if (!password) return appJson({ error: "Please enter your password to confirm." }, 400);
+  const typed = String(body?.confirm ?? "").trim().toUpperCase();
 
   const session = getAppSession(req);
+  // Google sign-in users may never have set a password: while signed in they
+  // confirm by typing DELETE instead.
+  if (session && typed && !password) {
+    const u = await getUserById(session.userId);
+    if (!u) return appJson({ error: "Please log in again." }, 401);
+    if (typed !== "DELETE") return appJson({ error: "Please type DELETE to confirm." }, 400);
+    if (!u.google) return appJson({ error: "Please enter your password to confirm." }, 400);
+    return removeAccount(u);
+  }
+  if (!password) return appJson({ error: "Please enter your password to confirm." }, 400);
   const user = session ? await getUserById(session.userId) : await getUserByEmail(str(body?.email, 120).toLowerCase());
   if (!user || !verifyPassword(password, user.passwordHash)) {
-    return appJson({ error: "Incorrect email or password." }, 401);
+    return appJson({ error: user?.google ? "Signed up with Google? Sign in, then delete from your profile — or set a password with Forgot password." : "Incorrect email or password." }, 401);
   }
+  return removeAccount(user);
+}
+
+async function removeAccount(user: User) {
 
   try {
     const removed = await deleteUserAccount(user.id);

@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import DeleteAccountForm from "./DeleteAccountForm";
+import { cookies } from "next/headers";
+import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
+import { getUserById } from "@/lib/kv";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Delete your account",
   description: "Permanently delete your Health365 account and data.",
 };
 
-export default function DeleteAccountPage() {
+export default async function DeleteAccountPage() {
+  const session = verifySessionCookieValue(cookies().get(SESSION_COOKIE_NAME)?.value);
+  const me = session ? await getUserById(session.userId).catch(() => null) : null;
+  const googleEmail = me?.google ? me.email : "";
   return (
     <>
       <SiteHeader />
@@ -33,8 +41,9 @@ export default function DeleteAccountPage() {
               Plan, water and weight tracking in the app live only on your phone and are erased when you delete from the app or uninstall it.
             </p>
           </div>
-          <DeleteAccountForm />
+          <DeleteAccountForm googleEmail={googleEmail} />
           <p style={{ marginTop: 20, fontSize: ".88rem", color: "var(--ink-soft)" }}>
+            Signed up with Google? <a href="/api/auth/google?next=/delete-account" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>Sign in with Google</a> and come back here — you&apos;ll only need to type DELETE.
             Forgot your password? Ask us through the <a href="/contact" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>Contact page</a> from
             your account email and we&apos;ll delete it for you within 7 days.
           </p>

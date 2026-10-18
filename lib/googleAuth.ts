@@ -46,13 +46,17 @@ export async function googleProfile(base: string, code: string): Promise<{ email
 // Same account as email/password: an existing email simply logs in.
 export async function userForGoogle(email: string, name: string, from: "app" | "website"): Promise<User> {
   const have = await getUserByEmail(email);
-  if (have) return have;
+  if (have) {
+    if (!have.google) { have.google = true; await createUser(have); }
+    return have;
+  }
   const user: User = {
     id: crypto.randomUUID(),
     email,
     name: name.slice(0, 80),
     passwordHash: hashPassword(crypto.randomBytes(24).toString("hex")), // they can set one later with Forgot password
     createdAt: new Date().toISOString(),
+    google: true,
   };
   await createUser(user);
   const admins = getAdminEmails();

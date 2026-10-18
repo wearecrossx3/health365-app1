@@ -3,7 +3,8 @@
 import { useState } from "react";
 import PasswordInput from "@/components/PasswordInput";
 
-export default function DeleteAccountForm() {
+export default function DeleteAccountForm({ googleEmail = "" }: { googleEmail?: string }) {
+  const [typed, setTyped] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -15,11 +16,12 @@ export default function DeleteAccountForm() {
     e.preventDefault();
     setError(null);
     if (!confirm) { setError("Please tick the box to confirm."); return; }
+    if (googleEmail && typed.trim().toUpperCase() !== "DELETE") { setError("Please type DELETE to confirm."); return; }
     setBusy(true);
     const res = await fetch("/api/app/account/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(googleEmail ? { confirm: typed } : { email, password }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
@@ -39,6 +41,15 @@ export default function DeleteAccountForm() {
 
   return (
     <form onSubmit={submit} className="step-card" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {googleEmail ? (
+        <>
+          <p style={{ fontSize: ".92rem", lineHeight: 1.6 }}>Signed in with Google as <b>{googleEmail}</b>.</p>
+          <div className="field">
+            <label>Type DELETE to confirm</label>
+            <input value={typed} onChange={(e) => setTyped(e.target.value)} autoCapitalize="characters" placeholder="DELETE" required />
+          </div>
+        </>
+      ) : (<>
       <div className="field">
         <label>Account email</label>
         <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -47,6 +58,7 @@ export default function DeleteAccountForm() {
         <label>Password</label>
         <PasswordInput autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
+      </>)}
       <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: ".9rem", cursor: "pointer" }}>
         <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2 }} />
         I understand this permanently deletes my account and data, and can&apos;t be undone.

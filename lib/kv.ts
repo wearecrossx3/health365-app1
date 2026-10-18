@@ -46,6 +46,7 @@ export interface User {
   phone?: string;
   passwordHash: string;
   createdAt: string;
+  google?: boolean; // has signed in with Google (may not know a password)
 }
 
 export interface Consultation {

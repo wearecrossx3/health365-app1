@@ -16,5 +16,5 @@ export async function POST(req: NextRequest) {
   const user = uid ? await getUserById(uid) : null;
   if (!user) return appJson({ error: "That sign-in has expired — please try again." }, 400);
   const token = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
-  return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "" } });
+  return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "", google: !!user.google } });
 }

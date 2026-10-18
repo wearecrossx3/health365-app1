@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     consultations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     appointments.sort((a, b) => (a.date + a.time < b.date + b.time ? 1 : -1));
     return appJson({
-      user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "" },
+      user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "", google: !!user.google },
       // a fresh 30-day login every time the app opens, so active users are never logged out
       token: createSessionCookieValue({ userId: user.id, email: user.email, name: user.name }),
       consultations: consultations.slice(0, 10),
