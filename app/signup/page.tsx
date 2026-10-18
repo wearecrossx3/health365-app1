@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { isValidPhone } from "@/lib/phone";
 import PasswordInput from "@/components/PasswordInput";
+import GoogleButton from "@/components/GoogleButton";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,6 +15,11 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [refCode, setRefCode] = useState("");
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("ref");
+    if (q) setRefCode(q.toUpperCase());
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +34,7 @@ export default function SignupPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, password }),
+      body: JSON.stringify({ name, email, phone, password, ref: refCode }),
     });
     const data = await res.json();
     setLoading(false);
@@ -48,6 +54,7 @@ export default function SignupPage() {
           <p className="text-inksoft text-sm mb-8">
             One account to save your consultations and plans.
           </p>
+          <GoogleButton />
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="field">
               <label htmlFor="name">Full name</label>
@@ -70,6 +77,10 @@ export default function SignupPage() {
                 minLength={8}
                 required
               />
+            </div>
+            <div className="field">
+              <label htmlFor="ref">Invite code (optional)</label>
+              <input id="ref" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase())} placeholder="From a friend? Add it — you both get a free 7-day plan" />
             </div>
             {error && <p className="text-sm text-terracotta font-medium">{error}</p>}
             <button type="submit" disabled={loading} className="pill pill-primary w-full text-center">

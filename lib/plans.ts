@@ -34,7 +34,9 @@ const entKey = (userId: string) => `user_ent:${userId}`;
 export const EMPTY_ENT: Entitlement = { freeUsed: false, freeUsedAt: "", grants: 0, grantLog: [] };
 
 export async function getEntitlement(userId: string): Promise<Entitlement> {
-  return { ...EMPTY_ENT, ...((await getJSON<Entitlement>(entKey(userId))) || {}) };
+  // fresh copy every time — the shared EMPTY_ENT.grantLog array must never be pushed to
+  const e = { ...EMPTY_ENT, ...((await getJSON<Entitlement>(entKey(userId))) || {}) };
+  return { ...e, grantLog: [...(e.grantLog || [])] };
 }
 
 export async function saveEntitlement(userId: string, e: Entitlement): Promise<void> {

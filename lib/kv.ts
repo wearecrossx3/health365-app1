@@ -752,6 +752,11 @@ export interface AppContent {
   soundEnabled: boolean;
   hapticsEnabled: boolean;
   confettiEnabled: boolean;
+  latestVersion: string; // newest version on Play, e.g. "2.0.1" — older apps show an update popup
+  forceUpdate: boolean; // older apps can't be used until they update
+  updateNote: string; // "What's new" line shown in the popup
+  ratePrompt: boolean; // ask happy users for a Play Store rating
+  referralEnabled: boolean; // Invite friends — both get a free 7-day plan
   updatedAt: string;
 }
 
@@ -802,6 +807,11 @@ export const DEFAULT_APP_CONTENT: AppContent = {
   soundEnabled: true,
   hapticsEnabled: true,
   confettiEnabled: true,
+  latestVersion: "",
+  forceUpdate: false,
+  updateNote: "",
+  ratePrompt: true,
+  referralEnabled: true,
   updatedAt: "",
 };
 
@@ -874,7 +884,10 @@ export async function deleteUserAccount(userId: string): Promise<{ consultations
     const owner = await r.get(userPhoneKey(user.phone));
     if (owner === user.id) await r.del(userPhoneKey(user.phone));
   }
-  await r.del(`user_plans:${userId}`, `user_ent:${userId}`, `app_state:${userId}`, `app_state_hist:${userId}`);
+  const refCode = await r.get(`user_ref:${userId}`);
+  await r.del(`user_plans:${userId}`, `user_ent:${userId}`, `app_state:${userId}`, `app_state_hist:${userId}`, `user_ref:${userId}`, `ref_by:${userId}`, `ref_list:${userId}`);
+  if (refCode) await r.del(`ref_code:${refCode}`);
+  await r.hdel("user_lastseen", userId);
   return { consultations: consultIds.length, appointments: apptIds.length, messages };
 }
 

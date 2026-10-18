@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getUserById, getConsultationsForUser, getAppointmentsForUser } from "@/lib/kv";
 import { appJson, appPreflight, getAppSession } from "@/lib/appApi";
+import { createSessionCookieValue } from "@/lib/session";
 
 // The signed-in user's own data: profile, saved consultations (newest
 // first) and appointments — so a user who fills the consultation on the
@@ -25,6 +26,8 @@ export async function GET(req: NextRequest) {
     appointments.sort((a, b) => (a.date + a.time < b.date + b.time ? 1 : -1));
     return appJson({
       user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "" },
+      // a fresh 30-day login every time the app opens, so active users are never logged out
+      token: createSessionCookieValue({ userId: user.id, email: user.email, name: user.name }),
       consultations: consultations.slice(0, 10),
       appointments,
     });

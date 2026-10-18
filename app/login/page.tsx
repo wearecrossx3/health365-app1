@@ -6,6 +6,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import PasswordInput from "@/components/PasswordInput";
+import GoogleButton from "@/components/GoogleButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function LoginPage() {
         <div className="card w-full max-w-md">
           <h1 className="font-display text-2xl mb-2">Welcome back</h1>
           <p className="text-inksoft text-sm mb-8">Log in to see your plans and consultations.</p>
+          <GoogleButton />
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="field">
               <label htmlFor="email">Email</label>
@@ -53,6 +55,7 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <p style={{ textAlign: "right", marginTop: 6 }}><Link href="/forgot-password" className="text-sm text-inksoft">Forgot password?</Link></p>
             {error && <p className="text-sm text-terracotta font-medium">{error}</p>}
             <button type="submit" disabled={loading} className="pill pill-primary w-full text-center">
               {loading ? "Logging in…" : "Log in"}

@@ -7,6 +7,7 @@ import Logo from "@/components/Logo";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊", permission: "dashboard" },
+  { href: "/admin/insights", label: "Insights", icon: "📈", permission: "dashboard" },
   { href: "/admin/content", label: "Site Content", icon: "📝", permission: "content" },
   { href: "/admin/media", label: "Media Library", icon: "🖼️", permission: "media" },
   { href: "/admin/testimonials", label: "Testimonials", icon: "💬", permission: "testimonials" },

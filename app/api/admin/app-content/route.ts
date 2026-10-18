@@ -90,6 +90,11 @@ export async function POST(req: NextRequest) {
     soundEnabled: bool(b.soundEnabled, true),
     hapticsEnabled: bool(b.hapticsEnabled, true),
     confettiEnabled: bool(b.confettiEnabled, true),
+    latestVersion: txt(b.latestVersion, 12).replace(/[^\d.]/g, ""),
+    forceUpdate: bool(b.forceUpdate, false),
+    updateNote: txt(b.updateNote, 160),
+    ratePrompt: bool(b.ratePrompt, true),
+    referralEnabled: bool(b.referralEnabled, true),
     updatedAt: new Date().toISOString(),
   };
   await setAppContent(content);

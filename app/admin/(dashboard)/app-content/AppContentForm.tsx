@@ -24,6 +24,11 @@ interface AppContent {
   soundEnabled: boolean;
   hapticsEnabled: boolean;
   confettiEnabled: boolean;
+  latestVersion: string;
+  forceUpdate: boolean;
+  updateNote: string;
+  ratePrompt: boolean;
+  referralEnabled: boolean;
   updatedAt: string;
 }
 
@@ -285,6 +290,27 @@ export default function AppContentForm({ initial }: { initial: AppContent }) {
           <Toggle label="Tap sounds" hint="Soft click on taps and a chime on big moments. Users can still turn this off in their own profile." value={c.soundEnabled} onChange={(v) => patch({ soundEnabled: v })} />
           <Toggle label="Vibration (haptics)" hint="Light buzz on taps, a stronger one when a plan is ready or a booking is confirmed." value={c.hapticsEnabled} onChange={(v) => patch({ hapticsEnabled: v })} />
           <Toggle label="Confetti celebrations" hint="Confetti when a diet plan is generated and when a consultation is booked." value={c.confettiEnabled} onChange={(v) => patch({ confettiEnabled: v })} />
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 6 }}>App updates &amp; ratings</h2>
+        <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 14 }}>
+          After a new version is live on Google Play, type its version number here (e.g. 2.0.1). Anyone on an older version sees an
+          &quot;Update available&quot; popup that opens the Play Store. Leave empty to show nothing.
+        </p>
+        <div className="adm-cols" style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 14 }}>
+          <div className="field"><label>Latest version on Play</label>
+            <input value={c.latestVersion || ""} placeholder="2.0.1" onChange={(e) => patch({ latestVersion: e.target.value.replace(/[^\d.]/g, "") })} />
+          </div>
+          <div className="field"><label>What&apos;s new (one line, optional)</label>
+            <input value={c.updateNote || ""} maxLength={160} placeholder="Safer progress backup, streaks and badges" onChange={(e) => patch({ updateNote: e.target.value })} />
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 14 }}>
+          <Toggle label="Must update" hint="Only for serious problems: older apps can't be used until they update. Normally keep this off — users can tap 'Later'." value={!!c.forceUpdate} onChange={(v) => patch({ forceUpdate: v })} />
+          <Toggle label="Ask happy users to rate the app" hint="After 5 active days, asks 'Enjoying Health365?'. Yes → Play Store rating. Not really → private feedback to you." value={c.ratePrompt !== false} onChange={(v) => patch({ ratePrompt: v })} />
+          <Toggle label="Invite friends (refer & earn)" hint="Each user gets a code. When a friend joins with it, both get one free 7-day plan (max 10 rewards per person)." value={c.referralEnabled !== false} onChange={(v) => patch({ referralEnabled: v })} />
         </div>
       </div>
 

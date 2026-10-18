@@ -6,6 +6,7 @@ import { createSessionCookieValue } from "@/lib/session";
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { applyReferral } from "@/lib/referral";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { appJson, appPreflight, limit, str } from "@/lib/appApi";
 
@@ -47,6 +48,8 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await createUser(user);
+    // Invite code (needs a mobile number, so one person can't farm rewards with throwaway emails)
+    const referredBy = phone ? await applyReferral(user.id, body?.ref).catch(() => null) : null;
 
     const admins = getAdminEmails();
     if (admins.length > 0) {
@@ -69,7 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
-    return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "" } });
+    return appJson({ ok: true, token, referredBy, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "" } });
   } catch (err) {
     console.error("App signup failed:", err);
     return appJson({ error: "Couldn't create your account right now — please try again." }, 500);

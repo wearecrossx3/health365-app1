@@ -48,8 +48,8 @@ export default function ResetForm() {
     <div className="step-card" style={card}>
       {icon("var(--terracotta)", "!")}
       <h1 style={{ fontSize: "1.4rem" }}>This link doesn&apos;t work any more</h1>
-      <p style={{ marginTop: 10, color: "var(--ink-soft)" }}>Reset links work once and expire after 24 hours. Ask us for a new one and we&apos;ll send it right away.</p>
-      <a href="/contact?topic=forgot" className="pill pill-primary" style={{ display: "inline-block", marginTop: 18 }}>Ask for a new link</a>
+      <p style={{ marginTop: 10, color: "var(--ink-soft)" }}>Reset links work once and expire after 24 hours. Get a new one in a few seconds.</p>
+      <a href="/forgot-password" className="pill pill-primary" style={{ display: "inline-block", marginTop: 18 }}>Get a new link</a>
     </div>
   );
 

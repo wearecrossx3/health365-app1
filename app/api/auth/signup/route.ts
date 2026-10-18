@@ -7,6 +7,7 @@ import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "
 import { sendEmail, getAdminEmails, emailWrapper } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { applyReferral } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -43,6 +44,8 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await createUser(user);
+    // Invite code (needs a mobile number, so one person can't farm rewards with throwaway emails)
+    const referredBy = cleanPhone ? await applyReferral(user.id, body?.ref).catch(() => null) : null;
 
     // Let the owner know a new member joined — same notification path as
     // a contact message, so it needs no extra setup beyond RESEND_API_KEY
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     const cookieValue = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
-    const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
+    const res = NextResponse.json({ ok: true, referredBy, user: { id: user.id, email: user.email, name: user.name } });
     res.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

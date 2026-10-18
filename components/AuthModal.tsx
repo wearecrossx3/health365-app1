@@ -128,6 +128,7 @@ export default function AuthModal({
               required
             />
           </div>
+          {mode !== "signup" && <a href="/forgot-password" style={{ alignSelf: "flex-end", fontSize: ".82rem", color: "var(--ink-soft)", marginTop: -6 }}>Forgot password?</a>}
           {error && <p style={{ fontSize: ".85rem", color: "var(--terracotta)", fontWeight: 500 }}>{error}</p>}
           <button type="submit" disabled={loading} className="pill pill-primary" style={{ textAlign: "center" }}>
             {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Log in"}
