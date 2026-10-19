@@ -25,7 +25,7 @@ export default function TonesManager({ types, tones, initial }: { types: Opt[]; 
     <div className="panel" style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 4 }}>
       <h2 style={{ fontSize: "1.05rem" }}>Notification tones 🔔</h2>
       <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 8 }}>
-        Choose the sound for each kind of notification. Press ▶ to listen. Works on app version 2.0.4 and newer.
+        Choose the sound for each kind of notification. Press ▶ to listen. Works on app version 2.0.2 (latest) and newer.
       </p>
       {types.map((ty) => (
         <div key={ty.key} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: "1px solid var(--line)", flexWrap: "wrap" }}>
