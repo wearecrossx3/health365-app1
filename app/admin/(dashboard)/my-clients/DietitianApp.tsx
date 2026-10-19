@@ -65,14 +65,11 @@ export default function DietitianApp() {
       <div className="dta"><Style />
         <div className="dta-top"><button className="dta-back" onClick={() => setView({ kind: "client", id: view.id })}>‹</button><div><b>New plan</b><small>for {r?.clientName}</small></div></div>
         <div className="dta-pb">
-          <PlanBuilder fixedUser={{ id: view.id, name: r?.clientName || "", email: "", phone: "" }} initialPlan={view.copy || null}
-            portal={{ generateUrl: "/api/admin/my-clients/generate", assignUrl: `/api/admin/my-clients/${view.id}` }}
-            onAssigned={() => setTimeout(() => setView({ kind: "chat", id: view.id }), 1200)} />
+          <PlanFor id={view.id} name={r?.clientName || ""} copy={view.copy || null} onDone={() => setTimeout(() => setView({ kind: "chat", id: view.id }), 1200)} />
         </div>
       </div>
     );
   }
-
   const td = today();
   const todays = rows.filter((r) => r.date === td && r.status === "booked");
   const waiting = rows.filter((r) => r.unread).sort((a, b) => a.lastAt - b.lastAt);
@@ -176,6 +173,19 @@ export default function DietitianApp() {
         ))}
       </nav>
     </div>
+  );
+}
+
+// Plan builder pre-filled from the client's form (goal, food, conditions, calories).
+function PlanFor({ id, name, copy, onDone }: { id: string; name: string; copy: Plan | null; onDone: () => void }) {
+  const [sug, setSug] = useState<{ goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null | undefined>(undefined);
+  useEffect(() => {
+    fetch(`/api/admin/my-clients/${id}`, { cache: "no-store" }).then((r) => r.json()).then((j) => setSug(j.suggest || null)).catch(() => setSug(null));
+  }, [id]);
+  if (sug === undefined) return <p className="dta-empty">Loading…</p>;
+  return (
+    <PlanBuilder fixedUser={{ id, name, email: "", phone: "" }} initialPlan={copy} initialInput={sug}
+      portal={{ generateUrl: "/api/admin/my-clients/generate", assignUrl: `/api/admin/my-clients/${id}` }} onAssigned={onDone} />
   );
 }
 

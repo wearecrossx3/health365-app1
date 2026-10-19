@@ -4,6 +4,7 @@ import { dietitianFromRequest } from "@/lib/dietitianGuard";
 import { getAppt, isChatAppointment, chatOpen, listMessages, addMessage, markRead, saveImage, getMeta, updateMeta, safeAnswers, firstName, logActivity } from "@/lib/consultChat";
 import { getConsultationsForUser, getUserById } from "@/lib/kv";
 import { dietitianInfo } from "@/lib/portal";
+import { suggestFromConsultation } from "@/lib/planSuggest";
 import { listUserPlans, saveUserPlans, AssignedPlan } from "@/lib/plans";
 import { sendNotifyToClient } from "@/lib/consultClientNotify";
 
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   await logActivity(me.dietitianId, `Opened chat with ${firstName(a.userName)} (${a.date})`);
   return NextResponse.json({
     thread: { id: a.id, client: firstName(a.userName), date: a.date, time: a.time, status: a.status, open: chatOpen(a), note: meta.note, outcome: meta.outcome },
+    suggest: suggestFromConsultation(c),
     profile: c ? { goal: c.goal, diet: c.dietType, conditions: c.conditions, allergens: c.allergens, answers: safeAnswers(c.raw), at: c.createdAt } : null,
     plans: plans.filter((p) => p.byDietitian === me.dietitianId).map((p) => ({ id: p.id, title: p.title, at: p.assignedAt, active: p.active, targetKcal: p.targetKcal, plan: { title: p.title, goal: p.goal, diet: p.diet, region: p.region, conditions: p.conditions, targetKcal: p.targetKcal, days: p.days, tips: p.tips, source: p.source } })),
     messages: msgs,

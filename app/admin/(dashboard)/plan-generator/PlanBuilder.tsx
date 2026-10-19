@@ -24,12 +24,12 @@ const chip = (on: boolean) => ({
 
 // `portal` = Dietitian portal mode: its own generate/assign endpoints, and the
 // plan is always signed with the dietitian's own name (set on the server).
-export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan }: { fixedUser?: UserRow; onAssigned?: () => void; portal?: { generateUrl: string; assignUrl: string }; initialPlan?: Plan | null }) {
-  const [goal, setGoal] = useState("lose");
-  const [diet, setDiet] = useState("veg");
+export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan, initialInput }: { fixedUser?: UserRow; onAssigned?: () => void; portal?: { generateUrl: string; assignUrl: string }; initialPlan?: Plan | null; initialInput?: { goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null }) {
+  const [goal, setGoal] = useState(initialInput?.goal || "lose");
+  const [diet, setDiet] = useState(initialInput?.diet || "veg");
   const [region, setRegion] = useState("gujarati");
-  const [conds, setConds] = useState<string[]>([]);
-  const [kcal, setKcal] = useState("");
+  const [conds, setConds] = useState<string[]>(initialInput?.conditions || []);
+  const [kcal, setKcal] = useState(initialInput?.kcal ? String(initialInput.kcal) : "");
   const [days, setDays] = useState(7);
   const [plan, setPlan] = useState<Plan | null>(initialPlan || null);
   const [openDay, setOpenDay] = useState(0);
@@ -131,8 +131,9 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
         </div>
         <div className="admin-grid-2" style={{ gap: 16 }}>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Calories per day <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— empty = based on goal</span></label>
+            <label>Calories per day <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— {initialInput?.kcal ? "worked out from the client's form" : "empty = based on goal"}</span></label>
             <input type="number" min={1100} max={3200} step={50} value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder={goal === "lose" ? "1400" : goal === "gain" ? "2300" : "1800"} />
+            {initialInput?.basis && <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", marginTop: 4 }}>From the form: {initialInput.basis}. Change it if you like.</p>}
           </div>
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Plan length</label>
