@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
-import { isAdmin } from "@/lib/admin";
+import { isAdmin, getAdminAccess } from "@/lib/admin";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
@@ -9,7 +9,7 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "im
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   const session = verifySessionCookieValue(cookie);
-  if (!(await isAdmin(session))) {
+  if (!(await isAdmin(session)) || (await getAdminAccess(session)).dietitianId) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
 

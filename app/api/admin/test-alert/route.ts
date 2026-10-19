@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   const session = verifySessionCookieValue(req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   const access = await getAdminAccess(session);
-  if (!access.allowed || !session) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
+  if (!access.allowed || !session || access.dietitianId) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
   await sendPushToAdmins({
     title: "🔔 Test alert",
     body: `Admin notifications are working. (sent by ${session.name || session.email})`,

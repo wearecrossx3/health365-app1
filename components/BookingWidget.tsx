@@ -110,12 +110,20 @@ export default function BookingWidget({
         <p style={{ color: "rgba(255,255,255,.7)", fontSize: ".85rem", marginTop: 4 }}>
           {new Date(date).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })} at {time} with {dietitianName}
         </p>
+        {dietitianId !== "dr-astha" && (
+          <p style={{ color: "rgba(255,255,255,.85)", fontSize: ".85rem", marginTop: 8 }}>
+            💬 Your consultation happens in chat — open <a href="/dashboard" style={{ color: "var(--mint)", fontWeight: 600 }}>your dashboard</a> or the Health365 app to message {dietitianName}.
+          </p>
+        )}
       </div>
     );
   }
 
   return (
     <div style={{ marginTop: 18 }}>
+      {dietitianId !== "dr-astha" && (
+        <p style={{ fontSize: ".8rem", color: "rgba(255,255,255,.75)", marginBottom: 10 }}>💬 Consultation by in-app chat — share reports and get your plan right in Health365.</p>
+      )}
       <p style={{ fontSize: ".8rem", fontWeight: 700, color: "rgba(255,255,255,.8)", marginBottom: 8 }}>Pick a date</p>
       <input
         type="date"

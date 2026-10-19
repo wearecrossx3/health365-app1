@@ -22,7 +22,9 @@ const chip = (on: boolean) => ({
   border: `1.5px solid ${on ? "#287379" : "var(--line)"}`, background: on ? "#E3F0F0" : "#fff", color: on ? "#1E5A5F" : "var(--ink)",
 });
 
-export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: UserRow; onAssigned?: () => void }) {
+// `portal` = Dietitian portal mode: its own generate/assign endpoints, and the
+// plan is always signed with the dietitian's own name (set on the server).
+export default function PlanBuilder({ fixedUser, onAssigned, portal }: { fixedUser?: UserRow; onAssigned?: () => void; portal?: { generateUrl: string; assignUrl: string } }) {
   const [goal, setGoal] = useState("lose");
   const [diet, setDiet] = useState("veg");
   const [region, setRegion] = useState("gujarati");
@@ -42,9 +44,9 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
   const [signedAs, setSignedAs] = useState("Dt. Astha Jadeja");
 
   useEffect(() => {
-    if (fixedUser) return;
+    if (fixedUser || portal) return;
     fetch("/api/admin/users").then((r) => r.json()).then((d) => setUsers(d.users || [])).catch(() => {});
-  }, [fixedUser]);
+  }, [fixedUser, portal]);
 
   const matches = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -55,7 +57,7 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
 
   async function generate() {
     setBusy(true); setMsg(null);
-    const res = await fetch("/api/admin/plan-generator", {
+    const res = await fetch(portal?.generateUrl || "/api/admin/plan-generator", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goal, diet, region, conditions: conds, targetKcal: Number(kcal) || undefined, days }),
     });
@@ -95,7 +97,7 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
   async function assign() {
     if (!plan || !chosen) return;
     setBusy(true); setMsg(null);
-    const res = await fetch("/api/admin/users", {
+    const res = await fetch(portal?.assignUrl || "/api/admin/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "assign", userId: chosen.id, plan, note, startsOn, signedAs }),
     });
@@ -201,15 +203,17 @@ export default function PlanBuilder({ fixedUser, onAssigned }: { fixedUser?: Use
               )}
             </div>
           )}
-          {fixedUser && <p style={{ fontSize: ".9rem" }}>For <b>{fixedUser.name}</b> · {fixedUser.email}</p>}
+          {fixedUser && <p style={{ fontSize: ".9rem" }}>For <b>{fixedUser.name}</b>{fixedUser.email ? ` · ${fixedUser.email}` : ""}</p>}
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Personal note <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— shown at the top of their plan</span></label>
-            <textarea rows={2} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Start with this for 2 weeks. Message me on WhatsApp if you feel low on energy." />
+            <textarea rows={2} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder={portal ? "e.g. Start with this for 2 weeks. Message me in the chat if you feel low on energy." : "e.g. Start with this for 2 weeks. Message me on WhatsApp if you feel low on energy."} />
           </div>
+          {!portal && (
           <div className="field" style={{ marginBottom: 0 }}>
             <label>From <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— the name the user sees on the plan</span></label>
             <input value={signedAs} maxLength={60} onChange={(e) => setSignedAs(e.target.value)} />
           </div>
+          )}
           <div className="field" style={{ marginBottom: 0, maxWidth: 240 }}>
             <label>Start date <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional</span></label>
             <input type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />

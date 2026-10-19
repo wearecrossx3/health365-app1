@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
-import { isAdmin } from "@/lib/admin";
+import { isAdmin, getAdminAccess } from "@/lib/admin";
 import { savePushSubscription, deletePushSubscription } from "@/lib/kv";
 
 async function getSession(req: NextRequest) {
@@ -15,7 +15,7 @@ function subscriptionId(endpoint: string) {
 
 export async function POST(req: NextRequest) {
   const session = await getSession(req);
-  if (!(await isAdmin(session))) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
+  if (!(await isAdmin(session)) || (await getAdminAccess(session)).dietitianId) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
 
   const body = await req.json().catch(() => null);
   const endpoint = body?.subscription?.endpoint;
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const session = await getSession(req);
-  if (!(await isAdmin(session))) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
+  if (!(await isAdmin(session)) || (await getAdminAccess(session)).dietitianId) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
 
   const body = await req.json().catch(() => null);
   const endpoint = body?.endpoint;

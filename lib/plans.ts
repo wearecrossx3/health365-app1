@@ -16,6 +16,7 @@ export interface AssignedPlan extends GeneratedPlan {
   userId: string;
   note: string; // dietitian's personal note shown at the top of the plan
   assignedBy: string; // admin name/email
+  byDietitian?: string; // joined dietitian id when sent from the Dietitian portal
   assignedAt: string;
   startsOn: string; // YYYY-MM-DD (optional)
   active: boolean;

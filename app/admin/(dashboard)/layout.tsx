@@ -15,7 +15,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     <div className="admin-shell">
       <AdminSidebar adminName={session!.name} permissions={access.permissions} isSuperAdmin={access.isSuperAdmin} />
       <div className="admin-content">
-        <PushNotificationSetup />
+        {!access.dietitianId && <PushNotificationSetup />}
         {children}
       </div>
     </div>

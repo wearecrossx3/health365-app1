@@ -6,15 +6,17 @@ import { getConsultationsForUser, getAppointmentsForUser } from "@/lib/kv";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import LogoutButton from "./LogoutButton";
+import { threadsForClient } from "@/lib/consultChat";
 
 export default async function DashboardPage() {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (!session) redirect("/login");
 
-  const [consultations, appointments] = await Promise.all([
+  const [consultations, appointments, chats] = await Promise.all([
     getConsultationsForUser(session.userId),
     getAppointmentsForUser(session.userId),
+    threadsForClient(session.userId).catch(() => []),
   ]);
   const upcoming = appointments
     .filter((a) => a.status === "booked")
@@ -33,6 +35,19 @@ export default async function DashboardPage() {
             </div>
             <LogoutButton />
           </div>
+
+          {chats.length > 0 && (
+            <div className="panel" style={{ marginBottom: 24 }}>
+              <h2 style={{ fontSize: "1.15rem", marginBottom: 12 }}>💬 Chat with your dietitian</h2>
+              {chats.map((c) => (
+                <Link key={c.id} href={`/dashboard/chat/${c.id}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+                  <span style={{ flex: 1 }}><b>{c.dietitianName}</b> <span style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>· {c.date} · {c.open ? (c.lastText || "Start the conversation") : "closed"}</span></span>
+                  {c.unread > 0 && <span style={{ fontSize: ".72rem", fontWeight: 700, color: "#fff", background: "#E5394F", borderRadius: 99, padding: "2px 8px" }}>New</span>}
+                  <span>→</span>
+                </Link>
+              ))}
+            </div>
+          )}
 
           <div className="admin-stat-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
             <div className="panel" style={{ padding: 22 }}>

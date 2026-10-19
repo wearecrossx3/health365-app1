@@ -1,5 +1,5 @@
 import type { SessionPayload } from "./session";
-import { getAdminAccount } from "./kv";
+import { getAdminAccount, getDietitianApplicationByUserId } from "./kv";
 
 // The client-safe constants and helpers (ADMIN_PERMISSIONS, isValidPermission,
 // defaultAdminPath, isSuperAdmin) live in lib/adminPermissions.ts — that file
@@ -21,6 +21,7 @@ export interface AdminAccess {
   allowed: boolean;
   isSuperAdmin: boolean;
   permissions: _AdminPermission[];
+  dietitianId?: string; // set only for a joined dietitian's portal login (own clients only)
 }
 
 // Resolves what a signed-in admin session can actually see. Call this
@@ -35,6 +36,12 @@ export async function getAdminAccess(session: SessionPayload | null): Promise<Ad
   }
   const account = await getAdminAccount(session.email);
   if (!account || account.permissions.length === 0) {
+    // An approved joined dietitian gets the Dietitian portal — their own
+    // clients only — unless the owner switched their portal off.
+    const d = session.userId ? await getDietitianApplicationByUserId(session.userId).catch(() => null) : null;
+    if (d && d.status === "approved" && d.portal !== false && d.id !== "dr-astha") {
+      return { allowed: true, isSuperAdmin: false, permissions: ["my-clients"], dietitianId: d.id };
+    }
     return { allowed: false, isSuperAdmin: false, permissions: [] };
   }
   return { allowed: true, isSuperAdmin: false, permissions: account.permissions.filter(_isValidPermission) };

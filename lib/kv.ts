@@ -127,6 +127,7 @@ export interface DietitianApplication {
   about: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+  portal?: boolean; // Dietitian portal login (own clients only). Off only when the owner turns it off.
 }
 
 const dietitianKey = (id: string) => `dietitian:${id}`;

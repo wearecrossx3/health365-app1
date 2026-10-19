@@ -25,7 +25,9 @@ export const ADMIN_PERMISSIONS = [
   { key: "foods", label: "Food Database", hint: "Calorie counter foods — edit, hide, add" },
 ] as const;
 
-export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number]["key"];
+// "my-clients" is never granted from the Admin Users editor: it is given
+// automatically to an approved joined dietitian (their own clients only).
+export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number]["key"] | "my-clients";
 const PERMISSION_KEYS = new Set(ADMIN_PERMISSIONS.map((p) => p.key));
 
 const PERMISSION_PATHS: Record<AdminPermission, string> = {
@@ -43,6 +45,7 @@ const PERMISSION_PATHS: Record<AdminPermission, string> = {
   offers: "/admin/offers",
   blog: "/admin/blog",
   foods: "/admin/foods",
+  "my-clients": "/admin/my-clients",
 };
 
 // Where to send an admin who hits a page they don't have permission
@@ -52,11 +55,12 @@ export function defaultAdminPath(permissions: AdminPermission[]): string {
   for (const p of ADMIN_PERMISSIONS) {
     if (permissions.includes(p.key)) return PERMISSION_PATHS[p.key];
   }
+  if (permissions.includes("my-clients")) return PERMISSION_PATHS["my-clients"];
   return "/admin/login";
 }
 
 export function isValidPermission(key: string): key is AdminPermission {
-  return PERMISSION_KEYS.has(key as AdminPermission);
+  return PERMISSION_KEYS.has(key as (typeof ADMIN_PERMISSIONS)[number]["key"]);
 }
 
 // The owner — whoever's email is listed in the ADMIN_EMAILS Vercel
