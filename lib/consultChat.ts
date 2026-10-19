@@ -26,7 +26,7 @@ const msgsKey = (id: string) => `cchat:${id}`;
 const metaKey = (id: string) => `cchat_meta:${id}`;
 const imgKey = (id: string) => `cchat_img:${id}`;
 
-export const isChatAppointment = (a: Appointment | null | undefined) => !!a && a.dietitianId !== OWN_DIETITIAN;
+export const isChatAppointment = (a: Appointment | null | undefined) => !!a; // every consultation (Dt. Astha too) has a chat
 
 export function chatOpen(a: Appointment): boolean {
   if (a.status !== "booked") return false;

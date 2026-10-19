@@ -1,4 +1,5 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { isDietitianApp, portalDietitian } from "@/lib/portal";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getAdminAccess, defaultAdminPath } from "@/lib/admin";
@@ -16,6 +17,7 @@ export default async function AdminPage() {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   const access = await getAdminAccess(session);
+  if (isDietitianApp(headers().get("user-agent")) && (await portalDietitian(session))) redirect("/admin/my-clients");
   if (!access.permissions.includes("dashboard")) redirect(access.allowed ? defaultAdminPath(access.permissions) : "/admin/login");
 
   const [users, consultations, dietitianApps, appointments, scan] = await Promise.all([

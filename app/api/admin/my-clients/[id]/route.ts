@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { dietitianFromRequest } from "@/lib/dietitianGuard";
 import { getAppt, isChatAppointment, chatOpen, listMessages, addMessage, markRead, saveImage, getMeta, updateMeta, safeAnswers, firstName, logActivity } from "@/lib/consultChat";
-import { getConsultationsForUser, getUserById, getDietitianApplicationById } from "@/lib/kv";
+import { getConsultationsForUser, getUserById } from "@/lib/kv";
+import { dietitianInfo } from "@/lib/portal";
 import { listUserPlans, saveUserPlans, AssignedPlan } from "@/lib/plans";
 import { sendNotifyToClient } from "@/lib/consultClientNotify";
 
@@ -68,8 +69,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
   if (b.action === "assign") {
     const user = await getUserById(a.userId);
-    const d = await getDietitianApplicationById(me.dietitianId);
-    if (!user || !d) return NextResponse.json({ error: "Client not found." }, { status: 404 });
+    const d = await dietitianInfo(me.dietitianId);
+    if (!user || !d.name) return NextResponse.json({ error: "Client not found." }, { status: 404 });
     const p = b.plan || {};
     const days = (Array.isArray(p.days) ? p.days : []).slice(0, 7);
     if (JSON.stringify(days).length > 150000) return NextResponse.json({ error: "Plan is too large." }, { status: 400 });

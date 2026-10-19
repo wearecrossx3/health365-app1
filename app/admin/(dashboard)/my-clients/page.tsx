@@ -1,10 +1,15 @@
-import { requireAdminPage } from "@/lib/adminGuard";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
+import { portalDietitian } from "@/lib/portal";
 import DietitianApp from "./DietitianApp";
 
 export const dynamic = "force-dynamic";
 
-// Joined dietitian's portal — an app-style screen (Today · Chats · Clients · Me).
+// Dietitian portal — an app-style screen (Today · Chats · Clients · Me).
 export default async function MyClientsPage() {
-  await requireAdminPage("my-clients");
+  const session = verifySessionCookieValue(cookies().get(ADMIN_SESSION_COOKIE_NAME)?.value);
+  if (!session) redirect("/admin/login");
+  if (!(await portalDietitian(session))) redirect("/admin");
   return <DietitianApp />;
 }

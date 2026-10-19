@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppSession, appPreflight } from "@/lib/appApi";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getAdminAccess } from "@/lib/admin";
+import { portalDietitian } from "@/lib/portal";
 import { getAppt, isChatAppointment, threadHasImage, loadImage } from "@/lib/consultChat";
 
 // Chat photos are private: only the client, that appointment's dietitian, or
@@ -16,8 +17,9 @@ export async function GET(req: NextRequest, { params }: { params: { thread: stri
   const client = getAppSession(req);
   if (client && client.userId === a.userId) ok = true;
   if (!ok) {
-    const access = await getAdminAccess(verifySessionCookieValue(req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value));
-    ok = access.dietitianId ? access.dietitianId === a.dietitianId : access.permissions.includes("users");
+    const s = verifySessionCookieValue(req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value);
+    const [access, dt] = await Promise.all([getAdminAccess(s), portalDietitian(s)]);
+    ok = dt === a.dietitianId || (!access.dietitianId && access.permissions.includes("users"));
   }
   if (!ok || !(await threadHasImage(a.id, params.img))) return new NextResponse("Not found", { status: 404 });
   const img = await loadImage(params.img);

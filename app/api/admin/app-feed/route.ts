@@ -3,6 +3,7 @@ import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/sessi
 import { getAdminAccess } from "@/lib/admin";
 import { listAdminEvents } from "@/lib/kv";
 import { threadsForDietitian } from "@/lib/consultChat";
+import { portalDietitian, isDietitianApp } from "@/lib/portal";
 
 // Polled by the Health365 Admin Android app in the background (it sends the
 // admin's own login cookie). Returns new admin alerts since ?since=<ms>,
@@ -29,8 +30,9 @@ export async function GET(req: NextRequest) {
   if (!access.allowed) return NextResponse.json({ error: "Please log in again.", code: "auth" }, { status: 401 });
   const since = Number(req.nextUrl.searchParams.get("since")) || 0;
   // Dietitian app: only "new message from <client>" for their own chats — no admin alerts.
-  if (access.dietitianId) {
-    const events = (await threadsForDietitian(access.dietitianId))
+  const portalId = access.dietitianId || (isDietitianApp(req.headers.get("user-agent")) ? await portalDietitian(session) : null);
+  if (portalId) {
+    const events = (await threadsForDietitian(portalId))
       .filter((t) => t.unread && t.lastAt > since && t.lastFrom === "client")
       .slice(0, 10)
       .map((t) => ({ id: `chat-${t.id}-${t.lastAt}`, title: `New message from ${t.clientName} 💬`, body: "Open Health365 Dietitian to reply.", url: "/admin/my-clients", at: t.lastAt }));

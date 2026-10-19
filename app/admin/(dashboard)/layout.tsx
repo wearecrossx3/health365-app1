@@ -1,4 +1,5 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { isDietitianApp } from "@/lib/portal";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getAdminAccess } from "@/lib/admin";
@@ -11,7 +12,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const access = await getAdminAccess(session);
   if (!access.allowed) redirect("/admin/login");
   // Joined dietitians get their own app-style portal, without the admin menu.
-  if (access.dietitianId) return <>{children}</>;
+  if (access.dietitianId || isDietitianApp(headers().get("user-agent"))) return <>{children}</>;
 
   return (
     <div className="admin-shell">

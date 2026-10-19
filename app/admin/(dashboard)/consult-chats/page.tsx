@@ -11,7 +11,7 @@ export default async function ConsultChatsPage() {
         <span className="eyebrow">Admin</span>
         <h1 style={{ fontSize: "1.9rem" }}>Consult chats</h1>
         <p style={{ marginTop: 8, color: "var(--ink-soft)", fontSize: ".92rem", maxWidth: 680 }}>
-          Every chat between clients and joined dietitians. Messages where someone tried to share a phone number, email or link are marked ⚠️ — you can see what they typed. Dr. Astha&apos;s consultations stay on call and don&apos;t appear here.
+          Every consultation chat, for Dt. Astha and joined dietitians. Messages where someone tried to share a phone number, email or link are marked ⚠️ — you can see what they typed.
         </p>
         <ConsultChats />
       </div>

@@ -13,12 +13,15 @@ export default function ConsultChats() {
   const [sel, setSel] = useState<Row | null>(null);
   const [showLog, setShowLog] = useState("");
   const [filter, setFilter] = useState("");
+  const [astha, setAstha] = useState<{ email: string; activity: { at: number; what: string }[] } | null>(null);
+  const [aEmail, setAEmail] = useState("");
+  const [aMsg, setAMsg] = useState("");
 
   const load = async () => {
     const r = await fetch("/api/admin/consult-chats", { cache: "no-store" });
     if (!r.ok) return;
     const d = await r.json();
-    setRows(d.threads); setDts(d.dietitians);
+    setRows(d.threads); setDts(d.dietitians); setAstha(d.astha); setAEmail(d.astha?.email || "");
   };
   useEffect(() => { load(); }, []);
 
@@ -35,6 +38,25 @@ export default function ConsultChats() {
     <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 18 }}>
       <div className="panel" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: 6 }}>Dietitian portal access</h2>
+        {astha && (
+          <div style={{ borderTop: "1px solid var(--line)", padding: "10px 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ flex: 1, minWidth: 160 }}><b>Dt. Astha Jadeja</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· Dietitian app login</span></span>
+              <input value={aEmail} onChange={(e) => { setAEmail(e.target.value); setAMsg(""); }} type="email" style={{ padding: "7px 10px", borderRadius: 10, border: "1.5px solid var(--line)", minWidth: 220 }} />
+              <button className="pill pill-outline" style={{ padding: "5px 12px", fontSize: ".78rem" }} onClick={async () => {
+                const r = await fetch("/api/admin/consult-chats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "asthaEmail", email: aEmail }) });
+                const j = await r.json().catch(() => ({})); setAMsg(r.ok ? "Saved ✓" : j.error || "Couldn't save");
+              }}>Save</button>
+              <button className="pill pill-outline" style={{ padding: "5px 12px", fontSize: ".78rem" }} onClick={() => setShowLog(showLog === "dr-astha" ? "" : "dr-astha")}>Activity</button>
+            </div>
+            <p className="text-sm" style={{ color: aMsg.startsWith("Saved") ? "#2E7D4F" : "var(--ink-soft)", marginTop: 4 }}>{aMsg || "Whoever logs in to the Dietitian app with this email sees Dt. Astha's clients and chats. In the Admin app the same login still opens the full admin."}</p>
+            {showLog === "dr-astha" && (
+              <ul style={{ margin: "8px 0 0 18px", fontSize: ".8rem", color: "var(--ink-soft)" }}>
+                {astha.activity.length === 0 ? <li>No activity yet.</li> : astha.activity.map((a, i) => <li key={i}>{when(a.at)} — {a.what}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
         {dts.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No joined dietitians yet.</p>}
         {dts.map((d) => (
           <div key={d.id} style={{ borderTop: "1px solid var(--line)", padding: "10px 0" }}>
