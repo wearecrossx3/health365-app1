@@ -133,7 +133,7 @@ export async function threadHasImage(threadId: string, imgId: string) {
 }
 
 // ——— Thread lists ———
-export interface ThreadRow { id: string; userId: string; clientName: string; dietitianId: string; dietitianName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastAt: number; flags: number; outcome: string }
+export interface ThreadRow { id: string; userId: string; lastFrom: string; clientName: string; dietitianId: string; dietitianName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastAt: number; flags: number; outcome: string }
 
 async function rows(appts: Appointment[], who: "client" | "dietitian" | "owner"): Promise<ThreadRow[]> {
   const list = appts.filter(isChatAppointment);
@@ -142,7 +142,7 @@ async function rows(appts: Appointment[], who: "client" | "dietitian" | "owner")
     .map((a, i) => ({
       id: a.id, userId: who === "client" ? "" : a.userId, clientName: who === "dietitian" ? firstName(a.userName) : a.userName,
       dietitianId: a.dietitianId, dietitianName: a.dietitianName, date: a.date, time: a.time, status: a.status, open: chatOpen(a),
-      unread: who === "owner" ? 0 : unreadFor(metas[i], who), lastText: metas[i].lastText, lastAt: metas[i].lastAt,
+      unread: who === "owner" ? 0 : unreadFor(metas[i], who), lastText: metas[i].lastText, lastFrom: metas[i].lastFrom, lastAt: metas[i].lastAt,
       flags: who === "owner" ? metas[i].flags : 0, outcome: metas[i].outcome,
     }))
     .sort((x, y) => (y.lastAt || Date.parse(y.date)) - (x.lastAt || Date.parse(x.date)));

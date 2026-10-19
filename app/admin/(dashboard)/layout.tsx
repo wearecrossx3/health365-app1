@@ -10,6 +10,8 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   const access = await getAdminAccess(session);
   if (!access.allowed) redirect("/admin/login");
+  // Joined dietitians get their own app-style portal, without the admin menu.
+  if (access.dietitianId) return <>{children}</>;
 
   return (
     <div className="admin-shell">

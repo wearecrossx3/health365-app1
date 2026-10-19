@@ -24,14 +24,14 @@ const chip = (on: boolean) => ({
 
 // `portal` = Dietitian portal mode: its own generate/assign endpoints, and the
 // plan is always signed with the dietitian's own name (set on the server).
-export default function PlanBuilder({ fixedUser, onAssigned, portal }: { fixedUser?: UserRow; onAssigned?: () => void; portal?: { generateUrl: string; assignUrl: string } }) {
+export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan }: { fixedUser?: UserRow; onAssigned?: () => void; portal?: { generateUrl: string; assignUrl: string }; initialPlan?: Plan | null }) {
   const [goal, setGoal] = useState("lose");
   const [diet, setDiet] = useState("veg");
   const [region, setRegion] = useState("gujarati");
   const [conds, setConds] = useState<string[]>([]);
   const [kcal, setKcal] = useState("");
   const [days, setDays] = useState(7);
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const [plan, setPlan] = useState<Plan | null>(initialPlan || null);
   const [openDay, setOpenDay] = useState(0);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
