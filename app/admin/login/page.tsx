@@ -41,7 +41,8 @@ export default function AdminLoginPage() {
             <Logo variant="light" height={26} />
           </div>
           <h1 style={{ fontFamily: "var(--font-instrument), sans-serif", fontWeight: 600, fontSize: "1.5rem", color: "#fff" }}>Team &amp; Dietitian login</h1>
-          <p style={{ color: "rgba(255,255,255,.55)", fontSize: ".88rem", marginTop: 6 }}>Sign in to manage Health365</p>
+          <p style={{ color: "rgba(255,255,255,.55)", fontSize: ".88rem", marginTop: 6 }}>Sign in with your Health365 account</p>
+          <p style={{ fontSize: ".82rem", marginTop: 8 }}><a href="/dietitian-app" style={{ color: "#CBDB3D", fontWeight: 600 }}>Dietitian? Get the app →</a></p>
         </div>
 
         <form

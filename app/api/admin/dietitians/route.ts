@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
           body.status === "approved" ? "You're approved!" : "Application update",
           body.status === "approved"
             ? `<p>Great news, ${app.name} — your dietitian profile is now live in the Health365 directory.</p>
-               <p>View it here: ${adminLink("/dietitian-dashboard")}</p>`
+               <p>Clients who book you will chat with you inside Health365. Get the <b>Health365 Dietitian app</b> to reply to them and send diet plans: ${adminLink("/dietitian-app")}</p>
+               <p>Log in with your Health365 email and password (or on a computer at ${adminLink("/admin/login")}).</p>`
             : `<p>Hi ${app.name}, your application wasn't approved this time. Feel free to reach out if you'd like to update your details and reapply.</p>`
         ),
       }).catch(() => {});

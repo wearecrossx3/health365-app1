@@ -43,6 +43,18 @@ export default async function DietitianDashboardPage() {
           </div>
           {app.status === "pending" && <p style={{ fontSize: ".9rem", color: "var(--ink-soft)" }}>Our team is reviewing your application — this usually doesn't take long.</p>}
           {app.status === "approved" && <p style={{ fontSize: ".9rem", color: "var(--ink-soft)" }}>Your profile is live in the <Link href="/dietitians" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>dietitian directory</Link>.</p>}
+          {app.status === "approved" && (
+            <div style={{ marginTop: 14, background: "#E3F0F0", borderRadius: 14, padding: 16, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/downloads/dietitian-icon.png" alt="" width={52} height={52} style={{ borderRadius: 14 }} />
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <b>Get the Health365 Dietitian app</b>
+                <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 2 }}>Chat with your clients and send diet plans from your phone.</p>
+              </div>
+              <Link href="/dietitian-app" className="pill pill-primary" style={{ padding: "10px 18px" }}>Download</Link>
+              <Link href="/admin/login" className="pill pill-outline" style={{ padding: "10px 18px" }}>Open in browser</Link>
+            </div>
+          )}
           {app.status === "rejected" && <p style={{ fontSize: ".9rem", color: "var(--ink-soft)" }}>Your application wasn't approved this time. Reach out to us if you'd like to update your details and reapply.</p>}
         </div>
 

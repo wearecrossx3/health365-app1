@@ -9,6 +9,7 @@ import DietitianActionButtons from "./DietitianActionButtons";
 import { getScanHealth } from "@/lib/scanStats";
 import AdminAlertsCard from "./AdminAlertsCard";
 import WhatsAppAlertsCard from "./WhatsAppAlertsCard";
+import { ADMIN_APP, DIETITIAN_APP } from "@/lib/appDownloads";
 import { getWhatsAppHealth } from "@/lib/whatsapp";
 
 export default async function AdminPage() {
@@ -68,6 +69,25 @@ export default async function AdminPage() {
 
         <AdminAlertsCard />
         <WhatsAppAlertsCard />
+
+        <div className="panel" style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: "1.2rem" }}>Team apps</h2>
+          <p className="text-sm" style={{ color: "var(--ink-soft)", marginTop: 6 }}>Android apps for you and your dietitians. Users get the Health365 app from the Play Store.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ width: 40, height: 40, borderRadius: 11, background: "#0F1613", display: "grid", placeItems: "center", color: "#4EAA67", fontWeight: 800 }}>A</span>
+              <span style={{ flex: 1, minWidth: 160 }}><b>{ADMIN_APP.name}</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· v{ADMIN_APP.version} · for you and your team</span></span>
+              <a href={ADMIN_APP.url} download className="pill pill-outline" style={{ padding: "7px 14px", fontSize: ".82rem" }}>⬇️ Download</a>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/downloads/dietitian-icon.png" alt="" width={40} height={40} style={{ borderRadius: 11 }} />
+              <span style={{ flex: 1, minWidth: 160 }}><b>{DIETITIAN_APP.name}</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· v{DIETITIAN_APP.version} · share with joined dietitians</span></span>
+              <a href="/dietitian-app" target="_blank" className="pill pill-outline" style={{ padding: "7px 14px", fontSize: ".82rem" }}>Open page</a>
+            </div>
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share this link with a dietitian: <b>thehealth365.in/dietitian-app</b> — it&apos;s also in their approval email.</p>
+          </div>
+        </div>
 
         {wa && (() => {
           const st: [string, string, string] = !wa.configured
