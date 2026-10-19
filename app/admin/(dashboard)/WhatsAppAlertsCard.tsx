@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 type Phone = { phone: string; name: string; key: string };
 type Health = { lastOk: string; lastError: { at: string; error: string } | null };
 
-const BOT = "+34 611 01 16 37";
+const BOT = "+34 644 51 95 23";
 const ACTIVATE = "I allow callmebot to send me messages";
 const fmt = (t: string) => new Date(t).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
 
@@ -79,11 +79,11 @@ export default function WhatsAppAlertsCard() {
       {open && (
         <form onSubmit={add} style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
           <ol style={{ paddingLeft: 22, fontSize: ".88rem", lineHeight: 1.7, listStyle: "decimal" }}>
-            <li>Save <b>{BOT}</b> in your phone contacts (name it “CallMeBot”). <button type="button" onClick={() => copy(BOT.replace(/\s/g, ""))} className="pill pill-outline" style={{ padding: "1px 10px", fontSize: ".72rem" }}>Copy</button></li>
+            <li>Open <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noreferrer" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>CallMeBot&apos;s page</a> and save the WhatsApp number shown there in your contacts (it changes from time to time — right now it is often <b>{BOT}</b>).</li>
             <li>From <b>your</b> WhatsApp, send it exactly: <i>{ACTIVATE}</i> <button type="button" onClick={() => copy(ACTIVATE)} className="pill pill-outline" style={{ padding: "1px 10px", fontSize: ".72rem" }}>Copy</button></li>
             <li>It replies with your <b>API key</b> (a number). Paste it below with your WhatsApp number.</li>
           </ol>
-          <p style={{ fontSize: ".76rem", color: "var(--ink-soft)", marginTop: -6 }}>No reply in 2 minutes? CallMeBot sometimes changes its number — check callmebot.com for the current one.</p>
+          <p style={{ fontSize: ".76rem", color: "var(--ink-soft)", marginTop: -6 }}>No reply in 2 minutes? The number may have changed — use the one on CallMeBot's page, or try again after 24 hours. Your Admin app alerts keep working either way.</p>
           <div className="field"><label>Name (optional)</label><input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="SJ" /></div>
           <div className="field"><label>Your WhatsApp number</label><input inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="98XXXXXXXX" required /></div>
           <div className="field"><label>API key from CallMeBot</label><input inputMode="numeric" value={f.apikey} onChange={(e) => setF({ ...f, apikey: e.target.value })} placeholder="1234567" required /></div>
