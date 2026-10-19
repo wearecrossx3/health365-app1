@@ -30,6 +30,7 @@ export default function AppNotificationsManager({ initial }: { initial: AppNotif
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState("all");
+  const [kind, setKind] = useState("update");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -43,7 +44,7 @@ export default function AppNotificationsManager({ initial }: { initial: AppNotif
     const res = await fetch("/api/admin/app-notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, body, audience }),
+      body: JSON.stringify({ title, body, audience, kind }),
     });
     const data = await res.json().catch(() => ({}));
     setSending(false);
@@ -83,6 +84,13 @@ export default function AppNotificationsManager({ initial }: { initial: AppNotif
           <label>Send to</label>
           <select value={audience} onChange={(e) => setAudience(e.target.value)}>
             {AUDIENCE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 320, marginBottom: 0 }}>
+          <label>Type <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— sets the sound</span></label>
+          <select value={kind} onChange={(e) => setKind(e.target.value)}>
+            <option value="update">News & update</option>
+            <option value="offer">Offer</option>
           </select>
         </div>
 

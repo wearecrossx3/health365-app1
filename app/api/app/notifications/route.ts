@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { listAppNotifications } from "@/lib/kv";
 import { appJson, appPreflight, limit } from "@/lib/appApi";
+import { getNotifTones, DEFAULT_TONES } from "@/lib/notifTones";
 
 // Public feed the Android app checks in the background (~every 30 min).
 // ?since=<ms timestamp> returns only messages newer than that. The phone
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
   const notifications = all
     .filter((n) => Date.parse(n.createdAt) > since)
     .slice(0, 10)
-    .map(({ id, title, body, audience, createdAt }) => ({ id, title, body, audience, at: Date.parse(createdAt) }));
-  return appJson({ notifications, now: Date.now() });
+    .map(({ id, title, body, audience, kind, createdAt }) => ({ id, title, body, audience, kind: kind || "update", at: Date.parse(createdAt) }));
+  const tones = await getNotifTones().catch(() => DEFAULT_TONES);
+  return appJson({ notifications, tones, now: Date.now() });
 }

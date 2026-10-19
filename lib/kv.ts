@@ -904,6 +904,7 @@ export interface AppNotification {
   title: string;
   body: string;
   audience: string; // "all" | "account" | "guest" | a condition key like "diabetes"
+  kind?: "update" | "offer"; // picks the notification sound on the phone
   createdAt: string; // ISO
   sentBy: string; // admin email
 }

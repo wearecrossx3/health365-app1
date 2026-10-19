@@ -1,3 +1,4 @@
+import { getNotifTones, DEFAULT_TONES } from "@/lib/notifTones";
 import { getSiteContent, listApprovedDietitians, listAllDietTemplates, listPublishedTestimonials, getAppContent, DEFAULT_APP_CONTENT } from "@/lib/kv";
 import { DIET_TEMPLATE_OPTIONS } from "@/lib/dietConditions";
 import { appJson, appPreflight } from "@/lib/appApi";
@@ -119,6 +120,7 @@ export async function GET() {
       foodsVersion: `${(foodDb as { version: string }).version}-${foodOv?.updatedAt || "0"}`,
       app: {
         ...appContent,
+        notifTones: await getNotifTones().catch(() => DEFAULT_TONES),
         banners: appContent.banners.filter((b) => b.enabled),
         habitCards: appContent.habitCards.filter((h) => h.enabled),
       },

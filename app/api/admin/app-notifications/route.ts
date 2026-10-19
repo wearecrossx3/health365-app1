@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     title,
     body: text,
     audience,
+    kind: body?.kind === "offer" ? "offer" : "update",
     createdAt: new Date().toISOString(),
     sentBy: session.email,
   };
