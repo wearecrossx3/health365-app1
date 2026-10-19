@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 
-const NAV = [
+export const NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊", permission: "dashboard" },
   { href: "/admin/insights", label: "Insights", icon: "📈", permission: "dashboard" },
   { href: "/admin/content", label: "Site Content", icon: "📝", permission: "content" },

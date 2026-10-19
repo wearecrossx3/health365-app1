@@ -36,3 +36,4 @@ export async function dietitianInfo(id: string): Promise<{ name: string; email: 
 }
 
 export const isDietitianApp = (ua: string | null) => !!ua && ua.includes("Health365Dietitian");
+export const isOwnerApp = (ua: string | null) => !!ua && ua.includes("Health365Admin");

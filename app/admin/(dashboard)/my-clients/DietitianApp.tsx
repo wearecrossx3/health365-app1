@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlanBuilder, { Plan } from "../plan-generator/PlanBuilder";
+import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
 
 type Profile = { goal: string; conditions: string[]; diet: string } | null;
 type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; profile: Profile };
@@ -22,7 +23,7 @@ const ago = (t: number) => { const m = Math.max(1, Math.round((Date.now() - t) /
 const COND: Record<string, string> = { diabetes: "Diabetes", pcos: "PCOS", thyroid: "Thyroid", cholesterol: "Cholesterol", digestive: "Digestive", weight: "Weight", oncology: "Cancer care" };
 const cond = (c: string) => COND[c] || c;
 const OUT: [string, string][] = [["", "Open"], ["done", "Done"], ["follow-up", "Follow-up"], ["no-show", "No reply"]];
-const QUICK = ["Please share your latest reports 📄", "How are you feeling today?", "Your new plan is ready in the Plan tab ✅", "Drink 8–10 glasses of water today 💧", "Great progress, keep going! 💪"];
+const QUICK = ["How are you feeling today?", "Please share your latest reports 📄", "Great progress, keep going! 💪"];
 
 const I = {
   home: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2.1" strokeLinejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z" /></svg>,
@@ -195,8 +196,11 @@ function Chat({ id, row, me, onBack, onOpen }: { id: string; row?: Row; me: stri
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [zoom, setZoom] = useState("");
+  const [sheet, setSheet] = useState(false);
+  const [lang, setLang] = useState<Lang>("en");
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
   const n = useRef(0);
   const load = async () => {
     const r = await fetch(`/api/admin/my-clients/${id}`, { cache: "no-store" }).catch(() => null);
@@ -252,11 +256,11 @@ function Chat({ id, row, me, onBack, onOpen }: { id: string; row?: Row; me: stri
       {d && !d.thread.open ? <p className="dta-closed">This chat closed 30 days after the consultation. The client can book again to continue.</p> : (
         <>
           {note && <p className="dta-note">{note}</p>}
-          <div className="dta-qr">{QUICK.map((qq) => <button key={qq} disabled={busy} onClick={() => send({ text: qq })}>{qq}</button>)}</div>
+          <div className="dta-qr"><button className="tp" onClick={() => setSheet(true)}>📝 Messages</button>{QUICK.map((qq) => <button key={qq} disabled={busy} onClick={() => send({ text: qq })}>{qq}</button>)}</div>
           <div className="dta-bar">
             <input ref={fileRef} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) { const u = await shrink(f).catch(() => ""); if (u) send({ image: u }); else setNote("Couldn't read that photo."); } }} />
             <button className="dta-cb" onClick={() => fileRef.current?.click()} aria-label="Send a photo">📷</button>
-            <textarea rows={1} value={text} placeholder="Type a message…" maxLength={2000} onChange={(e) => setText(e.target.value)}
+            <textarea ref={taRef} rows={text.length > 120 ? 4 : text.length > 50 ? 2 : 1} value={text} placeholder="Type a message…" maxLength={2000} onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (text.trim()) send({ text: text.trim() }); } }} />
             <button className="dta-cb send" disabled={busy || !text.trim()} onClick={() => send({ text: text.trim() })} aria-label="Send">➤</button>
           </div>
@@ -266,7 +270,24 @@ function Chat({ id, row, me, onBack, onOpen }: { id: string; row?: Row; me: stri
         // eslint-disable-next-line @next/next/no-img-element
         <div className="dta-zoom" onClick={() => setZoom("")}><img src={zoom} alt="Photo" /></div>
       )}
-      <span hidden>{me}</span>
+      {sheet && (
+        <div className="dta-sh" onClick={() => setSheet(false)}>
+          <div className="dta-shb" onClick={(e) => e.stopPropagation()}>
+            <div className="dta-shh"><b>Ready messages</b><button className="dta-x" onClick={() => setSheet(false)}>✕</button></div>
+            <p className="dta-sub" style={{ margin: "0 0 10px" }}>Tap one — it goes in the message box so you can change it before sending.</p>
+            <div className="dta-seg" style={{ marginBottom: 6 }}>{([["en", "English"], ["hi", "हिंदी"], ["gu", "ગુજરાતી"]] as const).map(([k, l]) => <button key={k} className={lang === k ? "on" : ""} onClick={() => setLang(k)}>{l}</button>)}</div>
+            {Array.from(new Set(TPL.map((t) => t.g))).map((g) => (
+              <div key={g}>
+                <h4 className="dta-shg">{g}</h4>
+                {TPL.filter((t) => t.g === g).map((t, i) => {
+                  const msg = fillTpl(t.t[lang], name, me);
+                  return <button key={g + i} className="dta-tp" onClick={() => { setText(msg); setSheet(false); setTimeout(() => taRef.current?.focus(), 50); }}>{msg}</button>;
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -400,5 +421,13 @@ body:has(.dta){background:#EFE7DC}
 .dta-cta{width:100%;background:var(--teal)!important;color:#fff!important;border-radius:16px;padding:15px;font-weight:700;margin-top:14px;font-size:15px}
 .dta-priv{font-size:11.5px;color:var(--mute);text-align:center;margin-top:8px}
 .dta-pb{padding:14px 14px 40px}
+.dta .dta-sh .dta-seg button{background:#fff}.dta .dta-sh .dta-seg button.on{background:var(--g);color:#fff}
+.dta-qr .tp{background:var(--teal)!important;color:#fff!important}
+.dta-sh{position:fixed;inset:0;background:rgba(31,43,44,.45);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.dta-shb{background:var(--bg);width:100%;max-width:480px;max-height:82vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+.dta-shh{display:flex;justify-content:space-between;align-items:center}.dta-shh b{font-family:var(--font-instrument),Fredoka;font-size:19px;font-weight:600}
+.dta-x{width:34px;height:34px;border-radius:12px;background:var(--cream)!important;color:var(--teal)!important;font-weight:700}
+.dta-shg{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
+.dta button.dta-tp{display:block;width:100%;text-align:left;background:#fff;border-radius:16px;padding:11px 13px;font-size:13.5px;line-height:1.45;margin-bottom:7px}
 ` }} />;
 }

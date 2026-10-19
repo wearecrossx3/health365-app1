@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
-import { isDietitianApp, portalDietitian } from "@/lib/portal";
+import { isDietitianApp, isOwnerApp, portalDietitian } from "@/lib/portal";
+import OwnerHome from "./OwnerHome";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getAdminAccess, defaultAdminPath } from "@/lib/admin";
@@ -13,7 +14,7 @@ import WhatsAppAlertsCard from "./WhatsAppAlertsCard";
 import { ADMIN_APP, DIETITIAN_APP } from "@/lib/appDownloads";
 import { getWhatsAppHealth } from "@/lib/whatsapp";
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: { searchParams?: { full?: string } }) {
   const cookieStore = cookies();
   const session = verifySessionCookieValue(cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value);
   const access = await getAdminAccess(session);
@@ -38,6 +39,8 @@ export default async function AdminPage() {
     (c) => c.status === "submitted" && c.conditions.length > 0
   );
   const pendingDietitians = dietitianApps.filter((d) => d.status === "pending");
+  if (isOwnerApp(headers().get("user-agent")) && !searchParams?.full)
+    return <OwnerHome name={session?.name || ""} users={users} needsReview={needsReview} pending={pendingDietitians} appointments={appointments} consultations={consultations.length} />;
 
   return (
           <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "48px 24px" }}>

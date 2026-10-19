@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
-import { isDietitianApp } from "@/lib/portal";
+import { isDietitianApp, isOwnerApp } from "@/lib/portal";
+import OwnerAppShell from "./OwnerAppShell";
 import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getAdminAccess } from "@/lib/admin";
@@ -13,6 +14,9 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   if (!access.allowed) redirect("/admin/login");
   // Joined dietitians get their own app-style portal, without the admin menu.
   if (access.dietitianId || isDietitianApp(headers().get("user-agent"))) return <>{children}</>;
+  // The owner's Admin app gets the same app-style look as the Dietitian app.
+  if (isOwnerApp(headers().get("user-agent")))
+    return <OwnerAppShell name={session!.name} permissions={access.permissions} isSuperAdmin={access.isSuperAdmin}><PushNotificationSetup />{children}</OwnerAppShell>;
 
   return (
     <div className="admin-shell">
