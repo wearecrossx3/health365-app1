@@ -13,10 +13,11 @@ export async function GET(req: NextRequest) {
   const base = siteBase(req);
   if (!googleEnabled()) return NextResponse.redirect(`${base}/login?google=off`);
   const app = q.get("app") === "1";
+  const admin = q.get("admin") === "1"; // Team & Dietitian login (browser only)
   const rawNext = q.get("next") || "/dashboard";
   const next = /^\/(?![\/\\])/.test(rawNext) ? rawNext : "/dashboard";
   const nonce = crypto.randomBytes(16).toString("hex");
   const res = NextResponse.redirect(googleAuthUrl(base, nonce));
-  res.cookies.set("h365_gstate", JSON.stringify({ nonce, app, next }), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 600 });
+  res.cookies.set("h365_gstate", JSON.stringify({ nonce, app, admin, next }), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 600 });
   return res;
 }
