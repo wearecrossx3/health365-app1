@@ -59,7 +59,7 @@ export default function WhatsAppAlertsCard() {
         <span style={{ fontSize: ".72rem", fontWeight: 700, padding: "5px 11px", borderRadius: 100, color: "#fff", background: badge[1] }}>{badge[0]}</span>
       </div>
       <p className="text-sm" style={{ color: "var(--ink-soft)", marginTop: 8 }}>
-        Get a WhatsApp on your own phone when someone joins, books, pays or sends a consultation. Only for you and your team — not for customers.
+        Get a WhatsApp on your own phone when someone joins, books, pays or sends a consultation. Only for you and your team — not for customers. For privacy the WhatsApp only says what happened (e.g. “New appointment booked”); names and details stay in the Admin app.
       </p>
 
       {phones.map((p) => (

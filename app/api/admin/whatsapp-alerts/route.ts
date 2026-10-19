@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     if (next.length >= 5) return NextResponse.json({ error: "You can add up to 5 numbers." }, { status: 400 });
     next.push({ phone, apikey, name, addedAt: new Date().toISOString() });
     await saveAlertPhones(next);
-    const r = await sendAdminWhatsApp("✅ *Health365 alerts are on*\nYou'll get a WhatsApp here when someone joins, books or sends a consultation.", phone);
+    const r = await sendAdminWhatsApp("✅ *Health365 alerts are on*\nYou'll get a short WhatsApp here when someone joins, books or sends a consultation — details stay in the Admin app.", phone);
     return NextResponse.json({ ok: true, tested: r.sent > 0, error: r.errors[0] || "" });
   }
   if (b.action === "remove") {

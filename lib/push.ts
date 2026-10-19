@@ -39,7 +39,7 @@ export async function sendPushToAdmins(payload: PushPayload): Promise<void> {
   // Also feeds the Health365 Admin app (it can't receive browser web-push).
   await addAdminEvent({ id: crypto.randomUUID(), title: payload.title, body: payload.body, url: payload.url, at: Date.now() }).catch(() => {});
   // Free WhatsApp alert to the owner's own phone (CallMeBot), if set up.
-  const wa = sendAdminWhatsApp(`*${payload.title}*\n${payload.body}`).catch(() => null);
+  const wa = sendAdminWhatsApp(waAlertText(payload.title)).catch(() => null);
   // Most callers don't await this, so ask Vercel to keep the function alive until it's sent.
   try {
     const ctx = (globalThis as unknown as Record<symbol, { get?: () => { waitUntil?: (p: Promise<unknown>) => void } }>)[Symbol.for("@vercel/request-context")]?.get?.();
@@ -71,4 +71,23 @@ async function sendWebPush(payload: PushPayload): Promise<void> {
       }
     })
   );
+}
+
+// WhatsApp alerts go through a third party (CallMeBot), so they carry NO
+// customer details — only what happened. Names, emails, phones and messages
+// stay inside the Admin app / panel.
+function waAlertText(title: string): string {
+  const t = title.toLowerCase();
+  const what =
+    t.includes("test") ? "🔔 Test alert — WhatsApp alerts are working"
+    : t.includes("password") ? "🔑 Password reset request"
+    : t.includes("paid") || title.includes("💰") ? "💰 New paid consultation / booking"
+    : t.includes("appointment") ? "📅 New appointment booked"
+    : t.includes("needs review") ? "⚠️ New consultation — needs review"
+    : t.includes("consultation") ? "📝 New consultation"
+    : t.includes("dietitian") ? "🩺 New dietitian application"
+    : t.includes("joined") ? "👋 New member joined"
+    : t.includes("message") || t.includes("chat") ? "💬 New message"
+    : "🔔 New activity";
+  return `*Health365*: ${what}\nOpen the Admin app for details.`;
 }
