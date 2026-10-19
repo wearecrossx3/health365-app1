@@ -8,6 +8,7 @@ import AppointmentRow from "./AppointmentRow";
 import DietitianActionButtons from "./DietitianActionButtons";
 import { getScanHealth } from "@/lib/scanStats";
 import AdminAlertsCard from "./AdminAlertsCard";
+import WhatsAppAlertsCard from "./WhatsAppAlertsCard";
 import { getWhatsAppHealth } from "@/lib/whatsapp";
 
 export default async function AdminPage() {
@@ -66,6 +67,7 @@ export default async function AdminPage() {
         </div>
 
         <AdminAlertsCard />
+        <WhatsAppAlertsCard />
 
         {wa && (() => {
           const st: [string, string, string] = !wa.configured

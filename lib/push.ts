@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import crypto from "crypto";
 import { listAllPushSubscriptions, deletePushSubscription, addAdminEvent } from "./kv";
+import { sendAdminWhatsApp } from "./adminWhatsApp";
 
 // Fallback keys so notifications work out of the box without extra setup.
 // For a production deploy, generate your own pair (`npx web-push
@@ -37,6 +38,17 @@ export interface PushPayload {
 export async function sendPushToAdmins(payload: PushPayload): Promise<void> {
   // Also feeds the Health365 Admin app (it can't receive browser web-push).
   await addAdminEvent({ id: crypto.randomUUID(), title: payload.title, body: payload.body, url: payload.url, at: Date.now() }).catch(() => {});
+  // Free WhatsApp alert to the owner's own phone (CallMeBot), if set up.
+  const wa = sendAdminWhatsApp(`*${payload.title}*\n${payload.body}`).catch(() => null);
+  // Most callers don't await this, so ask Vercel to keep the function alive until it's sent.
+  try {
+    const ctx = (globalThis as unknown as Record<symbol, { get?: () => { waitUntil?: (p: Promise<unknown>) => void } }>)[Symbol.for("@vercel/request-context")]?.get?.();
+    ctx?.waitUntil?.(wa);
+  } catch { /* not on Vercel */ }
+  try { await sendWebPush(payload); } finally { await wa; }
+}
+
+async function sendWebPush(payload: PushPayload): Promise<void> {
   ensureConfigured();
   const subs = await listAllPushSubscriptions();
   if (subs.length === 0) return;
