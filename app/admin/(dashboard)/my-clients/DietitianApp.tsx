@@ -421,6 +421,7 @@ body:has(.dta){background:#EFE7DC}
 .dta-cta{width:100%;background:var(--teal)!important;color:#fff!important;border-radius:16px;padding:15px;font-weight:700;margin-top:14px;font-size:15px}
 .dta-priv{font-size:11.5px;color:var(--mute);text-align:center;margin-top:8px}
 .dta-pb{padding:14px 14px 40px}
+.dta .dta-seg button{background:var(--bg)}.dta .dta-seg button.on{background:var(--g);color:#fff}
 .dta .dta-sh .dta-seg button{background:#fff}.dta .dta-sh .dta-seg button.on{background:var(--g);color:#fff}
 .dta-qr .tp{background:var(--teal)!important;color:#fff!important}
 .dta-sh{position:fixed;inset:0;background:rgba(31,43,44,.45);z-index:60;display:flex;align-items:flex-end;justify-content:center}
