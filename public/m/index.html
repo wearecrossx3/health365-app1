@@ -2121,6 +2121,14 @@ async function makeOneDay(){closeSheet();busyOv(true,'Making today’s plan…')
   S.plan=p;S.plan.len=1;day=0;save();if(cur!=='plan')tab('plan');else renderPlan();setTimeout(()=>{celebrate(false);toast('Today’s plan is ready 🌿')},200)}
 
 /* ---------- dietitian-assigned plans (after a paid consultation) ---------- */
+function showPlanPop(p){const d=p&&p.dt;if(!d||S.planPopSeen===d.id)return;
+  if(d.at&&Date.now()-Date.parse(d.at)>7*864e5){S.planPopSeen=d.id;save();return}
+  if($('#sheet').classList.contains('on')||$('#tour.on')){setTimeout(()=>showPlanPop(p),2500);return}
+  S.planPopSeen=d.id;save();
+  $('#offerIn').innerHTML=`<div class="ot" style="background-color:${C.teal};color:#fff">${E('stetho','float')}<span class="badge2">${tr('New')}</span><h3>${tr('Your diet plan is ready')} 🩺</h3></div>
+   <div class="ob"><p>${tr('{0} sent your personal diet plan.').replace('{0}',esc(d.by||tr('Your dietitian')))}${d.note?`<br><br>“${esc(d.note)}”`:''}</p>
+   <button class="btn" onclick="closeOffer();tab('plan')">${tr('See my plan')}</button><button class="later" onclick="closeOffer()">${tr('Later')}</button></div>`;
+  $('#offer').classList.add('on');celebrate(false)}
 async function syncPlans(){if(!S.token)return;const r=await api('/plans');if(!r.ok)return;
   S.access=r.data.access;S.grants=r.data.grants||0;S.freeUsedSrv=!!r.data.freeUsed;const ap=r.data.activePlan;
   if(ap&&ap.days&&ap.days.length&&(!S.plan||!S.plan.dt||S.plan.dt.id!==ap.id)){
@@ -2131,7 +2139,7 @@ async function syncPlans(){if(!S.token)return;const r=await api('/plans');if(!r.
     p.made=ap.startsOn&&ap.startsOn<=dkey()?ap.startsOn:dkey();day=null;S.plan=p;S.onboarded=true;save();
     const msg=`${p.dt.by} sent your personal diet plan. Tap to see it.`;
     try{if(hasA()&&typeof Android.notifyNow==='function'&&document.hidden)Android.notifyNow('Your diet plan is ready 🩺',msg,'plan')}catch(e){}
-    if(cur==='home'||cur==='plan'){ENTER[cur]();setTimeout(()=>{celebrate(false);toast('Your dietitian sent your plan 🩺')},300)}}
+    if(cur==='home'||cur==='plan')ENTER[cur]();showPlanPop(p)}
   else save();
   if(cur==='home')renderHome();maybeGift()}
 
@@ -2147,7 +2155,7 @@ function macroBars(tot,p,light){return `<div class="macros">${[['Protein',tot.p,
 function renderHome(){maybeAskRem();normTrack();streakChip();renderWeekCard();
   if(!S.plan){S.plan=makePlan();save()}const p=S.plan,t=T(),h=new Date().getHours(),now=new Date();
   $('#hDate').textContent=`${DNL[now.getDay()]}, ${now.getDate()} ${MON[now.getMonth()]} · Day ${daysSinceStart()}`;
-  $('#hi').textContent=tr(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+(S.name||'there');
+  $('#hi').textContent=tr(h>=5&&h<12?'Good morning':h>=12&&h<17?'Good afternoon':h>=17&&h<22?'Good evening':'Good night')+', '+(S.name||'there');
   paintAv($('#hAv'));
   // week strip
   $('#week').innerHTML=[-3,-2,-1,0,1,2,3].map(o=>{const d=dOff(o),k=dkey(d),tr=S.track[k]||{done:[]},fr=p.slotIdx.length?(tr.done||[]).filter(x=>p.slotIdx.includes(x)).length/p.slotIdx.length:0,fl=((S.food||{})[k]||[]).length;

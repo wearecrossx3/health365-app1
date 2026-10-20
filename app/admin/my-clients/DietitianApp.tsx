@@ -5,7 +5,7 @@ import PlanBuilder, { Plan } from "../(dashboard)/plan-generator/PlanBuilder";
 import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
 
 type Profile = { goal: string; conditions: string[]; diet: string } | null;
-type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; profile: Profile };
+type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; bookedAt?: number; profile: Profile };
 type Msg = { id: string; from: "client" | "dietitian" | "team"; text: string; img?: string; at: number; flagged?: boolean };
 type Detail = {
   thread: { id: string; client: string; date: string; time: string; status: string; open: boolean; note: string; outcome: string };
@@ -18,6 +18,10 @@ type View = { kind: "chat" | "client" | "plan"; id: string; copy?: Plan | null }
 const COLORS = ["#F6961D", "#9997C9", "#4EAA67", "#287379", "#E5394F", "#C27A12"];
 const color = (s: string) => COLORS[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const today = () => new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
+const mins = (t: string) => { const m = /(\d+):(\d+)\s*(AM|PM)/i.exec(t || ""); if (!m) return 0; let h = +m[1] % 12; if (/pm/i.test(m[3])) h += 12; return h * 60 + +m[2]; };
+// 5–11 morning, 12–16 afternoon, 17–21 evening, otherwise night (it's often past midnight when people reply).
+const greet = (h: number) => (h >= 5 && h < 12 ? "Good morning" : h >= 12 && h < 17 ? "Good afternoon" : h >= 17 && h < 22 ? "Good evening" : "Good night");
+const dayLabel = (d: string) => (d === today() ? "Today" : new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }));
 const fmtDate = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 const ago = (t: number) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `${m}m` : m < 1440 ? `${Math.round(m / 60)}h` : `${Math.round(m / 1440)}d`; };
 const COND: Record<string, string> = { diabetes: "Diabetes", pcos: "PCOS", thyroid: "Thyroid", cholesterol: "Cholesterol", digestive: "Digestive", weight: "Weight", oncology: "Cancer care" };
@@ -48,6 +52,21 @@ export default function DietitianApp() {
     setRows(d.threads); setMe(d.me); setEarn(d.earnings);
   };
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
+  // "New booking" pop-up: bookings this dietitian hasn't seen yet (remembered on this phone).
+  const [fresh, setFresh] = useState<Row[]>([]);
+  useEffect(() => {
+    if (!rows) return;
+    let seen = 0;
+    try { seen = Number(localStorage.getItem("dt_seen_booking") || 0); } catch {}
+    if (!seen) seen = Date.now() - 24 * 3600e3;
+    const n = rows.filter((r) => r.status === "booked" && (r.bookedAt || 0) > seen && r.date >= today());
+    setFresh(n.sort((a, b) => (b.bookedAt || 0) - (a.bookedAt || 0)));
+  }, [rows]);
+  const seenAll = () => {
+    const max = Math.max(Date.now(), ...fresh.map((r) => r.bookedAt || 0));
+    try { localStorage.setItem("dt_seen_booking", String(max)); } catch {}
+    setFresh([]);
+  };
   useEffect(() => { window.scrollTo(0, 0); }, [tab, view]);
 
   const unread = (rows || []).filter((r) => r.unread).length;
@@ -75,6 +94,8 @@ export default function DietitianApp() {
   const todays = rows.filter((r) => r.date === td && r.status === "booked");
   const waiting = rows.filter((r) => r.unread).sort((a, b) => a.lastAt - b.lastAt);
   const follow = rows.filter((r) => r.outcome === "follow-up" && r.open);
+  const upcoming = rows.filter((r) => r.status === "booked" && r.date >= td && !(r.date === td && todays.includes(r))).sort((a, b) => a.date.localeCompare(b.date) || mins(a.time) - mins(b.time));
+  const isNew = (r: Row) => !!r.bookedAt && Date.now() - r.bookedAt < 48 * 3600e3 && r.lastFrom !== "dietitian";
   const list = rows
     .filter((r) => !q || r.clientName.toLowerCase().includes(q.toLowerCase()))
     .filter((r) => filter === "all" || (filter === "unread" && r.unread) || (filter === "today" && r.date === td) || (filter === "follow" && r.outcome === "follow-up"));
@@ -89,13 +110,29 @@ export default function DietitianApp() {
 
   return (
     <div className="dta"><Style />
+      {fresh.length > 0 && (
+        <div className="dta-sh dta-pop" onClick={seenAll}>
+          <div className="dta-shb" onClick={(e) => e.stopPropagation()}>
+            <div className="dta-shh"><b>{fresh.length > 1 ? `${fresh.length} new bookings 🎉` : "New booking 🎉"}</b><button className="dta-x" aria-label="Close" onClick={seenAll}>✕</button></div>
+            <p className="dta-sub" style={{ margin: "2px 0 10px" }}>Say hello so they know you’ve seen it.</p>
+            {fresh.slice(0, 4).map((r) => (
+              <div key={r.id} className="dta-nb">
+                <span className="dta-av" style={{ background: color(r.clientName) }}>{r.clientName[0]}</span>
+                <span style={{ flex: 1, minWidth: 0 }}><b>{r.clientName}</b><small>{dayLabel(r.date)} · {r.time}{r.profile?.goal ? " · " + r.profile.goal : ""}</small></span>
+                <button className="dta-lime" onClick={() => { seenAll(); setView({ kind: "chat", id: r.id }); }}>Open chat</button>
+              </div>
+            ))}
+            <button className="dta-ok" onClick={seenAll}>OK, got it</button>
+          </div>
+        </div>
+      )}
       <div className="dta-sc">
         {tab === "today" && (
           <>
-            <p className="dta-sub">Good {hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"},</p>
+            <p className="dta-sub">{greet(hour)},</p>
             <h1>{first || "Doctor"} 👋</h1>
             <div className="dta-hero">
-              <b>{todays.length ? `${todays.length} consultation${todays.length > 1 ? "s" : ""} today` : "No consultations today"}</b>
+              <b>{todays.length ? `${todays.length} consultation${todays.length > 1 ? "s" : ""} today` : upcoming.length ? `Next: ${upcoming[0].clientName} · ${dayLabel(upcoming[0].date)}, ${upcoming[0].time}` : "No consultations today"}</b>
               <p>{waiting.length ? "Clients are waiting in chat — reply within a few hours." : "You're all caught up. 🌿"}</p>
               {todays.slice(0, 2).map((r) => (
                 <div key={r.id} className="dta-next">
@@ -110,6 +147,7 @@ export default function DietitianApp() {
               <div><small>Follow-ups due</small><b>{follow.length}</b></div>
               <div><small>This month</small><b>{earn.thisMonth}</b></div>
             </div>
+            {upcoming.length > 0 && (<><h2 className="dta-sec">Upcoming consultations</h2>{upcoming.slice(0, 5).map((r) => item(r, isNew(r) ? <span className="dta-tag new">New</span> : <span className="dta-soft">{r.time}</span>, `${dayLabel(r.date)} · ${r.time}${r.profile?.goal ? " · " + r.profile.goal : ""}`))}</>)}
             <h2 className="dta-sec">Needs your reply {waiting.length > 0 && <button onClick={() => { setTab("chats"); setFilter("unread"); }}>See all</button>}</h2>
             {waiting.length === 0 ? <p className="dta-empty">No one is waiting. 👍</p> : waiting.slice(0, 4).map((r) => item(r, <span className="dta-tag late">{ago(r.lastAt)}</span>))}
             {follow.length > 0 && (<><h2 className="dta-sec">Follow-ups due</h2>{follow.map((r) => item(r, <span className="dta-soft">Message</span>, "Check how they're doing"))}</>)}
@@ -424,6 +462,11 @@ body:has(.dta){background:#EFE7DC}
 .dta .dta-seg button{background:var(--bg)}.dta .dta-seg button.on{background:var(--g);color:#fff}
 .dta .dta-sh .dta-seg button{background:#fff}.dta .dta-sh .dta-seg button.on{background:var(--g);color:#fff}
 .dta-qr .tp{background:var(--teal)!important;color:#fff!important}
+.dta-tag.new{background:var(--lime);color:var(--ink)}
+.dta-sh.dta-pop{align-items:center;padding:16px}.dta-pop .dta-shb{border-radius:24px;max-width:420px}
+.dta-nb{display:flex;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.dta-nb b{display:block;font-size:15px}.dta-nb small{display:block;font-size:12px;color:var(--mute)}
+.dta button.dta-ok{display:block;width:100%;margin-top:6px;background:var(--teal);color:#fff;border-radius:14px;padding:13px;font-weight:700;font-size:15px}
 .dta-sh{position:fixed;inset:0;background:rgba(31,43,44,.45);z-index:60;display:flex;align-items:flex-end;justify-content:center}
 .dta-shb{background:var(--bg);width:100%;max-width:480px;max-height:82vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
 .dta-shh{display:flex;justify-content:space-between;align-items:center}.dta-shh b{font-family:var(--font-instrument),Fredoka;font-size:19px;font-weight:600}

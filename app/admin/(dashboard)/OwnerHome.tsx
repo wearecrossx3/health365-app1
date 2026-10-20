@@ -28,7 +28,7 @@ export default function OwnerHome({ name, users, needsReview, pending, appointme
   const first = (name || "").split(" ")[0];
   return (
     <div className="oh">
-      <p className="oh-sub">Good {h < 12 ? "morning" : h < 17 ? "afternoon" : "evening"},</p>
+      <p className="oh-sub">{h >= 5 && h < 12 ? "Good morning" : h >= 12 && h < 17 ? "Good afternoon" : h >= 17 && h < 22 ? "Good evening" : "Good night"},</p>
       <h1 className="oh-h1">{first || "Owner"} 👋</h1>
 
       <div className="oh-hero">

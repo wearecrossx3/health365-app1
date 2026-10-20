@@ -17,13 +17,16 @@ export async function GET(req: NextRequest) {
   if (!session) return appJson({ error: "Please log in again.", code: "auth" }, 401);
   try {
     const [ent, plans] = await Promise.all([getEntitlement(session.userId), listUserPlans(session.userId)]);
-    const active = plans.find((p) => p.active) || null;
+    // Never show a team member's email as "sent by" in the app.
+    const who = (b: string) => (/@/.test(b || "") ? "Your dietitian" : b);
+    const found = plans.find((p) => p.active);
+    const active = found ? { ...found, assignedBy: who(found.assignedBy) } : null;
     return appJson({
       access: sevenDayAccess(ent),
       freeUsed: ent.freeUsed,
       grants: ent.grants,
       activePlan: active,
-      plans: plans.map((p) => ({ id: p.id, title: p.title, assignedAt: p.assignedAt, assignedBy: p.assignedBy, active: p.active, targetKcal: p.targetKcal })),
+      plans: plans.map((p) => ({ id: p.id, title: p.title, assignedAt: p.assignedAt, assignedBy: who(p.assignedBy), active: p.active, targetKcal: p.targetKcal })),
     });
   } catch (err) {
     console.error("App plans failed:", err);

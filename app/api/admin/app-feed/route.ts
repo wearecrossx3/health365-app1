@@ -32,10 +32,15 @@ export async function GET(req: NextRequest) {
   // Dietitian app: only "new message from <client>" for their own chats — no admin alerts.
   const portalId = access.dietitianId || (isDietitianApp(req.headers.get("user-agent")) ? await portalDietitian(session) : null);
   if (portalId) {
-    const events = (await threadsForDietitian(portalId))
+    const threads = await threadsForDietitian(portalId);
+    const when = (d: string, t: string) => `${new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${t}`;
+    const bookings = threads
+      .filter((t) => t.status === "booked" && t.bookedAt > since)
+      .map((t) => ({ id: `book-${t.id}`, title: `New booking: ${t.clientName} 📅`, body: `${when(t.date, t.time)}. Open Health365 Dietitian to say hello.`, url: "/admin/my-clients", at: t.bookedAt }));
+    const chats = threads
       .filter((t) => t.unread && t.lastAt > since && t.lastFrom === "client")
-      .slice(0, 10)
       .map((t) => ({ id: `chat-${t.id}-${t.lastAt}`, title: `New message from ${t.clientName} 💬`, body: "Open Health365 Dietitian to reply.", url: "/admin/my-clients", at: t.lastAt }));
+    const events = [...bookings, ...chats].sort((a, b) => b.at - a.at).slice(0, 10);
     return NextResponse.json({ events, now: Date.now() }, { headers: { "Cache-Control": "no-store" } });
   }
   const perms = access.permissions as string[];
