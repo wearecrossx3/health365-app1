@@ -35,7 +35,8 @@ export default function AdminLoginPage() {
       setError(data.error || "Incorrect email or password.");
       return;
     }
-    router.push("/admin");
+    const next = new URLSearchParams(location.search).get("next") || "";
+    router.push(/^\/admin(\/[\w/-]*)?$/.test(next) ? next : "/admin");
     router.refresh();
   }
 

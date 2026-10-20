@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import PlanBuilder, { Plan } from "../plan-generator/PlanBuilder";
+import PlanBuilder, { Plan } from "../(dashboard)/plan-generator/PlanBuilder";
 import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
 
 type Profile = { goal: string; conditions: string[]; diet: string } | null;

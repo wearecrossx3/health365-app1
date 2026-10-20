@@ -46,7 +46,7 @@ export default function DietitianAppPage() {
           <div className="step-card" style={{ textAlign: "left", marginTop: 18 }}>
             <h2 style={{ fontSize: "1.15rem", marginBottom: 12 }}>On iPhone</h2>
             <ol style={{ paddingLeft: 20, display: "flex", flexDirection: "column", gap: 10, lineHeight: 1.55, fontSize: ".95rem" }}>
-              <li>Open <Link href="/admin/login" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>thehealth365.in/admin</Link> in <b>Safari</b> and log in.</li>
+              <li>Open <Link href="/admin/my-clients" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>thehealth365.in/admin/my-clients</Link> in <b>Safari</b> and log in.</li>
               <li>Tap the <b>Share</b> button, then <b>Add to Home Screen</b>.</li>
               <li>Open <b>H365 Dietitian</b> from your home screen. It opens full screen, just like the Android app.</li>
             </ol>
