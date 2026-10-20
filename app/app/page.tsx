@@ -111,7 +111,7 @@ const faqs = [
   ["Which diets does it support?", "Vegetarian, Jain, eggetarian, non-vegetarian and vegan. You can also list foods you avoid — nuts, dairy, gluten, soy and more — and the plan works around them."],
   ["I have PCOS, diabetes or thyroid. Is it for me?", "Yes — choose “Manage a Condition” and pick what applies. Plans are condition-focused and reviewed by a real dietitian. It's general nutrition guidance, not a diagnosis, so keep your doctor in the loop, especially if you take medication."],
   ["Do I need internet for reminders?", "No. Meal, water and weigh-in reminders are set on your phone and work offline. You can change or turn them off anytime in Profile → Reminders."],
-  ["Is there an iPhone app?", "The Android app is coming to Google Play. On iPhone or a computer, you can get your plan on the web today."],
+  ["Is there an iPhone app?", "Yes, on the web. Open thehealth365.in/m in Safari and tap Share › Add to Home Screen. It opens full screen like an app, with the same account as Android."],
   ["Can I delete my data?", "Yes. You can delete your account and data anytime from the app or our delete-account page."],
 ];
 
