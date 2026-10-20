@@ -1,0 +1,16 @@
+{
+  "name": "Health365",
+  "short_name": "Health365",
+  "description": "Indian diet plans, meal and water tracking, and a real dietitian.",
+  "id": "/m",
+  "start_url": "/m",
+  "scope": "/m/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F0",
+  "theme_color": "#FFF8F0",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

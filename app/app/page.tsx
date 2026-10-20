@@ -134,6 +134,7 @@ export default function AppLandingPage() {
               <PlayButton />
               <Link href="/diet-plan" className="al-btn al-btn-ghost">Get my plan on the web <span aria-hidden>→</span></Link>
             </div>
+            <p className="al-ios">On iPhone? Open <a href="/m">thehealth365.in/m</a> in Safari, then tap Share › <b>Add to Home Screen</b>.</p>
             <ul className="al-mini">
               <li><Check />First day free</li>
               <li><Check />Veg, Jain, egg &amp; non-veg</li>

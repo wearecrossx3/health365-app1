@@ -204,3 +204,6 @@
   .al-phone.final{position:relative; right:auto; top:auto; width:230px; margin:44px auto -120px; transform:rotate(4deg)}
   .al-final{padding-bottom:80px}
 }
+
+.al-ios{margin-top:14px;font-size:.92rem;color:var(--ink-soft,#55615F);line-height:1.5}
+.al-ios a{color:var(--teal-deep,#1F5F64);font-weight:700}

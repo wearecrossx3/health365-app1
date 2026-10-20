@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { portalDietitian } from "@/lib/portal";
 import DietitianApp from "./DietitianApp";
+import { dietitianPwa } from "@/lib/dietitianPwa";
+
+export const metadata = dietitianPwa;
 
 export const dynamic = "force-dynamic";
 

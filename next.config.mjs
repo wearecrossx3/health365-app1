@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // The Health365 phone app, served on the web (iPhone users can
+  // "Add to Home Screen"). Files live in public/m/.
+  async rewrites() {
+    return [{ source: "/m", destination: "/m/index.html" }];
+  },
   async headers() {
     return [
       {
