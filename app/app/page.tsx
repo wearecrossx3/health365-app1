@@ -7,13 +7,13 @@ import "./app-landing.css";
 
 // Flip PLAY_LIVE to true on launch day — the Google Play button then
 // links straight to the store listing instead of showing "Coming soon".
-const PLAY_LIVE = false;
+const PLAY_LIVE = true;
 const PLAY_URL = "https://play.google.com/store/apps/details?id=com.frontpagestudios.health365";
 
 export const metadata: Metadata = {
   title: "Health365 app — Indian diet plans, built for your kitchen",
   description:
-    "Personalised 7-day Indian meal plans for weight, PCOS, diabetes, thyroid and more — with meal and water tracking, reminders and a real dietitian. Coming soon on Google Play.",
+    "Personalised 7-day Indian meal plans for weight, PCOS, diabetes, thyroid and more — with meal and water tracking, reminders and a real dietitian. Free on Google Play.",
   alternates: { canonical: "/app" },
   openGraph: {
     title: "Health365 app — Indian diet plans, built for your kitchen",
@@ -124,7 +124,7 @@ export default function AppLandingPage() {
       <section className="al-hero">
         <div className="al-wrap al-hero-grid">
           <div className="al-hero-copy">
-            <span className="al-badge"><i />Coming soon on Google Play</span>
+            <span className="al-badge"><i />Now on Google Play</span>
             <h1>Your diet plan, built for <em>your kitchen.</em></h1>
             <p className="al-lead">
               Personalised 7-day Indian meal plans for weight, PCOS, diabetes, thyroid and more — with meal and water
@@ -286,7 +286,7 @@ export default function AppLandingPage() {
           <div className="al-final-card">
             <div className="al-final-copy">
               <h2>Your health, <em>your 365.</em></h2>
-              <p>Health365 is coming soon to Google Play. Start your plan on the web today.</p>
+              <p>Get Health365 free on Google Play, or start your plan on the web today.</p>
               <div className="al-ctas">
                 <PlayButton big />
                 <Link href="/diet-plan" className="al-btn al-btn-light">Get my plan on the web <span aria-hidden>→</span></Link>
