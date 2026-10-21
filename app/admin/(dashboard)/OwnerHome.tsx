@@ -13,7 +13,7 @@ const ACTIONS: [string, string, string][] = [
   ["/admin/consult-chats", "💬", "Consult chats"],
   ["/admin/coupons", "🏷️", "Coupons"],
   ["/admin/offers", "🎁", "App offers"],
-  ["/admin?full=1", "⚙️", "Alerts & setup"],
+  ["/admin/dietitians", "👩‍⚕️", "Dietitians"],
 ];
 
 export default function OwnerHome({ name, users, needsReview, pending, appointments, consultations }: {
