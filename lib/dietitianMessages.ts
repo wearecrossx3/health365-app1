@@ -3,7 +3,7 @@
 export const DT_MESSAGES: { key: string; label: string; title: string; body: string }[] = [
   {
     key: "welcome", label: "Welcome: accept terms", title: "Welcome to Health365 🎉",
-    body: "Hi {name}, welcome to Health365! Your dietitian account is ready. Please open the H365 Dietitian app (download: thehealth365.in/dietitian-app), log in with your Health365 email and password, read the Terms for dietitians and tap “I agree”. After that you can start taking consultations.",
+    body: "Hi {name}, welcome to Health365! Your dietitian account is ready. Please download the H365 Dietitian app here:\nhttps://www.thehealth365.in/dietitian-app\n\nThen log in with your Health365 email and password, read the Terms for dietitians and tap “I agree”. After that you can start taking consultations.",
   },
   {
     key: "approved", label: "Approved: start using", title: "You're approved ✅",

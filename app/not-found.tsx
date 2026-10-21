@@ -1,10 +1,12 @@
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import FixPastedLink from "@/components/FixPastedLink";
 
 export default function NotFound() {
   return (
     <>
+      <FixPastedLink />
       <SiteHeader />
       <main>
         <div className="wrap" style={{ maxWidth: 640, paddingTop: 100, paddingBottom: 120, textAlign: "center" }}>
