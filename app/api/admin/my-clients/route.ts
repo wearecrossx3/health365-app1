@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   const month = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 7);
   const booked = rows.filter((t) => t.status === "booked");
   return NextResponse.json({
-    me: { name: d.name, fee },
+    me: { name: d.name, fee, photoUrl: appl?.photoUrl || "" },
     termsNeeded,
     threads,
     earnings: { fee, thisMonth: booked.filter((t) => t.date.startsWith(month)).length, total: booked.length },

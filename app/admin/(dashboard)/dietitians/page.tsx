@@ -44,6 +44,8 @@ export default async function DietitiansPage() {
         joinedAt: d.createdAt,
         termsAt: d.termsAcceptedAt || "",
         termsOk: d.termsVersion === TERMS_VERSION,
+        photoUrl: d.photoUrl || "",
+        pending: d.pendingChanges || null,
         total: booked.length,
         thisMonth: monthCount,
         clients: new Set(booked.map((a) => a.userId)).size,

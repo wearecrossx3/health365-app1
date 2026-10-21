@@ -59,7 +59,7 @@ export async function GET() {
       role: d.qualification,
       bio: d.about,
       quote: "",
-      photoUrl: "",
+      photoUrl: d.photoUrl || "",
       specializations: d.specializations || [],
       languages: d.languages || [],
       experienceYears: d.experienceYears || 0,

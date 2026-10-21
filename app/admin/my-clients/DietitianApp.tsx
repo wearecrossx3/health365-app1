@@ -44,6 +44,8 @@ export default function DietitianApp() {
   const [tab, setTab] = useState<"today" | "chats" | "clients" | "me">("today");
   const [view, setView] = useState<View>(null);
   const [terms, setTerms] = useState(false);
+  const [photo, setPhoto] = useState("");
+  const [editing, setEditing] = useState(false);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -51,7 +53,7 @@ export default function DietitianApp() {
     const r = await fetch("/api/admin/my-clients", { cache: "no-store" }).catch(() => null);
     if (!r || !r.ok) return;
     const d = await r.json();
-    setRows(d.threads); setMe(d.me); setEarn(d.earnings); setTerms(!!d.termsNeeded);
+    setRows(d.threads); setMe(d.me); setEarn(d.earnings); setTerms(!!d.termsNeeded); setPhoto(d.me?.photoUrl || "");
   };
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
   // "New booking" pop-up: bookings this dietitian hasn't seen yet (remembered on this phone).
@@ -80,6 +82,7 @@ export default function DietitianApp() {
   if (!rows) return <div className="dta"><Style /><p className="dta-empty" style={{ paddingTop: 120 }}>Loading…</p></div>;
 
   if (terms) return <div className="dta"><Style /><TermsGate onDone={() => setTerms(false)} /></div>;
+  if (editing) return <div className="dta"><Style /><EditProfile onBack={() => { setEditing(false); load(); }} onPhoto={setPhoto} /></div>;
   if (view?.kind === "chat") return <div className="dta"><Style /><Chat id={view.id} row={rows.find((r) => r.id === view.id)} me={me.name} onBack={back} onOpen={(k) => setView({ kind: k, id: view.id })} /></div>;
   if (view?.kind === "client") return <div className="dta"><Style /><Client id={view.id} onBack={back} onChat={() => setView({ kind: "chat", id: view.id })} onPlan={(copy) => setView({ kind: "plan", id: view.id, copy })} /></div>;
   if (view?.kind === "plan") {
@@ -186,9 +189,13 @@ export default function DietitianApp() {
           <>
             <h1>Me</h1>
             <div className="dta-card" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <span className="dta-av" style={{ background: color(me.name || "D"), width: 56, height: 56, fontSize: 22 }}>{(first || "D")[0]}</span>
-              <div><b style={{ fontSize: 18 }}>{me.name}</b><p className="dta-sub" style={{ margin: 0 }}>Health365 dietitian</p></div>
+              {photo
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={photo} alt="" className="dta-ph" />
+                : <span className="dta-av" style={{ background: color(me.name || "D"), width: 56, height: 56, fontSize: 22 }}>{(first || "D")[0]}</span>}
+              <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontSize: 18 }}>{me.name}</b><p className="dta-sub" style={{ margin: 0 }}>Health365 dietitian</p></div>
             </div>
+            <button className="dta-edit" onClick={() => setEditing(true)}>✏️  Edit profile and photo</button>
             <div className="dta-stats">
               <div><small>This month</small><b>{earn.thisMonth}</b></div>
               <div><small>All clients</small><b>{earn.total}</b></div>
@@ -466,6 +473,19 @@ body:has(.dta){background:#EFE7DC}
 .dta .dta-sh .dta-seg button{background:#fff}.dta .dta-sh .dta-seg button.on{background:var(--g);color:#fff}
 .dta-qr .tp{background:var(--teal)!important;color:#fff!important}
 .dta-tag.new{background:var(--lime);color:var(--ink)}
+.dta-ph{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}.dta-ph.big{width:96px;height:96px}
+.dta button.dta-edit{display:block;width:100%;margin-top:12px;background:#fff;border-radius:16px;padding:14px;font-weight:700;font-size:14.5px;color:var(--teal);text-align:left}
+.dta-ep{padding-bottom:40px}
+.dta-phbox{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border-radius:20px;padding:18px;margin-top:4px}
+.dta-phbox small{font-size:12px;color:var(--mute);text-align:center}
+.dta-f{display:block;margin-top:14px}.dta-f>span{display:block;font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.dta-f input,.dta-f textarea{width:100%;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;font:inherit;font-size:15px;outline:none;box-sizing:border-box}
+.dta-f input:focus,.dta-f textarea:focus{border-color:var(--teal)}
+.dta-chips.wrap{flex-wrap:wrap;overflow:visible;margin-top:0}
+.dta .dta-chips.wrap button{background:#fff;border:1px solid var(--line)}.dta .dta-chips.wrap button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.dta-msg{background:var(--gs);color:#2f7a45;border-radius:14px;padding:12px 14px;font-size:13.5px;font-weight:600;margin-top:4px}
+.dta-wait{background:#FFF1DE;color:#9a5b08;border-radius:14px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:4px}
+.dta-ep .dta-ok{margin-top:22px}
 .dta-terms{padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
 .dta-tbox{background:#fff;border-radius:20px;padding:16px;margin-top:16px;max-height:52vh;overflow-y:auto;border:1px solid var(--line)}
 .dta-tok{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:14px;font-weight:600;line-height:1.45}
@@ -510,5 +530,105 @@ function TermsGate({ onDone }: { onDone: () => void }) {
       <button className="dta-ok" disabled={!ok || busy} onClick={accept}>{busy ? "Saving…" : "I agree, continue"}</button>
       <button className="dta-tout" onClick={async () => { await fetch("/api/auth/admin-logout", { method: "POST" }); location.href = "/admin/login"; }}>Log out</button>
     </div>
+  );
+}
+
+// Edit profile: photo, about, specialities, languages and city save at once;
+// fee, qualification and experience go to the Health365 team to approve.
+type Prof = { name: string; photoUrl: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; fee: string; about: string; pending: { qualification?: string; experienceYears?: number; fee?: string; at: string } | null };
+function EditProfile({ onBack, onPhoto }: { onBack: () => void; onPhoto: (u: string) => void }) {
+  const [p, setP] = useState<Prof | null>(null);
+  const [own, setOwn] = useState(false);
+  const [opts, setOpts] = useState<{ specializations: string[]; languages: string[] }>({ specializations: [], languages: [] });
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/my-clients/profile", { cache: "no-store" }).then((r) => r.json()).then((j) => {
+      if (j.own) { setOwn(true); return; }
+      const pr: Prof = j.profile;
+      // Show the values waiting for approval, so saving again keeps the request.
+      if (pr.pending) setP({ ...pr, qualification: pr.pending.qualification ?? pr.qualification, experienceYears: pr.pending.experienceYears ?? pr.experienceYears, fee: pr.pending.fee ?? pr.fee });
+      else setP(pr);
+      setOpts({ specializations: j.specializations || [], languages: j.languages || [] });
+    }).catch(() => setErr("Couldn't load your profile."));
+  }, []);
+
+  const set = (k: keyof Prof, v: unknown) => setP((x) => (x ? { ...x, [k]: v } : x));
+  const tog = (k: "specializations" | "languages", v: string) => p && set(k, p[k].includes(v) ? p[k].filter((x) => x !== v) : [...p[k], v]);
+
+  const pickPhoto = async (f: File | undefined) => {
+    if (!f) return;
+    setErr(""); setBusy("photo");
+    try {
+      // Square-crop and shrink to 600px before upload.
+      const img = await new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(f); });
+      const side = Math.min(img.width, img.height), S = 600;
+      const c = document.createElement("canvas"); c.width = S; c.height = S;
+      c.getContext("2d")!.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
+      const blob = await new Promise<Blob | null>((res) => c.toBlob(res, "image/jpeg", 0.86));
+      if (!blob) throw new Error("x");
+      const fd = new FormData(); fd.append("file", new File([blob], "photo.jpg", { type: "image/jpeg" }));
+      const r = await fetch("/api/admin/my-clients/photo", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || "Upload failed. Please try again.");
+      set("photoUrl", j.photoUrl); onPhoto(j.photoUrl); setMsg("Photo updated ✅");
+    } catch (e) {
+      setErr(e instanceof Error && e.message !== "x" ? e.message : "Couldn't use that photo. Try another one.");
+    }
+    setBusy("");
+  };
+
+  const save = async () => {
+    if (!p) return;
+    setErr(""); setMsg(""); setBusy("save");
+    const r = await fetch("/api/admin/my-clients/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) : {};
+    setBusy("");
+    if (!r || !r.ok) { setErr(j.error || "Couldn't save. Check your internet and try again."); return; }
+    setP((x) => (x ? { ...x, pending: j.profile.pending } : x));
+    setMsg(j.waiting ? "Saved ✅ Fee / qualification / experience changes go live after the Health365 team approves them." : "Saved ✅ Your profile is updated.");
+    window.scrollTo(0, 0);
+  };
+
+  return (
+    <>
+      <div className="dta-top"><button className="dta-back" onClick={onBack}>‹</button><div><b>Edit profile</b><small>What clients see when they book you</small></div></div>
+      <div className="dta-sc dta-ep">
+        {own && <p className="dta-empty">Your profile is managed by the Health365 team in Admin › Settings.</p>}
+        {!own && !p && !err && <p className="dta-empty">Loading…</p>}
+        {msg && <p className="dta-msg">{msg}</p>}
+        {err && <p className="dta-terr">{err}</p>}
+        {p && (
+          <>
+            <div className="dta-phbox">
+              {p.photoUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={p.photoUrl} alt="Your photo" className="dta-ph big" />
+                : <span className="dta-av" style={{ background: color(p.name || "D"), width: 96, height: 96, fontSize: 36 }}>{(p.name || "D")[0]}</span>}
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pickPhoto(e.target.files?.[0])} />
+              <button className="dta-soft" disabled={busy === "photo"} onClick={() => fileRef.current?.click()}>{busy === "photo" ? "Uploading…" : p.photoUrl ? "Change photo" : "Add photo"}</button>
+              <small>A clear, friendly face photo helps clients trust you.</small>
+            </div>
+
+            <label className="dta-f"><span>About you</span><textarea rows={4} maxLength={800} value={p.about} onChange={(e) => set("about", e.target.value)} placeholder="A short bio clients will read before booking." /></label>
+            <label className="dta-f"><span>City</span><input value={p.location} maxLength={80} onChange={(e) => set("location", e.target.value)} /></label>
+            <div className="dta-f"><span>Languages</span><div className="dta-chips wrap">{opts.languages.map((l) => <button key={l} className={p.languages.includes(l) ? "on" : ""} onClick={() => tog("languages", l)}>{l}</button>)}</div></div>
+            <div className="dta-f"><span>Specialities</span><div className="dta-chips wrap">{opts.specializations.map((l) => <button key={l} className={p.specializations.includes(l) ? "on" : ""} onClick={() => tog("specializations", l)}>{l}</button>)}</div></div>
+
+            <h3 className="dta-sec" style={{ marginTop: 24 }}>Needs approval</h3>
+            <p className="dta-sub" style={{ marginTop: 0 }}>Changes here go live after the Health365 team checks them.</p>
+            {p.pending && <p className="dta-wait">⏳ Waiting for approval: {[p.pending.fee !== undefined && `fee ${p.pending.fee || "(blank)"}`, p.pending.qualification && `qualification ${p.pending.qualification}`, p.pending.experienceYears !== undefined && `${p.pending.experienceYears} years`].filter(Boolean).join(", ")}</p>}
+            <label className="dta-f"><span>Fee per consultation</span><input value={p.fee} maxLength={60} onChange={(e) => set("fee", e.target.value)} placeholder="e.g. ₹800" /></label>
+            <label className="dta-f"><span>Qualification</span><input value={p.qualification} maxLength={120} onChange={(e) => set("qualification", e.target.value)} /></label>
+            <label className="dta-f"><span>Years of experience</span><input type="number" min={0} max={60} value={p.experienceYears} onChange={(e) => set("experienceYears", Number(e.target.value))} /></label>
+
+            <button className="dta-ok" disabled={busy === "save"} onClick={save}>{busy === "save" ? "Saving…" : "Save changes"}</button>
+          </>
+        )}
+      </div>
+    </>
   );
 }

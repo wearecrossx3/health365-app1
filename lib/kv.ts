@@ -130,6 +130,9 @@ export interface DietitianApplication {
   portal?: boolean; // Dietitian portal login (own clients only). Off only when the owner turns it off.
   termsAcceptedAt?: string; // when they accepted the dietitian terms
   termsVersion?: string; // which version (lib/dietitianTerms.ts TERMS_VERSION)
+  photoUrl?: string; // profile photo the dietitian uploads in the Dietitian app
+  // Fee / qualification / experience edits wait here until the owner approves them.
+  pendingChanges?: { qualification?: string; experienceYears?: number; fee?: string; at: string };
 }
 
 const dietitianKey = (id: string) => `dietitian:${id}`;

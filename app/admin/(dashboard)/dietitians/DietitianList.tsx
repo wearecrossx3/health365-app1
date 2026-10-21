@@ -8,7 +8,8 @@ export type DtRow = {
   id: string; name: string; email: string; phone: string;
   status: "pending" | "approved" | "rejected"; portal: boolean;
   qualification: string; experienceYears: number; specializations: string[]; languages: string[];
-  location: string; fee: number; feeText: string; about: string; joinedAt: string; termsAt: string; termsOk: boolean;
+  location: string; fee: number; feeText: string; about: string; joinedAt: string; termsAt: string; termsOk: boolean; photoUrl: string;
+  pending: { qualification?: string; experienceYears?: number; fee?: string; at: string } | null;
   total: number; thisMonth: number; clients: number; cancelled: number; waiting: number; plansSent: number;
   lastActive: number; activity: { at: number; what: string }[];
   upcoming: { date: string; time: string; client: string }[];
@@ -54,6 +55,12 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
     router.refresh();
   };
 
+  const decide = async (r: DtRow, decision: "approve" | "reject") => {
+    setBusy(r.id);
+    await fetch("/api/admin/dietitians", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "changes", id: r.id, decision }) }).catch(() => null);
+    setBusy("");
+    router.refresh();
+  };
   const approved = rows.filter((r) => r.status === "approved");
   const monthFees = approved.reduce((a, r) => a + r.fee * r.thisMonth, 0);
 
@@ -82,13 +89,17 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
         return (
           <div key={r.id} className={"dl-card" + (isOpen ? " open" : "")}>
             <button className="dl-head" onClick={() => setOpen(isOpen ? null : r.id)} aria-expanded={isOpen}>
-              <span className="dl-av">{(r.name || "?")[0].toUpperCase()}</span>
+              {r.photoUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={r.photoUrl} alt="" className="dl-av dl-img" />
+                : <span className="dl-av">{(r.name || "?")[0].toUpperCase()}</span>}
               <span className="dl-t">
                 <b>{r.name}</b>
                 <small>{[r.location, r.experienceYears ? `${r.experienceYears} yrs` : "", r.feeText ? `Fee ${r.feeText}` : ""].filter(Boolean).join(" · ")}</small>
               </span>
               <span className="dl-right">
                 <span className={"dl-pill " + STATUS[r.status][1]}>{STATUS[r.status][0]}</span>
+                {r.pending && <span className="dl-pill dl-wait">Change to approve</span>}
                 {r.status === "approved" && <small>{r.total} consult{r.total === 1 ? "" : "s"}{r.waiting ? ` · ${r.waiting} waiting` : ""}</small>}
               </span>
               <span className="dl-chev" aria-hidden>{isOpen ? "▴" : "▾"}</span>
@@ -96,6 +107,20 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
 
             {isOpen && (
               <div className="dl-body">
+                {r.pending && (
+                  <div className="dl-pend">
+                    <b>Wants to change (sent {ago(Date.parse(r.pending.at))})</b>
+                    <ul>
+                      {r.pending.fee !== undefined && <li>Fee: <s>{r.feeText || "—"}</s> → <b>{r.pending.fee || "(blank)"}</b></li>}
+                      {r.pending.qualification !== undefined && <li>Qualification: <s>{r.qualification || "—"}</s> → <b>{r.pending.qualification}</b></li>}
+                      {r.pending.experienceYears !== undefined && <li>Experience: <s>{r.experienceYears} yrs</s> → <b>{r.pending.experienceYears} yrs</b></li>}
+                    </ul>
+                    <div className="dl-pbtn">
+                      <button className="pill pill-primary" disabled={busy === r.id} onClick={() => decide(r, "approve")} style={{ padding: "8px 16px", fontSize: ".8rem" }}>Approve change</button>
+                      <button className="pill pill-outline" disabled={busy === r.id} onClick={() => decide(r, "reject")} style={{ padding: "8px 16px", fontSize: ".8rem" }}>Keep old</button>
+                    </div>
+                  </div>
+                )}
                 <h4>Contact</h4>
                 <div className="dl-contact">
                   <div className="dl-line"><span>Phone</span><b>{r.phone || "Not added"}</b>
@@ -193,6 +218,10 @@ const CSS = `
 .dl-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}.dl-right small{font-size:.74rem;color:var(--ink-soft);white-space:nowrap}
 .dl-pill{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}
 .dl-ok{background:#E3F1EC;color:var(--teal-deep)}.dl-wait{background:#FCEBDD;color:#A4511F}.dl-no{background:#EEE;color:#666}
+.dl-img{object-fit:cover;background:var(--paper)}
+.dl-pend{background:#FCEBDD;border-radius:14px;padding:12px 14px;margin-top:14px;font-size:.9rem}
+.dl-pend ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}.dl-pend s{color:var(--ink-soft)}
+.dl-pbtn{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .dl-chev{color:var(--ink-soft);font-size:.9rem;width:14px;text-align:center}
 .dl-body{padding:4px 16px 16px;border-top:1px solid var(--line)}
 .dl-body h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:16px 0 8px}

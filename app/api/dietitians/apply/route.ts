@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
       status: "pending",
       createdAt: existing?.createdAt || new Date().toISOString(),
       portal: existing?.portal,
+      photoUrl: existing?.photoUrl,
+      pendingChanges: existing?.pendingChanges,
       ...(body.termsAccepted ? { termsAcceptedAt: new Date().toISOString(), termsVersion: TERMS_VERSION } : { termsAcceptedAt: existing?.termsAcceptedAt, termsVersion: existing?.termsVersion }),
     };
     await createOrUpdateDietitianApplication(app);

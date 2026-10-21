@@ -11,7 +11,7 @@ import { SPECIALIZATIONS } from "@/lib/dietConditions";
 interface Dietitian {
   id: string; name: string; role: string; verified: boolean; specializations: string[];
   languages: string[]; experienceYears: number;
-  location: string; bio: string; qualNote: string; fee?: string;
+  location: string; bio: string; qualNote: string; fee?: string; photoUrl?: string;
 }
 
 const ASTHA_DEFAULT: Dietitian = {
@@ -70,6 +70,7 @@ function DietitiansContent() {
           bio: d.asthaBio || ASTHA_DEFAULT.bio,
           qualNote: "",
           fee: d.asthaFee || undefined,
+          photoUrl: d.asthaPhotoUrl || "",
         });
       })
       .catch(() => {});
@@ -79,8 +80,9 @@ function DietitiansContent() {
     fetch("/api/dietitians")
       .then((r) => r.json())
       .then((data) => {
-        const list: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; }) => ({
+        const list: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; photoUrl?: string }) => ({
           id: d.id,
+          photoUrl: d.photoUrl || "",
           name: d.name,
           role: d.qualification,
           verified: true,
@@ -167,7 +169,10 @@ function DietitiansContent() {
               {results.map((d, i) => (
                 <Reveal key={d.name} delay={i * 60} className="dcard" style={{ cursor: "pointer" }}>
                   <div onClick={() => setOpenIndex(i)} style={{ display: "contents" }}>
-                    <div className="avatar ph-rose grain" style={{ borderRadius: 18 }} />
+                    {d.photoUrl
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={d.photoUrl} alt={d.name} className="avatar" style={{ borderRadius: 18, objectFit: "cover", objectPosition: "center top" }} />
+                      : <div className="avatar ph-rose grain" style={{ borderRadius: 18 }} />}
                     <div>
                       <h3>{d.name} {d.verified && <span className="verified">Verified</span>}</h3>
                       <p className="meta">{d.role} · {d.experienceYears} yrs experience · {d.location}</p>
@@ -191,7 +196,10 @@ function DietitiansContent() {
                   ×
                 </button>
                 <div className="profile-grid">
-                  <div className="profile-avatar ph-rose grain" />
+                  {open.photoUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={open.photoUrl} alt={open.name} className="profile-avatar" style={{ width: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                    : <div className="profile-avatar ph-rose grain" />}
                   <div>
                     <span className="role">{open.role}</span>
                     <h2>{open.name}</h2>
