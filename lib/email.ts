@@ -12,11 +12,11 @@ export async function sendEmail({
   to: string | string[];
   subject: string;
   html: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.log(`[email skipped — no RESEND_API_KEY] ${subject} -> ${to}`);
-    return;
+    return false;
   }
   const from = process.env.RESEND_FROM_EMAIL || "Health365 <onboarding@resend.dev>";
 
@@ -31,9 +31,12 @@ export async function sendEmail({
     });
     if (!res.ok) {
       console.error("Email send failed:", await res.text());
+      return false;
     }
+    return true;
   } catch (err) {
     console.error("Email send error:", err);
+    return false;
   }
 }
 

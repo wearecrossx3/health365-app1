@@ -4,6 +4,7 @@ import { threadsForDietitian } from "@/lib/consultChat";
 import { getConsultationsForUser, getDietitianApplicationById } from "@/lib/kv";
 import { TERMS_VERSION } from "@/lib/dietitianTerms";
 import { OWN_DT } from "@/lib/portal";
+import { listNotices } from "@/lib/dietitianNotices";
 import { dietitianInfo } from "@/lib/portal";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
   ]);
   // Joined dietitians must accept the current terms before they can work.
   const termsNeeded = !!appl && appl.termsVersion !== TERMS_VERSION;
+  const notices = (await listNotices(me.dietitianId).catch(() => [])).filter((n) => !n.seen).slice(0, 5);
   // A short profile line per client (goal, conditions, food) for the cards — never contact details.
   const byUser = new Map<string, { goal: string; conditions: string[]; diet: string }>();
   await Promise.all([...new Set(rows.map((r) => r.userId))].map(async (uid) => {
@@ -31,6 +33,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     me: { name: d.name, fee, photoUrl: appl?.photoUrl || "" },
     termsNeeded,
+    notices,
     threads,
     earnings: { fee, thisMonth: booked.filter((t) => t.date.startsWith(month)).length, total: booked.length },
   });

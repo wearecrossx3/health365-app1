@@ -45,6 +45,8 @@ export default function DietitianApp() {
   const [view, setView] = useState<View>(null);
   const [terms, setTerms] = useState(false);
   const [photo, setPhoto] = useState("");
+  const [notes, setNotes] = useState<{ id: string; title: string; body: string; at: number }[]>([]);
+  const closeNotes = () => { const ids = notes.map((n) => n.id); setNotes([]); fetch("/api/admin/my-clients/notices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seen: ids }) }).catch(() => {}); };
   const [editing, setEditing] = useState(false);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
@@ -53,7 +55,7 @@ export default function DietitianApp() {
     const r = await fetch("/api/admin/my-clients", { cache: "no-store" }).catch(() => null);
     if (!r || !r.ok) return;
     const d = await r.json();
-    setRows(d.threads); setMe(d.me); setEarn(d.earnings); setTerms(!!d.termsNeeded); setPhoto(d.me?.photoUrl || "");
+    setRows(d.threads); setMe(d.me); setEarn(d.earnings); setTerms(!!d.termsNeeded); setPhoto(d.me?.photoUrl || ""); setNotes(d.notices || []);
   };
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
   // "New booking" pop-up: bookings this dietitian hasn't seen yet (remembered on this phone).
@@ -116,7 +118,22 @@ export default function DietitianApp() {
 
   return (
     <div className="dta"><Style />
-      {fresh.length > 0 && (
+      {notes.length > 0 && (
+        <div className="dta-sh dta-pop" onClick={closeNotes}>
+          <div className="dta-shb" onClick={(e) => e.stopPropagation()}>
+            <div className="dta-shh"><b>Message from Health365</b><button className="dta-x" aria-label="Close" onClick={closeNotes}>✕</button></div>
+            {notes.map((n) => (
+              <div key={n.id} className="dta-note">
+                <b>{n.title}</b>
+                <p>{n.body}</p>
+                <small>{new Date(n.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</small>
+              </div>
+            ))}
+            <button className="dta-ok" onClick={closeNotes}>OK</button>
+          </div>
+        </div>
+      )}
+      {notes.length === 0 && fresh.length > 0 && (
         <div className="dta-sh dta-pop" onClick={seenAll}>
           <div className="dta-shb" onClick={(e) => e.stopPropagation()}>
             <div className="dta-shh"><b>{fresh.length > 1 ? `${fresh.length} new bookings 🎉` : "New booking 🎉"}</b><button className="dta-x" aria-label="Close" onClick={seenAll}>✕</button></div>
@@ -486,6 +503,7 @@ body:has(.dta){background:#EFE7DC}
 .dta-msg{background:var(--gs);color:#2f7a45;border-radius:14px;padding:12px 14px;font-size:13.5px;font-weight:600;margin-top:4px}
 .dta-wait{background:#FFF1DE;color:#9a5b08;border-radius:14px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:4px}
 .dta-ep .dta-ok{margin-top:22px}
+.dta-note{background:#fff;border-radius:16px;padding:12px 14px;margin-top:10px}.dta-note b{display:block;font-size:15px}.dta-note p{font-size:14px;line-height:1.5;color:#3c4748;margin:6px 0 0;white-space:pre-line}.dta-note small{display:block;font-size:11.5px;color:var(--mute);margin-top:6px}
 .dta-terms{padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
 .dta-tbox{background:#fff;border-radius:20px;padding:16px;margin-top:16px;max-height:52vh;overflow-y:auto;border:1px solid var(--line)}
 .dta-tok{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:14px;font-weight:600;line-height:1.45}

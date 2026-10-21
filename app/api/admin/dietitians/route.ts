@@ -3,6 +3,8 @@ import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/sessi
 import { isAdmin } from "@/lib/admin";
 import { setDietitianStatus, getDietitianApplicationById, createOrUpdateDietitianApplication } from "@/lib/kv";
 import { sendEmail, emailWrapper, adminLink } from "@/lib/email";
+import { addNotice } from "@/lib/dietitianNotices";
+import { fillDtMessage } from "@/lib/dietitianMessages";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
@@ -11,6 +13,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
   const body = await req.json().catch(() => null);
+  // A message from the team to one or more dietitians: in the Dietitian app
+  // (pop-up + phone notification) and/or by email.
+  if (body?.action === "message") {
+    const ids: string[] = (Array.isArray(body.ids) ? body.ids : [body.id]).map(String).slice(0, 200);
+    const title = String(body.title || "").trim().slice(0, 120);
+    const text = String(body.body || "").trim().slice(0, 1500);
+    if (!title || !text) return NextResponse.json({ error: "Write a title and a message." }, { status: 400 });
+    let sent = 0, emailed = 0;
+    for (const id of ids) {
+      const d = await getDietitianApplicationById(id);
+      if (!d) continue;
+      const t = fillDtMessage(title, d.name), b = fillDtMessage(text, d.name);
+      if (body.app !== false) await addNotice(d.id, { title: t, body: b });
+      if (body.email) {
+        const html = b.split(/\n+/).map((x) => `<p>${x.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] as string))}</p>`).join("");
+        if (await sendEmail({ to: d.email, subject: t, html: emailWrapper(t, html) }).catch(() => false)) emailed++;
+      }
+      sent++;
+    }
+    return NextResponse.json({ ok: true, sent, emailed });
+  }
   // Approve or turn down a dietitian's fee / qualification / experience change.
   if (body?.action === "changes") {
     const d = await getDietitianApplicationById(String(body.id || ""));

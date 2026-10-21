@@ -4,6 +4,7 @@ import { getAdminAccess } from "@/lib/admin";
 import { listAdminEvents } from "@/lib/kv";
 import { threadsForDietitian } from "@/lib/consultChat";
 import { portalDietitian, isDietitianApp } from "@/lib/portal";
+import { listNotices } from "@/lib/dietitianNotices";
 
 // Polled by the Health365 Admin Android app in the background (it sends the
 // admin's own login cookie). Returns new admin alerts since ?since=<ms>,
@@ -40,7 +41,10 @@ export async function GET(req: NextRequest) {
     const chats = threads
       .filter((t) => t.unread && t.lastAt > since && t.lastFrom === "client")
       .map((t) => ({ id: `chat-${t.id}-${t.lastAt}`, title: `New message from ${t.clientName} 💬`, body: "Open Health365 Dietitian to reply.", url: "/admin/my-clients", at: t.lastAt }));
-    const events = [...bookings, ...chats].sort((a, b) => b.at - a.at).slice(0, 10);
+    const notes = (await listNotices(portalId).catch(() => []))
+      .filter((n) => n.at > since && !n.seen)
+      .map((n) => ({ id: `note-${n.id}`, title: `Health365 team: ${n.title}`, body: n.body.slice(0, 140), url: "/admin/my-clients", at: n.at }));
+    const events = [...notes, ...bookings, ...chats].sort((a, b) => b.at - a.at).slice(0, 10);
     return NextResponse.json({ events, now: Date.now() }, { headers: { "Cache-Control": "no-store" } });
   }
   const perms = access.permissions as string[];

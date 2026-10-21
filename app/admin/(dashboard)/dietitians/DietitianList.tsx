@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DietitianActionButtons from "../DietitianActionButtons";
+import MessageBox, { MB_CSS } from "./MessageBox";
 
 export type DtRow = {
   id: string; name: string; email: string; phone: string;
@@ -36,6 +37,7 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState("");
   const [copied, setCopied] = useState("");
+  const [bulk, setBulk] = useState<"" | "terms" | "all">("");
 
   const count = (s: DtRow["status"]) => rows.filter((r) => r.status === s).length;
   const list = useMemo(() => {
@@ -66,13 +68,28 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
 
   return (
     <div className="dl">
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: CSS + MB_CSS }} />
       <div className="dl-stats">
         <div><small>Approved</small><b>{count("approved")}</b></div>
         <div><small>Waiting for approval</small><b style={{ color: count("pending") ? "var(--terracotta)" : undefined }}>{count("pending")}</b></div>
         <div><small>Consults this month</small><b>{approved.reduce((a, r) => a + r.thisMonth, 0)}</b></div>
         <div><small>Health365 share this month</small><b>{rs(monthFees * (1 - SHARE))}</b></div>
       </div>
+
+      {(() => {
+        const noTerms = rows.filter((r) => r.status === "approved" && !r.termsOk);
+        const appr = rows.filter((r) => r.status === "approved");
+        return (
+          <div className="dl-bulk">
+            <div className="dl-bulkb">
+              <b>Message dietitians</b>
+              <button className={bulk === "terms" ? "on" : ""} disabled={!noTerms.length} onClick={() => setBulk(bulk === "terms" ? "" : "terms")}>Not accepted terms ({noTerms.length})</button>
+              <button className={bulk === "all" ? "on" : ""} disabled={!appr.length} onClick={() => setBulk(bulk === "all" ? "" : "all")}>All approved ({appr.length})</button>
+            </div>
+            {bulk && <MessageBox key={bulk} ids={(bulk === "terms" ? noTerms : appr).map((r) => r.id)} onClose={() => setBulk("")} />}
+          </div>
+        );
+      })()}
 
       <input className="dl-search" placeholder="Search by name, phone, city or speciality" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search dietitians" />
       <div className="dl-chips">
@@ -182,6 +199,9 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
                   </>
                 )}
 
+                <h4>Send a message</h4>
+                <MessageBox ids={[r.id]} name={r.name} phone={r.phone} />
+
                 <div className="dl-foot">
                   {r.status === "approved" && (
                     <button className="pill pill-outline" disabled={busy === r.id} onClick={() => portal(r)} style={{ padding: "8px 16px", fontSize: ".8rem" }}>
@@ -242,6 +262,10 @@ const CSS = `
 .dl-ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .dl-ul li{display:flex;justify-content:space-between;gap:10px;background:var(--paper);border-radius:12px;padding:9px 12px;font-size:.88rem}
 .dl-ul li span{color:var(--ink-soft);white-space:nowrap}
+.dl-bulk{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.dl-bulkb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.dl-bulkb b{font-size:.9rem;margin-right:4px}
+.dl-bulkb button{font-size:.8rem;font-weight:600;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.dl-bulkb button.on{background:var(--teal);border-color:var(--teal);color:#fff}.dl-bulkb button:disabled{opacity:.45;cursor:default}
 .dl-foot{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px}
 @media (max-width:640px){
   .dl-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
