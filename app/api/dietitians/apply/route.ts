@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { TERMS_VERSION } from "@/lib/dietitianTerms";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import {
   createOrUpdateDietitianApplication,
@@ -37,6 +38,8 @@ export async function POST(req: NextRequest) {
       about: String(body.about || ""),
       status: "pending",
       createdAt: existing?.createdAt || new Date().toISOString(),
+      portal: existing?.portal,
+      ...(body.termsAccepted ? { termsAcceptedAt: new Date().toISOString(), termsVersion: TERMS_VERSION } : { termsAcceptedAt: existing?.termsAcceptedAt, termsVersion: existing?.termsVersion }),
     };
     await createOrUpdateDietitianApplication(app);
 

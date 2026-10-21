@@ -2,6 +2,7 @@ import { requireAdminPage } from "@/lib/adminGuard";
 import { listAllDietitianApplications, getUserById, getAppointmentsForDietitian } from "@/lib/kv";
 import { threadsForDietitian, getActivity } from "@/lib/consultChat";
 import DietitianList, { DtRow } from "./DietitianList";
+import { TERMS_VERSION } from "@/lib/dietitianTerms";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,8 @@ export default async function DietitiansPage() {
         feeText: d.fee,
         about: d.about,
         joinedAt: d.createdAt,
+        termsAt: d.termsAcceptedAt || "",
+        termsOk: d.termsVersion === TERMS_VERSION,
         total: booked.length,
         thisMonth: monthCount,
         clients: new Set(booked.map((a) => a.userId)).size,

@@ -40,6 +40,9 @@ export default function DietitianAppPage() {
             </ol>
           </div>
           <p style={{ fontSize: ".9rem", color: "var(--ink-soft)", marginTop: 22 }}>
+            Read the <Link href="/dietitian-terms" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>Terms for dietitians</Link>. You accept them the first time you open the app.
+          </p>
+          <p style={{ fontSize: ".9rem", color: "var(--ink-soft)", marginTop: 10 }}>
             On a computer? Use it in your browser: <Link href="/admin/login" style={{ color: "var(--teal-deep)", fontWeight: 600 }}>thehealth365.in/admin</Link>
           </p>
 

@@ -8,7 +8,7 @@ export type DtRow = {
   id: string; name: string; email: string; phone: string;
   status: "pending" | "approved" | "rejected"; portal: boolean;
   qualification: string; experienceYears: number; specializations: string[]; languages: string[];
-  location: string; fee: number; feeText: string; about: string; joinedAt: string;
+  location: string; fee: number; feeText: string; about: string; joinedAt: string; termsAt: string; termsOk: boolean;
   total: number; thisMonth: number; clients: number; cancelled: number; waiting: number; plansSent: number;
   lastActive: number; activity: { at: number; what: string }[];
   upcoming: { date: string; time: string; client: string }[];
@@ -118,6 +118,7 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
                   <div><span>Fee per consult</span><b>{r.feeText || "—"}</b></div>
                   <div><span>Languages</span><b>{r.languages.join(", ") || "—"}</b></div>
                   <div><span>Applied on</span><b>{joined(r.joinedAt)}</b></div>
+                  <div><span>Terms</span><b style={{ color: r.termsOk ? undefined : "var(--terracotta)" }}>{r.termsOk ? `Accepted ${joined(r.termsAt)}` : r.termsAt ? "Old version, asked again" : "Not accepted yet"}</b></div>
                 </div>
                 {r.specializations.length > 0 && <div className="dl-tags">{r.specializations.map((s) => <span key={s}>{s}</span>)}</div>}
                 {r.about && <p className="dl-about">{r.about}</p>}

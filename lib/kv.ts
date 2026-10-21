@@ -128,6 +128,8 @@ export interface DietitianApplication {
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   portal?: boolean; // Dietitian portal login (own clients only). Off only when the owner turns it off.
+  termsAcceptedAt?: string; // when they accepted the dietitian terms
+  termsVersion?: string; // which version (lib/dietitianTerms.ts TERMS_VERSION)
 }
 
 const dietitianKey = (id: string) => `dietitian:${id}`;

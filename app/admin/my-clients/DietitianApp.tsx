@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlanBuilder, { Plan } from "../(dashboard)/plan-generator/PlanBuilder";
 import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
+import DietitianTermsText from "@/components/DietitianTermsText";
 
 type Profile = { goal: string; conditions: string[]; diet: string } | null;
 type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; bookedAt?: number; profile: Profile };
@@ -42,6 +43,7 @@ export default function DietitianApp() {
   const [earn, setEarn] = useState({ fee: 0, thisMonth: 0, total: 0 });
   const [tab, setTab] = useState<"today" | "chats" | "clients" | "me">("today");
   const [view, setView] = useState<View>(null);
+  const [terms, setTerms] = useState(false);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -49,7 +51,7 @@ export default function DietitianApp() {
     const r = await fetch("/api/admin/my-clients", { cache: "no-store" }).catch(() => null);
     if (!r || !r.ok) return;
     const d = await r.json();
-    setRows(d.threads); setMe(d.me); setEarn(d.earnings);
+    setRows(d.threads); setMe(d.me); setEarn(d.earnings); setTerms(!!d.termsNeeded);
   };
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
   // "New booking" pop-up: bookings this dietitian hasn't seen yet (remembered on this phone).
@@ -77,6 +79,7 @@ export default function DietitianApp() {
 
   if (!rows) return <div className="dta"><Style /><p className="dta-empty" style={{ paddingTop: 120 }}>Loading…</p></div>;
 
+  if (terms) return <div className="dta"><Style /><TermsGate onDone={() => setTerms(false)} /></div>;
   if (view?.kind === "chat") return <div className="dta"><Style /><Chat id={view.id} row={rows.find((r) => r.id === view.id)} me={me.name} onBack={back} onOpen={(k) => setView({ kind: k, id: view.id })} /></div>;
   if (view?.kind === "client") return <div className="dta"><Style /><Client id={view.id} onBack={back} onChat={() => setView({ kind: "chat", id: view.id })} onPlan={(copy) => setView({ kind: "plan", id: view.id, copy })} /></div>;
   if (view?.kind === "plan") {
@@ -463,6 +466,13 @@ body:has(.dta){background:#EFE7DC}
 .dta .dta-sh .dta-seg button{background:#fff}.dta .dta-sh .dta-seg button.on{background:var(--g);color:#fff}
 .dta-qr .tp{background:var(--teal)!important;color:#fff!important}
 .dta-tag.new{background:var(--lime);color:var(--ink)}
+.dta-terms{padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+.dta-tbox{background:#fff;border-radius:20px;padding:16px;margin-top:16px;max-height:52vh;overflow-y:auto;border:1px solid var(--line)}
+.dta-tok{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:14px;font-weight:600;line-height:1.45}
+.dta-tok input{width:20px;height:20px;margin-top:1px;accent-color:var(--teal);flex:none}
+.dta-terr{color:var(--red);font-size:13px;margin-top:8px}
+.dta button.dta-ok:disabled{opacity:.45}
+.dta button.dta-tout{display:block;margin:12px auto 0;color:var(--mute);font-size:14px;font-weight:600}
 .dta-sh.dta-pop{align-items:center;padding:16px}.dta-pop .dta-shb{border-radius:24px;max-width:420px}
 .dta-nb{display:flex;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:10px 12px;margin-bottom:8px}
 .dta-nb b{display:block;font-size:15px}.dta-nb small{display:block;font-size:12px;color:var(--mute)}
@@ -474,4 +484,31 @@ body:has(.dta){background:#EFE7DC}
 .dta-shg{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
 .dta button.dta-tp{display:block;width:100%;text-align:left;background:#fff;border-radius:16px;padding:11px 13px;font-size:13.5px;line-height:1.45;margin-bottom:7px}
 ` }} />;
+}
+
+// First open after joining (or after the terms change): the dietitian must
+// accept the terms before they can see clients.
+function TermsGate({ onDone }: { onDone: () => void }) {
+  const [ok, setOk] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const accept = async () => {
+    setBusy(true); setErr("");
+    const r = await fetch("/api/admin/my-clients/terms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accept: true }) }).catch(() => null);
+    setBusy(false);
+    if (!r || !r.ok) { setErr("Couldn't save. Check your internet and try again."); return; }
+    onDone();
+  };
+  return (
+    <div className="dta-terms">
+      <p className="dta-sub">Welcome to Health365 👋</p>
+      <h1>Before you start</h1>
+      <p className="dta-sub" style={{ marginTop: 6 }}>Please read and accept the terms for dietitians. You need to do this once.</p>
+      <div className="dta-tbox"><DietitianTermsText compact /></div>
+      <label className="dta-tok"><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /><span>I have read and agree to the Terms for dietitians.</span></label>
+      {err && <p className="dta-terr">{err}</p>}
+      <button className="dta-ok" disabled={!ok || busy} onClick={accept}>{busy ? "Saving…" : "I agree, continue"}</button>
+      <button className="dta-tout" onClick={async () => { await fetch("/api/auth/admin-logout", { method: "POST" }); location.href = "/admin/login"; }}>Log out</button>
+    </div>
+  );
 }

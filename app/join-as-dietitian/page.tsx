@@ -7,6 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import Reveal from "@/components/Reveal";
 import { useAuthModal } from "@/components/AuthModalProvider";
 import { SPECIALIZATIONS } from "@/lib/dietConditions";
+import DietitianTermsText from "@/components/DietitianTermsText";
 
 const LANGUAGES = ["English", "Hindi", "Gujarati"];
 
@@ -26,6 +27,8 @@ export default function JoinAsDietitianPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/session")
@@ -45,18 +48,20 @@ export default function JoinAsDietitianPage() {
     setList(list.includes(val) ? list.filter((v) => v !== val) : [...list, val]);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent, accepted = agreed) {
+    e?.preventDefault();
     setError(null);
     if (!qualification.trim() || !location.trim()) {
       setError("Please fill in your qualification and location.");
       return;
     }
+    // The terms come up first; the application goes in only after "I agree".
+    if (!accepted) { setShowTerms(true); return; }
     setSubmitting(true);
     const res = await fetch("/api/dietitians/apply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qualification, experienceYears, specializations, languages, location, fee, about }),
+      body: JSON.stringify({ qualification, experienceYears, specializations, languages, location, fee, about, termsAccepted: true }),
     });
     const data = await res.json();
     setSubmitting(false);
@@ -146,6 +151,10 @@ export default function JoinAsDietitianPage() {
                   <label>About you <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional</span></label>
                   <textarea value={about} onChange={(e) => setAbout(e.target.value)} rows={4} placeholder="A short bio for your public profile." />
                 </div>
+                <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: ".92rem", lineHeight: 1.5, cursor: "pointer" }}>
+                  <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ marginTop: 4, width: 18, height: 18, accentColor: "var(--teal)" }} />
+                  <span>I have read and agree to the <button type="button" onClick={() => setShowTerms(true)} style={{ background: "none", border: 0, padding: 0, color: "var(--teal-deep)", fontWeight: 700, textDecoration: "underline", cursor: "pointer", font: "inherit" }}>Terms for dietitians</button>.</span>
+                </label>
                 {error && <p style={{ color: "var(--terracotta)", fontSize: ".9rem" }}>{error}</p>}
                 <button type="submit" disabled={submitting} className="pill pill-primary" style={{ textAlign: "center" }}>
                   {submitting ? "Submitting…" : "Submit application"}
@@ -156,6 +165,24 @@ export default function JoinAsDietitianPage() {
         </div>
       </main>
 
+      {showTerms && (
+        <div role="dialog" aria-modal="true" aria-label="Terms for dietitians" onClick={() => setShowTerms(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(20,28,26,.55)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 22, width: "100%", maxWidth: 620, maxHeight: "88vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div style={{ padding: "18px 20px 12px", borderBottom: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+              <h2 style={{ fontSize: "1.25rem" }}>Terms for dietitians</h2>
+              <button type="button" aria-label="Close" onClick={() => setShowTerms(false)} style={{ width: 36, height: 36, borderRadius: 12, border: 0, background: "var(--paper)", cursor: "pointer", fontWeight: 700 }}>✕</button>
+            </div>
+            <div style={{ padding: "16px 20px", overflowY: "auto" }}><DietitianTermsText compact /></div>
+            <div style={{ padding: "12px 20px 18px", borderTop: "1px solid var(--line)", display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap" }}>
+              <button type="button" className="pill pill-outline" onClick={() => setShowTerms(false)}>Not now</button>
+              <button type="button" className="pill pill-primary" disabled={submitting} onClick={() => { setAgreed(true); setShowTerms(false); handleSubmit(undefined, true); }}>
+                I agree, submit application
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <SiteFooter />
     </>
   );
