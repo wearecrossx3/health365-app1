@@ -201,6 +201,20 @@ export interface Appointment {
   time: string; // e.g. "10:00 AM"
   status: "booked" | "cancelled";
   createdAt: string;
+  // Paid by UPI: the UTR the client typed, checked by the owner in Admin › Payments.
+  payment?: { amount: number; utr: string; status: "unverified" | "verified" | "rejected"; checkedAt?: string; checkedBy?: string };
+}
+
+const UTR_SET = "utr_used";
+/** Reserve a UTR. False if it was already used for another booking. */
+export async function claimUtr(utr: string): Promise<boolean> {
+  return (await client().sadd(UTR_SET, utr)) === 1;
+}
+export async function releaseUtr(utr: string): Promise<void> {
+  await client().srem(UTR_SET, utr);
+}
+export async function saveAppointment(a: Appointment): Promise<void> {
+  await setJSON(`appointment:${a.id}`, a);
 }
 
 const appointmentKey = (id: string) => `appointment:${id}`;

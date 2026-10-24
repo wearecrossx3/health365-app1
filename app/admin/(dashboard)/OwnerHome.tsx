@@ -12,7 +12,7 @@ const ACTIONS: [string, string, string][] = [
   ["/admin/plan-generator", "🍱", "Make a plan"],
   ["/admin/consult-chats", "💬", "Consult chats"],
   ["/admin/coupons", "🏷️", "Coupons"],
-  ["/admin/offers", "🎁", "App offers"],
+  ["/admin/payments", "💳", "Payments"],
   ["/admin/dietitians", "👩‍⚕️", "Dietitians"],
 ];
 
@@ -44,6 +44,13 @@ export default function OwnerHome({ name, users, needsReview, pending, appointme
         <div><small>To review</small><b style={{ color: needsReview.length ? "#E5394F" : undefined }}>{needsReview.length}</b><i>{consultations} forms</i></div>
         <div><small>Dietitians</small><b style={{ color: pending.length ? "#C27A12" : undefined }}>{pending.length}</b><i>waiting</i></div>
       </div>
+
+      {(() => {
+        const toCheck = appointments.filter((a) => a.payment?.status === "unverified");
+        return toCheck.length > 0 ? (
+          <Link href="/admin/payments" className="oh-pay">💳 <b>{toCheck.length} payment{toCheck.length > 1 ? "s" : ""} to check</b><span>₹{toCheck.reduce((s, a) => s + (a.payment?.amount || 0), 0).toLocaleString("en-IN")} ›</span></Link>
+        ) : null;
+      })()}
 
       <div className="oh-act">
         {ACTIONS.map(([href, ic, l]) => <Link key={href} href={href}><span>{ic}</span>{l}</Link>)}
@@ -80,6 +87,7 @@ export default function OwnerHome({ name, users, needsReview, pending, appointme
 .oh-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 .oh-stats div{background:#fff;border-radius:18px;padding:12px}.oh-stats small{display:block;font-size:11.5px;color:#8A8F98}
 .oh-stats b{display:block;font-family:var(--font-instrument),Fredoka;font-size:24px;font-weight:600}.oh-stats i{font-style:normal;font-size:11px;color:#8A8F98}
+.oh-pay{display:flex;align-items:center;gap:8px;background:#FFF1DE;color:#9a5b08;border-radius:16px;padding:13px 14px;margin-top:14px;text-decoration:none;font-size:14px}.oh-pay b{flex:1}.oh-pay span{font-weight:700}
 .oh-act{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
 .oh-act a{background:#fff;border-radius:18px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#1F2B2C;text-decoration:none;text-align:center;line-height:1.2}
 .oh-act a span{font-size:21px;width:42px;height:42px;border-radius:14px;background:#FFF3E5;display:grid;place-items:center}

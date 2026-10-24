@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
-import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserById, saveContactMessage, findCoupon, recordCouponUse } from "@/lib/kv";
+import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserById, saveContactMessage, findCoupon, recordCouponUse, claimUtr, releaseUtr, getSiteContent } from "@/lib/kv";
 import { applyCoupon, normalizeCode } from "@/lib/couponMath";
 import { consultPrice } from "@/lib/dietitianFee";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   const time = str(body?.time, 10);
   const note = str(body?.note, 600);
   const reason = str(body?.reason, 80);
-  const utr = str(body?.utr, 40);
+  const utr = str(body?.utr, 40).replace(/\s+/g, "");
   const couponCode = normalizeCode(body?.coupon);
   if (!dietitianId || !dietitianName || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !time) {
     return appJson({ error: "Missing booking details." }, 400);
@@ -58,6 +58,14 @@ export async function POST(req: NextRequest) {
       coupon = { code: r.code, price: r.price, label: r.label };
     }
     const payable = coupon ? coupon.price : basePrice;
+    // Paid booking: a real UPI reference (UTR) is 12 digits, and each one can be used only once.
+    // (Only when UPI payments are switched on in Admin › Settings — otherwise the app books without paying.)
+    const upiOn = !!String((await getSiteContent().catch(() => null))?.premiumUpiId || "").trim();
+    if (payable > 0 && (upiOn || utr)) {
+      if (!utr) return appJson({ error: "Please enter the UPI transaction ID (UTR) from your payment app." }, 400);
+      if (!/^\d{12}$/.test(utr)) return appJson({ error: "The UTR / UPI reference number has 12 digits. Please copy it again from your payment app." }, 400);
+      if (!(await claimUtr(utr))) return appJson({ error: "This UTR was already used for another booking. Please check the number in your payment app." }, 400);
+    }
     const user = await getUserById(session.userId);
     const appointment = {
       id: crypto.randomUUID(),
@@ -69,8 +77,14 @@ export async function POST(req: NextRequest) {
       time,
       status: "booked" as const,
       createdAt: new Date().toISOString(),
+      ...(payable > 0 && utr ? { payment: { amount: payable, utr, status: "unverified" as const } } : {}),
     };
-    await createAppointment(appointment);
+    try {
+      await createAppointment(appointment);
+    } catch (e) {
+      if (payable > 0 && utr) await releaseUtr(utr).catch(() => {});
+      throw e;
+    }
     if (coupon) await recordCouponUse(coupon.code, session.userId).catch(() => {});
     const couponLine = coupon ? `Coupon: ${coupon.code} (${coupon.label}) — pays ₹${payable} instead of ₹${basePrice}\n` : "";
 
@@ -141,7 +155,7 @@ export async function POST(req: NextRequest) {
     sendPushToAdmins({
       title: utr ? "💰 Paid appointment (app)" : "New appointment (app)",
       body: `${session.name} with ${dietitianName} — ${prettyDate} at ${time}`,
-      url: utr ? "/admin/messages" : "/admin",
+      url: utr ? "/admin/payments" : "/admin",
     }).catch(() => {});
     if (user?.phone) {
       sendWhatsAppTemplate({

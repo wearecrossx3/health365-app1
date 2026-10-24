@@ -6,10 +6,12 @@ import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
 import DietitianTermsText from "@/components/DietitianTermsText";
 
 type Profile = { goal: string; conditions: string[]; diet: string } | null;
-type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; bookedAt?: number; profile: Profile };
+type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; bookedAt?: number; pay?: Pay | null; profile: Profile };
+type Pay = { status: "unverified" | "verified" | "rejected"; amount: number; utr: string };
+const PAY: Record<Pay["status"], [string, string]> = { unverified: ["Payment being checked", "pchk"], verified: ["Paid ✓", "pok"], rejected: ["Payment not received", "pno"] };
 type Msg = { id: string; from: "client" | "dietitian" | "team"; text: string; img?: string; at: number; flagged?: boolean };
 type Detail = {
-  thread: { id: string; client: string; date: string; time: string; status: string; open: boolean; note: string; outcome: string };
+  thread: { id: string; client: string; date: string; time: string; status: string; open: boolean; note: string; outcome: string; pay?: Pay | null };
   profile: { goal: string; diet: string; conditions: string[]; allergens: string[]; answers: [string, string][]; at: string } | null;
   plans: { id: string; title: string; at: string; active: boolean; targetKcal: number; plan: Plan }[];
   messages: Msg[];
@@ -112,7 +114,7 @@ export default function DietitianApp() {
     <button key={r.id} className={"dta-it" + (r.open ? "" : " dim")} onClick={onClick}>
       <span className="dta-av" style={{ background: r.open ? color(r.clientName) : "#a39c92" }}>{r.clientName[0]}</span>
       <span className="dta-t"><b>{r.clientName}</b><span>{sub ?? (r.open ? (r.lastText ? (r.lastFrom === "dietitian" ? "You: " : "") + r.lastText : "No messages yet — say hello 👋") : `Chat closed · ${fmtDate(r.date)}`)}</span></span>
-      {right ?? (r.unread ? <span className="dta-dot" /> : r.outcome ? <span className={"dta-tag o-" + r.outcome}>{OUT.find((o) => o[0] === r.outcome)?.[1]}</span> : null)}
+      {right ?? (r.pay && r.pay.status !== "verified" ? <span className={"dta-tag " + PAY[r.pay.status][1]}>{PAY[r.pay.status][0]}</span> : r.unread ? <span className="dta-dot" /> : r.outcome ? <span className={"dta-tag o-" + r.outcome}>{OUT.find((o) => o[0] === r.outcome)?.[1]}</span> : null)}
     </button>
   );
 
@@ -372,6 +374,14 @@ function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void
     <div className="dta-sc">
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}><button className="dta-back" onClick={onBack}>‹</button><h1 style={{ fontSize: 24, flex: 1 }}>{d.thread.client}</h1><button className="dta-soft" onClick={onChat}>💬 Chat</button></div>
       <p className="dta-sub">Booked {fmtDate(d.thread.date)} · {d.thread.time}</p>
+      {d.thread.pay && (
+        <div className={"dta-pay " + PAY[d.thread.pay.status][1]}>
+          <b>{PAY[d.thread.pay.status][0]}</b>
+          <span>₹{d.thread.pay.amount} by UPI · UTR {d.thread.pay.utr}</span>
+          {d.thread.pay.status === "unverified" && <small>The Health365 team is checking this payment. You can chat, but please wait for “Paid ✓” before sending the full plan.</small>}
+          {d.thread.pay.status === "rejected" && <small>No payment was found, so this booking is cancelled.</small>}
+        </div>
+      )}
       <div className="dta-card"><h3>Status</h3>
         <div className="dta-seg">{OUT.map(([k, l]) => <button key={k} className={d.thread.outcome === k ? "on" : ""} onClick={() => { setD({ ...d, thread: { ...d.thread, outcome: k } }); post({ action: "outcome", outcome: k }); }}>{l}</button>)}</div>
       </div>
@@ -504,6 +514,9 @@ body:has(.dta){background:#EFE7DC}
 .dta-wait{background:#FFF1DE;color:#9a5b08;border-radius:14px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:4px}
 .dta-ep .dta-ok{margin-top:22px}
 .dta-note{background:#fff;border-radius:16px;padding:12px 14px;margin-top:10px}.dta-note b{display:block;font-size:15px}.dta-note p{font-size:14px;line-height:1.5;color:#3c4748;margin:6px 0 0;white-space:pre-line}.dta-note small{display:block;font-size:11.5px;color:var(--mute);margin-top:6px}
+.dta-tag.pchk{background:#FFF1DE;color:#9a5b08}.dta-tag.pok{background:var(--gs);color:var(--g)}.dta-tag.pno{background:#FDE7EA;color:var(--red)}
+.dta-pay{border-radius:16px;padding:12px 14px;margin-top:12px;display:flex;flex-direction:column;gap:3px}.dta-pay b{font-size:15px}.dta-pay span{font-size:13px}.dta-pay small{font-size:12.5px;line-height:1.45;margin-top:4px;opacity:.9}
+.dta-pay.pchk{background:#FFF1DE;color:#7a4806}.dta-pay.pok{background:var(--gs);color:#2f7a45}.dta-pay.pno{background:#FDE7EA;color:#a3192c}
 .dta-terms{padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
 .dta-tbox{background:#fff;border-radius:20px;padding:16px;margin-top:16px;max-height:52vh;overflow-y:auto;border:1px solid var(--line)}
 .dta-tok{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:14px;font-weight:600;line-height:1.45}

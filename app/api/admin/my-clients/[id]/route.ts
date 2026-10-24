@@ -28,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const c = consults.sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
   await logActivity(me.dietitianId, `Opened chat with ${firstName(a.userName)} (${a.date})`);
   return NextResponse.json({
-    thread: { id: a.id, client: firstName(a.userName), date: a.date, time: a.time, status: a.status, open: chatOpen(a), note: meta.note, outcome: meta.outcome },
+    thread: { id: a.id, client: firstName(a.userName), date: a.date, time: a.time, status: a.status, open: chatOpen(a), note: meta.note, outcome: meta.outcome, pay: a.payment ? { status: a.payment.status, amount: a.payment.amount, utr: a.payment.utr } : null },
     suggest: suggestFromConsultation(c),
     profile: c ? { goal: c.goal, diet: c.dietType, conditions: c.conditions, allergens: c.allergens, answers: safeAnswers(c.raw), at: c.createdAt } : null,
     plans: plans.filter((p) => p.byDietitian === me.dietitianId).map((p) => ({ id: p.id, title: p.title, at: p.assignedAt, active: p.active, targetKcal: p.targetKcal, plan: { title: p.title, goal: p.goal, diet: p.diet, region: p.region, conditions: p.conditions, targetKcal: p.targetKcal, days: p.days, tips: p.tips, source: p.source } })),

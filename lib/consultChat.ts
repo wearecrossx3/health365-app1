@@ -133,7 +133,7 @@ export async function threadHasImage(threadId: string, imgId: string) {
 }
 
 // ——— Thread lists ———
-export interface ThreadRow { id: string; userId: string; lastFrom: string; clientName: string; dietitianId: string; dietitianName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastAt: number; flags: number; outcome: string; bookedAt: number }
+export interface ThreadRow { id: string; userId: string; lastFrom: string; clientName: string; dietitianId: string; dietitianName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastAt: number; flags: number; outcome: string; bookedAt: number; pay: { status: string; amount: number; utr: string } | null }
 
 async function rows(appts: Appointment[], who: "client" | "dietitian" | "owner"): Promise<ThreadRow[]> {
   const list = appts.filter(isChatAppointment);
@@ -145,6 +145,7 @@ async function rows(appts: Appointment[], who: "client" | "dietitian" | "owner")
       unread: who === "owner" ? 0 : unreadFor(metas[i], who), lastText: metas[i].lastText, lastFrom: metas[i].lastFrom, lastAt: metas[i].lastAt,
       flags: who === "owner" ? metas[i].flags : 0, outcome: metas[i].outcome,
       bookedAt: Date.parse(a.createdAt) || 0,
+      pay: who === "client" || !a.payment ? null : { status: a.payment.status, amount: a.payment.amount, utr: a.payment.utr },
     }))
     .sort((x, y) => (y.lastAt || Date.parse(y.date)) - (x.lastAt || Date.parse(x.date)));
 }

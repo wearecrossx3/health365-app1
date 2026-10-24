@@ -22,6 +22,7 @@ export const NAV = [
   { href: "/admin/offers", label: "App Offers", icon: "🎁", permission: "offers" },
   { href: "/admin/blog", label: "Blog", icon: "📰", permission: "blog" },
   { href: "/admin/foods", label: "Food Database", icon: "🥦", permission: "foods" },
+  { href: "/admin/payments", label: "Payments", icon: "💳", permission: "dashboard" },
   { href: "/admin/dietitians", label: "Dietitians", icon: "👩‍⚕️", permission: "dashboard" },
   { href: "/admin/consult-chats", label: "Consult Chats", icon: "💬", permission: "users" },
   { href: "/admin/my-clients", label: "My Clients", icon: "🩺", permission: "my-clients" },
