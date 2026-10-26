@@ -5,6 +5,7 @@ import { applyCoupon, normalizeCode } from "@/lib/couponMath";
 import { consultPrice } from "@/lib/dietitianFee";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
+import { addMessage } from "@/lib/consultChat";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { appJson, appPreflight, getAppSession, limit, str } from "@/lib/appApi";
 
@@ -86,6 +87,9 @@ export async function POST(req: NextRequest) {
       throw e;
     }
     if (coupon) await recordCouponUse(coupon.code, session.userId).catch(() => {});
+    if (appointment.payment) {
+      await addMessage(appointment.id, "team", `⏳ Thank you! We are checking your payment of ₹${payable} (UTR ${utr}). The chat with ${dietitianName} opens as soon as it is confirmed, usually within a few hours.`).catch(() => {});
+    }
     const couponLine = coupon ? `Coupon: ${coupon.code} (${coupon.label}) — pays ₹${payable} instead of ₹${basePrice}\n` : "";
 
     const prettyDate = new Date(date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });

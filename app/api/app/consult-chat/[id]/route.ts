@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { appJson, appPreflight, getAppSession, limit } from "@/lib/appApi";
-import { getAppt, isChatAppointment, chatOpen, listMessages, addMessage, markRead, saveImage, getMeta, CHAT_OPEN_DAYS } from "@/lib/consultChat";
+import { getAppt, isChatAppointment, chatOpen, paymentPending, listMessages, addMessage, markRead, saveImage, getMeta, CHAT_OPEN_DAYS } from "@/lib/consultChat";
 import { notifyDietitian } from "@/lib/consultNotify";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (limited) return limited;
   const r = await mine(req, params.id);
   if ("err" in r) return r.err;
-  if (!chatOpen(r.a)) return appJson({ error: "This chat has closed. Book a new consultation to continue." }, 400);
+  if (!chatOpen(r.a)) return appJson({ error: paymentPending(r.a) ? "We are checking your payment. The chat opens as soon as it is confirmed." : "This chat has closed. Book a new consultation to continue." }, 400);
   const b = await req.json().catch(() => ({}));
   const text = String(b?.text || "").trim();
   let img: string | undefined;

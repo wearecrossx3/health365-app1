@@ -7,8 +7,8 @@ import DietitianTermsText from "@/components/DietitianTermsText";
 
 type Profile = { goal: string; conditions: string[]; diet: string } | null;
 type Row = { id: string; clientName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastFrom: string; lastAt: number; outcome: string; bookedAt?: number; pay?: Pay | null; profile: Profile };
-type Pay = { status: "unverified" | "verified" | "rejected"; amount: number; utr: string };
-const PAY: Record<Pay["status"], [string, string]> = { unverified: ["Payment being checked", "pchk"], verified: ["Paid ✓", "pok"], rejected: ["Payment not received", "pno"] };
+type Pay = { status: "unverified" | "verified" | "rejected"; amount: number; utr: string; at?: number };
+const PAY: Record<Pay["status"], [string, string]> = { unverified: ["Waiting for payment check", "pchk"], verified: ["Paid ✓", "pok"], rejected: ["Payment not received", "pno"] };
 type Msg = { id: string; from: "client" | "dietitian" | "team"; text: string; img?: string; at: number; flagged?: boolean };
 type Detail = {
   thread: { id: string; client: string; date: string; time: string; status: string; open: boolean; note: string; outcome: string; pay?: Pay | null };
@@ -67,11 +67,12 @@ export default function DietitianApp() {
     let seen = 0;
     try { seen = Number(localStorage.getItem("dt_seen_booking") || 0); } catch {}
     if (!seen) seen = Date.now() - 24 * 3600e3;
-    const n = rows.filter((r) => r.status === "booked" && (r.bookedAt || 0) > seen && r.date >= today());
-    setFresh(n.sort((a, b) => (b.bookedAt || 0) - (a.bookedAt || 0)));
+    const when = (r: Row) => (r.pay ? r.pay.at || 0 : r.bookedAt || 0);
+    const n = rows.filter((r) => r.status === "booked" && (!r.pay || r.pay.status === "verified") && when(r) > seen && r.date >= today());
+    setFresh(n.sort((a, b) => when(b) - when(a)));
   }, [rows]);
   const seenAll = () => {
-    const max = Math.max(Date.now(), ...fresh.map((r) => r.bookedAt || 0));
+    const max = Math.max(Date.now(), ...fresh.map((r) => (r.pay ? r.pay.at || 0 : r.bookedAt || 0)));
     try { localStorage.setItem("dt_seen_booking", String(max)); } catch {}
     setFresh([]);
   };
@@ -113,7 +114,7 @@ export default function DietitianApp() {
   const item = (r: Row, right?: React.ReactNode, sub?: string, onClick = () => setView({ kind: "chat", id: r.id })) => (
     <button key={r.id} className={"dta-it" + (r.open ? "" : " dim")} onClick={onClick}>
       <span className="dta-av" style={{ background: r.open ? color(r.clientName) : "#a39c92" }}>{r.clientName[0]}</span>
-      <span className="dta-t"><b>{r.clientName}</b><span>{sub ?? (r.open ? (r.lastText ? (r.lastFrom === "dietitian" ? "You: " : "") + r.lastText : "No messages yet — say hello 👋") : `Chat closed · ${fmtDate(r.date)}`)}</span></span>
+      <span className="dta-t"><b>{r.clientName}</b><span>{sub ?? (r.open ? (r.lastText ? (r.lastFrom === "dietitian" ? "You: " : "") + r.lastText : "No messages yet — say hello 👋") : r.pay && r.pay.status === "unverified" ? "Chat opens after the payment is confirmed" : `Chat closed · ${fmtDate(r.date)}`)}</span></span>
       {right ?? (r.pay && r.pay.status !== "verified" ? <span className={"dta-tag " + PAY[r.pay.status][1]}>{PAY[r.pay.status][0]}</span> : r.unread ? <span className="dta-dot" /> : r.outcome ? <span className={"dta-tag o-" + r.outcome}>{OUT.find((o) => o[0] === r.outcome)?.[1]}</span> : null)}
     </button>
   );
@@ -320,7 +321,7 @@ function Chat({ id, row, me, onBack, onOpen }: { id: string; row?: Row; me: stri
           })}
         <div ref={endRef} />
       </div>
-      {d && !d.thread.open ? <p className="dta-closed">This chat closed 30 days after the consultation. The client can book again to continue.</p> : (
+      {d && !d.thread.open ? <p className="dta-closed">{d.thread.pay && d.thread.pay.status === "unverified" ? "⏳ The chat opens after Health365 confirms this client’s payment. You will get a notification." : d.thread.pay && d.thread.pay.status === "rejected" ? "This booking was cancelled because no payment was found." : "This chat closed 30 days after the consultation. The client can book again to continue."}</p> : (
         <>
           {note && <p className="dta-note">{note}</p>}
           <div className="dta-qr"><button className="tp" onClick={() => setSheet(true)}>📝 Messages</button>{QUICK.map((qq) => <button key={qq} disabled={busy} onClick={() => send({ text: qq })}>{qq}</button>)}</div>
@@ -378,7 +379,7 @@ function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void
         <div className={"dta-pay " + PAY[d.thread.pay.status][1]}>
           <b>{PAY[d.thread.pay.status][0]}</b>
           <span>₹{d.thread.pay.amount} by UPI · UTR {d.thread.pay.utr}</span>
-          {d.thread.pay.status === "unverified" && <small>The Health365 team is checking this payment. You can chat, but please wait for “Paid ✓” before sending the full plan.</small>}
+          {d.thread.pay.status === "unverified" && <small>The Health365 team is checking this payment. The chat and plans open as soon as it is confirmed.</small>}
           {d.thread.pay.status === "rejected" && <small>No payment was found, so this booking is cancelled.</small>}
         </div>
       )}
@@ -405,7 +406,7 @@ function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void
           <div key={pl.id} className="dta-it flat"><span className="dta-t"><b>{pl.title}</b><span>{pl.targetKcal ? `${pl.targetKcal} kcal · ` : ""}{fmtDate(pl.at.slice(0, 10))}{pl.active ? " · current" : ""}</span></span><button className="dta-link" onClick={() => onPlan(pl.plan)}>Copy ›</button></div>
         ))}
       </div>
-      <button className="dta-cta" onClick={() => onPlan(null)}>📋 Make a new plan</button>
+      {d.thread.pay && d.thread.pay.status !== "verified" ? null : <button className="dta-cta" onClick={() => onPlan(null)}>📋 Make a new plan</button>}
       <p className="dta-priv">Phone and email stay private with Health365</p>
     </div>
   );

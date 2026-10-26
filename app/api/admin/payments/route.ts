@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   await saveAppointment(a);
 
   if (decision === "verified" && was !== "verified") {
-    await addMessage(a.id, "team", `✅ Payment of ₹${a.payment.amount} received. Your consultation is confirmed.`).catch(() => {});
+    await addMessage(a.id, "team", `✅ Payment of ₹${a.payment.amount} received. Your consultation is confirmed and the chat is now open.`).catch(() => {});
   }
   if (decision === "rejected" && was !== "rejected") {
     await addMessage(a.id, "team", `⚠️ We could not find a payment of ₹${a.payment.amount} with UTR ${a.payment.utr}. This booking is cancelled. If you did pay, write to health365.support@gmail.com with a screenshot of the payment.`).catch(() => {});

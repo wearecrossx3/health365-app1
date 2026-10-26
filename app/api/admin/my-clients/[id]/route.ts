@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { dietitianFromRequest } from "@/lib/dietitianGuard";
-import { getAppt, isChatAppointment, chatOpen, listMessages, addMessage, markRead, saveImage, getMeta, updateMeta, safeAnswers, firstName, logActivity } from "@/lib/consultChat";
+import { getAppt, isChatAppointment, chatOpen, paymentPending, listMessages, addMessage, markRead, saveImage, getMeta, updateMeta, safeAnswers, firstName, logActivity } from "@/lib/consultChat";
 import { getConsultationsForUser, getUserById } from "@/lib/kv";
 import { dietitianInfo } from "@/lib/portal";
 import { suggestFromConsultation } from "@/lib/planSuggest";
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const b = await req.json().catch(() => ({}));
 
   if (b.action === "send") {
-    if (!chatOpen(a)) return NextResponse.json({ error: "This chat has closed." }, { status: 400 });
+    if (!chatOpen(a)) return NextResponse.json({ error: paymentPending(a) ? "The chat opens after Health365 confirms this client’s payment." : "This chat has closed." }, { status: 400 });
     const text = txt(b.text, 2000);
     let img: string | undefined;
     if (b.image) {
@@ -70,6 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ ok: true });
   }
   if (b.action === "assign") {
+    if (paymentPending(a)) return NextResponse.json({ error: "You can send a plan after Health365 confirms this client’s payment." }, { status: 400 });
     const user = await getUserById(a.userId);
     const d = await dietitianInfo(me.dietitianId);
     if (!user || !d.name) return NextResponse.json({ error: "Client not found." }, { status: 404 });
