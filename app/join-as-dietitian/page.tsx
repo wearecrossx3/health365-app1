@@ -103,14 +103,18 @@ export default function JoinAsDietitianPage() {
             <div className="step-card" style={{ marginTop: 32, textAlign: "center" }}>
               <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--teal)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", margin: "0 auto 16px" }}>✓</div>
               <h2 style={{ fontSize: "1.4rem" }}>Application submitted</h2>
-              <p style={{ marginTop: 10 }}>We'll review your details and get in touch once it's approved. You can check back here anytime.</p>
+              <p style={{ marginTop: 10 }}>We'll review your details and email you once it's approved. You can check back here anytime.</p>
+              <p style={{ marginTop: 10, fontSize: ".92rem", color: "var(--ink-soft)" }}>Once approved, you'll work from the <Link href="/dietitian-app" style={{ color: "var(--teal-deep)", fontWeight: 700 }}>H365 Dietitian app</Link>. You can download it now and log in after approval.</p>
               <Link href="/" className="pill pill-outline" style={{ marginTop: 20, display: "inline-block" }}>Back to Health365</Link>
             </div>
           ) : status === "approved" ? (
             <div className="step-card" style={{ marginTop: 32, textAlign: "center" }}>
               <h2 style={{ fontSize: "1.4rem" }}>You're approved 🎉</h2>
-              <p style={{ marginTop: 10 }}>Your profile is live in the Health365 directory.</p>
-              <Link href="/dietitian-dashboard" className="pill pill-primary" style={{ marginTop: 20, display: "inline-block" }}>Go to your dashboard</Link>
+              <p style={{ marginTop: 10 }}>Your profile is live in the Health365 directory. Clients book you and chat with you in the H365 Dietitian app.</p>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
+                <Link href="/dietitian-app" className="pill pill-primary">⬇️ Get the Dietitian app</Link>
+                <Link href="/admin/my-clients" className="pill pill-outline">Open on this device</Link>
+              </div>
             </div>
           ) : (
             <Reveal delay={120} className="step-card" style={{ marginTop: 32 }}>

@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import { setDietitianStatus, getDietitianApplicationById, createOrUpdateDietitianApplication } from "@/lib/kv";
 import { sendEmail, emailWrapper, adminLink } from "@/lib/email";
 import { addNotice } from "@/lib/dietitianNotices";
-import { fillDtMessage } from "@/lib/dietitianMessages";
+import { fillDtMessage, DT_MESSAGES } from "@/lib/dietitianMessages";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
@@ -65,6 +65,10 @@ export async function POST(req: NextRequest) {
 
   if (body.status === "approved" || body.status === "rejected") {
     const app = await getDietitianApplicationById(body.id);
+    if (app && body.status === "approved") {
+      const w = DT_MESSAGES.find((m) => m.key === "approved")!;
+      await addNotice(app.id, { title: fillDtMessage(w.title, app.name), body: fillDtMessage(w.body, app.name) }).catch(() => {});
+    }
     if (app) {
       sendEmail({
         to: app.email,
@@ -72,9 +76,15 @@ export async function POST(req: NextRequest) {
         html: emailWrapper(
           body.status === "approved" ? "You're approved!" : "Application update",
           body.status === "approved"
-            ? `<p>Great news, ${app.name} — your dietitian profile is now live in the Health365 directory.</p>
-               <p>Clients who book you will chat with you inside Health365. Get the <b>Health365 Dietitian app</b> to reply to them and send diet plans: ${adminLink("/dietitian-app")}</p>
-               <p>Log in with your Health365 email and password (or on a computer at ${adminLink("/admin/login")}).</p>`
+            ? `<p>Great news, ${app.name}! Your dietitian profile is now live on Health365.</p>
+               <p><b>Next steps</b></p>
+               <ol>
+                 <li>Download the <b>H365 Dietitian app</b> (Android): ${adminLink("/dietitian-app")}<br>On iPhone or a computer, open ${adminLink("/admin/my-clients")} instead.</li>
+                 <li>Log in with the same email and password as your Health365 account.</li>
+                 <li>Read the Terms for dietitians and tap “I agree”.</li>
+                 <li>Add your photo and a short bio in Me › Edit profile.</li>
+               </ol>
+               <p>Clients who book you will chat with you inside the app. Questions? Write to health365.support@gmail.com.</p>`
             : `<p>Hi ${app.name}, your application wasn't approved this time. Feel free to reach out if you'd like to update your details and reapply.</p>`
         ),
       }).catch(() => {});
