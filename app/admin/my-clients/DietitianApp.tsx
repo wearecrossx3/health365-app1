@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlanBuilder, { Plan, ClientInfo } from "../(dashboard)/plan-generator/PlanBuilder";
+import WeightChart, { WeightPoint } from "@/components/WeightChart";
 import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
 import DietitianTermsText from "@/components/DietitianTermsText";
 
@@ -15,6 +16,7 @@ type Detail = {
   profile: { goal: string; diet: string; conditions: string[]; allergens: string[]; answers: [string, string][]; at: string } | null;
   plans: { id: string; title: string; at: string; active: boolean; targetKcal: number; plan: Plan }[];
   messages: Msg[];
+  weights?: WeightPoint[];
 };
 type View = { kind: "chat" | "client" | "plan"; id: string; copy?: Plan | null; editId?: string } | null;
 
@@ -216,6 +218,7 @@ export default function DietitianApp() {
               <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontSize: 18 }}>{me.name}</b><p className="dta-sub" style={{ margin: 0 }}>Health365 dietitian</p></div>
             </div>
             <button className="dta-edit" onClick={() => setEditing(true)}>✏️  Edit profile and photo</button>
+            <MyRating />
             <div className="dta-stats">
               <div><small>This month</small><b>{earn.thisMonth}</b></div>
               <div><small>All clients</small><b>{earn.total}</b></div>
@@ -407,6 +410,7 @@ function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void
         <textarea className="dta-notes" rows={4} maxLength={2000} value={notes} placeholder="Only you and the Health365 team see these." onChange={(e) => { setNotes(e.target.value); setSaved(""); }} />
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}><button className="dta-soft" onClick={async () => { await post({ action: "note", note: notes }); setSaved("Saved ✓"); }}>Save notes</button><span style={{ color: "var(--g)", fontSize: 13, fontWeight: 600 }}>{saved}</span></div>
       </div>
+      <div className="dta-card"><h3>Weight progress</h3><WeightChart points={d.weights || []} /></div>
       <div className="dta-card"><h3>Plans sent</h3>
         {d.plans.length === 0 ? <p className="dta-sub" style={{ margin: 0 }}>No plans sent yet.</p> : d.plans.map((pl) => (
           <div key={pl.id} className="dta-it flat"><span className="dta-t"><b>{pl.title}</b><span>{pl.targetKcal ? `${pl.targetKcal} kcal · ` : ""}{fmtDate(pl.at.slice(0, 10))}{pl.active ? " · current" : ""}</span></span><span style={{ display: "flex", gap: 12, flex: "none" }}><button className="dta-link" onClick={() => onPlan(pl.plan, pl.id)}>Edit ✏️</button><button className="dta-link" onClick={() => onPlan(pl.plan)}>Copy ›</button></span></div>
@@ -567,6 +571,21 @@ function TermsGate({ onDone }: { onDone: () => void }) {
       {err && <p className="dta-terr">{err}</p>}
       <button className="dta-ok" disabled={!ok || busy} onClick={accept}>{busy ? "Saving…" : "I agree, continue"}</button>
       <button className="dta-tout" onClick={async () => { await fetch("/api/auth/admin-logout", { method: "POST" }); location.href = "/admin/login"; }}>Log out</button>
+    </div>
+  );
+}
+
+// The dietitian's own star rating from clients (asked the day after a consultation).
+function MyRating() {
+  const [r, setR] = useState<{ avg: number; count: number; recent: { stars: number; comment: string; client: string }[] } | null>(null);
+  useEffect(() => { fetch("/api/admin/my-clients/profile", { cache: "no-store" }).then((x) => x.json()).then((j) => setR(j.rating || null)).catch(() => {}); }, []);
+  if (!r) return null;
+  return (
+    <div className="dta-card" style={{ marginTop: 12 }}>
+      <h3>Your rating</h3>
+      {r.count ? <p style={{ margin: 0, fontSize: 15 }}><b style={{ fontSize: 22, color: "#F6A31D" }}>★ {r.avg}</b> <span style={{ color: "var(--mute)" }}>from {r.count} client{r.count > 1 ? "s" : ""}</span></p>
+        : <p className="dta-sub" style={{ margin: 0 }}>No ratings yet. Clients are asked to rate you the day after a consultation.</p>}
+      {r.recent.filter((x) => x.comment).slice(0, 3).map((x, i) => <p key={i} style={{ margin: "8px 0 0", fontSize: 13.5 }}>{"★".repeat(x.stars)} <i>“{x.comment}”</i> — {x.client}</p>)}
     </div>
   );
 }

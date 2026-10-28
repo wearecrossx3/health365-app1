@@ -6,6 +6,7 @@ import { getConsultationsForUser, getUserById } from "@/lib/kv";
 import { dietitianInfo } from "@/lib/portal";
 import { suggestFromConsultation } from "@/lib/planSuggest";
 import { listUserPlans, saveUserPlans, AssignedPlan } from "@/lib/plans";
+import { weightLog } from "@/lib/appBackup";
 import { sendNotifyToClient } from "@/lib/consultClientNotify";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const r = await load(req, params.id);
   if ("err" in r) return r.err;
   const { a, me } = r;
-  const [msgs, meta, consults, plans] = await Promise.all([listMessages(a.id), getMeta(a.id), getConsultationsForUser(a.userId), listUserPlans(a.userId)]);
+  const [msgs, meta, consults, plans, weights] = await Promise.all([listMessages(a.id), getMeta(a.id), getConsultationsForUser(a.userId), listUserPlans(a.userId), weightLog(a.userId).catch(() => [])]);
   await markRead(a.id, "dietitian");
   const c = consults.sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
   await logActivity(me.dietitianId, `Opened chat with ${firstName(a.userName)} (${a.date})`);
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     profile: c ? { goal: c.goal, diet: c.dietType, conditions: c.conditions, allergens: c.allergens, answers: safeAnswers(c.raw), at: c.createdAt } : null,
     plans: plans.filter((p) => p.byDietitian === me.dietitianId).map((p) => ({ id: p.id, title: p.title, at: p.assignedAt, active: p.active, targetKcal: p.targetKcal, plan: { title: p.title, goal: p.goal, diet: p.diet, region: p.region, conditions: p.conditions, targetKcal: p.targetKcal, days: p.days, tips: p.tips, source: p.source } })),
     messages: msgs,
+    weights,
   });
 }
 

@@ -81,3 +81,15 @@ export async function restoreBackup(userId: string, index: number): Promise<bool
 export async function deleteBackups(userId: string) {
   await redis().del(histKey(userId));
 }
+
+// Weights the client logged in the app (newest last), for progress charts.
+export async function weightLog(userId: string): Promise<{ d: string; kg: number }[]> {
+  const s = await getJSON<SavedState>(stateKey(userId)).catch(() => null);
+  const log = s?.state?.log;
+  if (!Array.isArray(log)) return [];
+  return log
+    .map((x) => ({ d: String((x as { d?: unknown }).d || ""), kg: Number((x as { kg?: unknown }).kg) || 0 }))
+    .filter((x) => /^\d{4}-\d{2}-\d{2}/.test(x.d) && x.kg > 0)
+    .sort((a, b) => (a.d < b.d ? -1 : 1))
+    .slice(-60);
+}

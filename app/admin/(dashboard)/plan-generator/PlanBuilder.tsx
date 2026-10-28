@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { warningsFor } from "@/lib/planSafety";
+import { openPrint, sharePlanText } from "@/lib/planPrint";
 
 // Shared by Admin → Plan Generator and Admin → Users & Plans.
 // Generates a realistic Indian plan, lets the dietitian tweak any meal,
@@ -11,11 +13,12 @@ import { useEffect, useMemo, useState } from "react";
 interface Base { kcal: number; protein: number; per: "100g" | "serving"; serving: string }
 interface Item { name: string; portion: string; kcal: number; protein: number; _b?: Base }
 type FoodRow = [string, string, string, string, number, number, number, number, number, string, string];
-export interface ClientInfo { goal?: string; diet?: string; conditions?: string[]; allergens?: string[]; kcal?: number; basis?: string; notes?: string }
+export interface ClientInfo { kg?: number; goal?: string; diet?: string; conditions?: string[]; allergens?: string[]; kcal?: number; basis?: string; notes?: string }
 interface Meal { slot: string; label: string; time: string; title: string; items: Item[]; kcal: number; protein: number; carbs: number; fat: number; fibre: number; alt: string }
 interface Day { day: number; label: string; meals: Meal[]; kcal: number; protein: number }
 export interface Plan { title: string; goal: string; diet: string; region: string; conditions: string[]; targetKcal: number; days: Day[]; tips: string[]; source: string }
 interface UserRow { id: string; name: string; email: string; phone: string }
+type Tpl = { id: string; name: string; savedAt: string; by: string; plan: Plan };
 
 const GOALS = [["lose", "Lose weight"], ["maintain", "Maintain"], ["gain", "Gain weight"], ["better", "Eat better"]];
 const DIETS = [["veg", "Vegetarian"], ["eggetarian", "Eggetarian"], ["nonveg", "Non-veg"], ["jain", "Jain"], ["vegan", "Vegan"]];
@@ -55,6 +58,29 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [foods, setFoods] = useState<FoodRow[]>([]);
   const [sugAt, setSugAt] = useState<string>(""); // "day-meal-item" whose name box shows suggestions
+  const [tpls, setTpls] = useState<{ mine: Tpl[]; team: Tpl[] }>({ mine: [], team: [] });
+  const [tplMsg, setTplMsg] = useState("");
+  const loadTpls = () => fetch("/api/admin/plan-templates", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((j) => j && setTpls({ mine: j.mine || [], team: j.team || [] })).catch(() => {});
+  useEffect(() => { loadTpls(); }, []);
+  async function saveTpl() {
+    if (!plan) return;
+    const name = prompt("Name this template (e.g. PCOS 1400 veg Gujarati):", plan.title);
+    if (!name) return;
+    const r = await fetch("/api/admin/plan-templates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, plan: clean(plan) }) }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) : {};
+    setTplMsg(r && r.ok ? `✓ Saved as template “${name}”` : j.error || "Couldn't save the template.");
+    loadTpls();
+  }
+  async function delTpl(id: string) {
+    if (!confirm("Delete this template?")) return;
+    await fetch("/api/admin/plan-templates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", id }) }).catch(() => null);
+    loadTpls();
+  }
+  function applyTpl(t: Tpl) {
+    setPlan(structuredClone(t.plan)); setOpenDay(0); setMsg(null);
+    if (t.plan.targetKcal && !kcal) setKcal(String(t.plan.targetKcal));
+    setTplMsg(`Started from “${t.name}”. Change anything, then send.`);
+  }
 
   useEffect(() => {
     fetch("/api/app/foods?compact=1").then((r) => r.json()).then((j) => setFoods(j.rows || [])).catch(() => {});
@@ -153,6 +179,11 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   const d = plan?.days[openDay];
 
   const cl = client || (initialInput ? { goal: initialInput.goal, diet: initialInput.diet, conditions: initialInput.conditions, kcal: initialInput.kcal, basis: initialInput.basis } : null);
+  const kg = cl?.kg || Number(((cl?.basis || "").match(/(\d+(?:\.\d+)?)\s*kg/) || [])[1]) || 0;
+  const condAll = [...(cl?.conditions || []), ...conds];
+  const allergens = cl?.allergens || [];
+  const warn = (name: string) => warningsFor(name, condAll, allergens);
+  const allWarn = plan ? plan.days.flatMap((dd) => dd.meals.flatMap((m) => m.items.flatMap((it) => warn(it.name).map((w) => `${dd.label} · ${m.label}: ${it.name} — ${w.text}`)))) : [];
   const goalName = (k?: string) => GOALS.find(([x]) => x === k)?.[1] || k || "";
   const dietName = (k?: string) => DIETS.find(([x]) => x === k)?.[1] || k || "";
 
@@ -174,6 +205,21 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
       )}
       {editId && <p style={{ background: "#FFF6E5", border: "1px solid #F2D49B", borderRadius: 12, padding: "10px 14px", fontSize: ".86rem", fontWeight: 600 }}>✏️ You are editing a plan that was already sent. Saving replaces it in the client&apos;s app.</p>}
       <div className="panel" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {(tpls.mine.length > 0 || tpls.team.length > 0) && (
+          <div>
+            <p style={{ fontWeight: 700, fontSize: ".85rem", marginBottom: 8 }}>Start from a saved template <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— or make a new one below</span></p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {tpls.mine.map((t) => (
+                <span key={t.id} style={{ ...chip(false), display: "inline-flex", gap: 8, alignItems: "center", cursor: "default" }}>
+                  <button type="button" onClick={() => applyTpl(t)} style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "#1E5A5F", cursor: "pointer" }}>📄 {t.name}</button>
+                  <button type="button" title="Delete template" aria-label={`Delete template ${t.name}`} onClick={() => delTpl(t.id)} style={{ background: "none", border: "none", padding: 0, color: "var(--terracotta)", cursor: "pointer" }}>✕</button>
+                </span>
+              ))}
+              {tpls.team.map((t) => <button type="button" key={t.id} style={chip(false)} onClick={() => applyTpl(t)}>🏷️ {t.name} <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>· Health365</span></button>)}
+            </div>
+          </div>
+        )}
+        {tplMsg && <p style={{ fontSize: ".85rem", fontWeight: 600, color: "#287379" }}>{tplMsg}</p>}
         <div>
           <p style={{ fontWeight: 700, fontSize: ".85rem", marginBottom: 8 }}>Goal</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{GOALS.map(([k, l]) => <button type="button" key={k} style={chip(goal === k)} onClick={() => setGoal(k)}>{l}</button>)}</div>
@@ -216,6 +262,11 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
             <label>Plan title</label>
             <input value={plan.title} onChange={(e) => setPlan({ ...plan, title: e.target.value })} />
           </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => openPrint(clean(plan), { client: fixedUser?.name || chosen?.name, from: portal ? undefined : signedAs, note })}>🖨️ PDF / Print</button>
+            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => sharePlanText(clean(plan), { client: (fixedUser?.name || chosen?.name || "").split(" ")[0], from: portal ? undefined : signedAs, phone: portal ? undefined : chosen?.phone })}>📲 WhatsApp</button>
+            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={saveTpl}>💾 Save as template</button>
+          </div>
           <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
             {plan.days.map((x, i) => (
               <button type="button" key={i} onClick={() => setOpenDay(i)} style={{ ...chip(openDay === i), flex: "none", ...(target && Math.abs(x.kcal - target) > target * 0.1 ? { color: "#A5371F" } : {}) }}>
@@ -227,14 +278,28 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
             const diff = d.kcal - target; const off = Math.abs(diff) > target * 0.1;
             return <p style={{ fontSize: ".86rem", fontWeight: 600, padding: "8px 12px", borderRadius: 10, background: off ? "#FBE9E5" : "#E7F0DC", color: off ? "#A5371F" : "#2E6B3C" }}>{d.label}: {d.kcal} kcal · target {target} kcal · {diff === 0 ? "on target ✓" : `${Math.abs(diff)} kcal ${diff > 0 ? "over" : "under"}${off ? " — adjust portions" : " ✓"}`}</p>;
           })()}
+          {(() => {
+            const prot = Math.round(d.meals.reduce((a, m) => a + m.items.reduce((b, i) => b + (Number(i.protein) || 0), 0), 0));
+            const carbs = Math.round(d.meals.reduce((a, m) => a + (Number(m.carbs) || 0), 0));
+            const fat = Math.round(d.meals.reduce((a, m) => a + (Number(m.fat) || 0), 0));
+            const lo = kg ? Math.round(kg * 0.8) : 0, hi = kg ? Math.round(kg * 1.0) : 0;
+            const lowP = kg > 0 && prot < lo;
+            return (
+              <p style={{ fontSize: ".82rem", display: "flex", gap: 14, flexWrap: "wrap", color: "var(--ink-soft)" }}>
+                <span style={{ fontWeight: 700, color: lowP ? "#A5371F" : "#2E6B3C" }}>Protein {prot} g{kg ? ` (aim ${lo}–${hi} g for ${kg} kg)` : ""}</span>
+                {carbs > 0 && <span>Carbs ~{carbs} g</span>}
+                {fat > 0 && <span>Fat ~{fat} g</span>}
+              </p>
+            );
+          })()}
           {d.meals.map((m, mi) => (
             <div key={mi} style={{ border: "1px solid var(--line)", borderRadius: 14, padding: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
                 <p style={{ fontWeight: 700 }}>{m.label} <span style={{ fontWeight: 500, color: "var(--ink-soft)", fontSize: ".8rem" }}>· {m.time}</span></p>
                 <p style={{ fontWeight: 700, color: "#287379" }}>{m.kcal} kcal</p>
               </div>
-              {m.items.map((it, ii) => (
-                <div key={ii} className="adm-item" style={{ display: "grid", gridTemplateColumns: "1fr 120px 74px 24px", gap: 6, marginBottom: 6 }}>
+              {m.items.map((it, ii) => (<div key={ii}>
+                <div className="adm-item" style={{ display: "grid", gridTemplateColumns: "1fr 120px 74px 24px", gap: 6, marginBottom: 6 }}>
                   <div style={{ position: "relative" }}>
                     <input value={it.name} placeholder="Type a food, e.g. barley" onFocus={() => setSugAt(`${openDay}-${mi}-${ii}`)} onBlur={() => setTimeout(() => setSugAt((v) => (v === `${openDay}-${mi}-${ii}` ? "" : v)), 180)} onChange={(e) => { editItem(openDay, mi, ii, { name: e.target.value, _b: undefined }); setSugAt(`${openDay}-${mi}-${ii}`); }} style={{ width: "100%", boxSizing: "border-box", padding: "7px 10px", border: "1px solid var(--line)", borderRadius: 8, fontSize: ".85rem" }} />
                     {sugAt === `${openDay}-${mi}-${ii}` && suggestFor(it.name).length > 0 && (
@@ -251,6 +316,8 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
                   <input value={it.portion} onChange={(e) => editItem(openDay, mi, ii, { portion: e.target.value })} style={{ padding: "7px 10px", border: "1px solid var(--line)", borderRadius: 8, fontSize: ".85rem" }} />
                   <input type="number" value={it.kcal} onChange={(e) => editItem(openDay, mi, ii, { kcal: Number(e.target.value) || 0 })} style={{ padding: "7px 8px", border: "1px solid var(--line)", borderRadius: 8, fontSize: ".85rem" }} />
                   <button type="button" title="Remove" onClick={() => removeItem(openDay, mi, ii)} style={{ background: "none", border: "none", color: "var(--terracotta)", cursor: "pointer" }}>✕</button>
+                </div>
+                {warn(it.name).length > 0 && <p style={{ fontSize: ".76rem", fontWeight: 600, color: "#B4442A", margin: "-2px 0 8px" }}>⚠️ {warn(it.name).map((w) => w.text).join(" · ")}</p>}
                 </div>
               ))}
               <button type="button" onClick={() => addItem(openDay, mi)} style={{ background: "none", border: "none", color: "#287379", fontWeight: 700, fontSize: ".8rem", cursor: "pointer", padding: 0 }}>+ Add item</button>
@@ -296,6 +363,13 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
             <label>Start date <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— optional</span></label>
             <input type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
           </div>
+          {allWarn.length > 0 && (
+            <div style={{ background: "#FFF3EE", border: "1px solid #F3C6B5", borderRadius: 12, padding: "10px 14px", fontSize: ".84rem" }}>
+              <p style={{ fontWeight: 700, color: "#A5371F" }}>⚠️ {allWarn.length} item{allWarn.length > 1 ? "s" : ""} may not suit this client. Check before sending:</p>
+              <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>{allWarn.slice(0, 8).map((w, i) => <li key={i}>{w}</li>)}</ul>
+              {allWarn.length > 8 && <p style={{ marginTop: 4, color: "var(--ink-soft)" }}>…and {allWarn.length - 8} more.</p>}
+            </div>
+          )}
           {msg && <p style={{ fontSize: ".88rem", color: msg.ok ? "#256B3C" : "var(--terracotta)", fontWeight: 600 }}>{msg.text}</p>}
           <div><button type="button" className="pill pill-primary" disabled={busy || !chosen} onClick={assign}>{busy ? "Saving…" : editId ? "Save changes" : "Assign plan"}</button></div>
         </div>

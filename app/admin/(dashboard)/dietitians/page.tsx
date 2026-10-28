@@ -3,6 +3,7 @@ import { listAllDietitianApplications, getUserById, getAppointmentsForDietitian 
 import { threadsForDietitian, getActivity } from "@/lib/consultChat";
 import DietitianList, { DtRow } from "./DietitianList";
 import { TERMS_VERSION } from "@/lib/dietitianTerms";
+import { ratingsFor } from "@/lib/ratings";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +18,12 @@ export default async function DietitiansPage() {
 
   const rows: DtRow[] = await Promise.all(
     apps.map(async (d) => {
-      const [user, appts, threads, activity] = await Promise.all([
+      const [user, appts, threads, activity, rating] = await Promise.all([
         getUserById(d.userId).catch(() => null),
         getAppointmentsForDietitian(d.id).catch(() => []),
         threadsForDietitian(d.id).catch(() => []),
         getActivity(d.id).catch(() => []),
+        ratingsFor(d.id).catch(() => ({ avg: 0, count: 0, recent: [] })),
       ]);
       const booked = appts.filter((a) => a.status === "booked");
       const fee = Number(String(d.fee || "").replace(/[^\d.]/g, "")) || 0;
@@ -54,6 +56,7 @@ export default async function DietitiansPage() {
         plansSent: activity.filter((x) => /plan/i.test(x.what)).length,
         lastActive: activity[0]?.at || 0,
         activity: activity.slice(0, 6),
+        rating: { avg: rating.avg, count: rating.count, recent: rating.recent.slice(0, 5).map((x) => ({ stars: x.stars, comment: x.comment, client: x.client, at: x.at })) },
         upcoming: booked
           .filter((a) => a.date >= today)
           .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))

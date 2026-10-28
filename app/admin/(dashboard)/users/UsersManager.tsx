@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import PlanBuilder, { Plan, ClientInfo } from "../plan-generator/PlanBuilder";
 import ResetLinkBox from "../ResetLinkBox";
 import UserEmailBox from "./UserEmailBox";
+import WeightChart, { WeightPoint } from "@/components/WeightChart";
 
 interface Row { id: string; name: string; email: string; phone: string; createdAt: string; freeUsed: boolean; grants: number; plans: number; access: string }
 interface PlanSummary { id: string; title: string; assignedAt: string; assignedBy: string; active: boolean; targetKcal: number; days: { kcal: number }[]; note: string; updatedAt?: string; editedBy?: string }
@@ -16,6 +17,7 @@ interface Detail {
   appointments: { id: string; date: string; time: string; dietitianName: string; status: string }[];
   backup?: { current: Backup | null; older: (Backup & { index: number })[] };
   client?: ClientInfo | null;
+  weights?: WeightPoint[];
   suggest?: { goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null;
 }
 interface Backup { updatedAt: number; name: string; onboarded: boolean; hasPlan: boolean; planTitle: string; weights: number; foodDays: number; trackDays: number; lastActive: string; size: number }
@@ -106,6 +108,11 @@ export default function UsersManager() {
             {detail.ent.grants > 0 && <button className="pill" disabled={busy} onClick={() => act({ action: "revoke" })}>Remove unused grants</button>}
             {detail.ent.freeUsed && <button className="pill" disabled={busy} onClick={() => act({ action: "resetFree" })}>Reset first free plan</button>}
           </div>
+        </div>
+
+        <div className="panel">
+          <h2 style={{ fontSize: "1.05rem", marginBottom: 10 }}>Weight progress</h2>
+          <WeightChart points={detail.weights || []} />
         </div>
 
         <div className="panel">

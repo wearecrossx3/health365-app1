@@ -11,7 +11,7 @@ import { SPECIALIZATIONS } from "@/lib/dietConditions";
 interface Dietitian {
   id: string; name: string; role: string; verified: boolean; specializations: string[];
   languages: string[]; experienceYears: number;
-  location: string; bio: string; qualNote: string; fee?: string; photoUrl?: string;
+  location: string; bio: string; qualNote: string; fee?: string; photoUrl?: string; rating?: { avg: number; count: number } | null;
 }
 
 const ASTHA_DEFAULT: Dietitian = {
@@ -80,8 +80,9 @@ function DietitiansContent() {
     fetch("/api/dietitians")
       .then((r) => r.json())
       .then((data) => {
-        const list: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; photoUrl?: string }) => ({
+        const list: Dietitian[] = (data.dietitians || []).map((d: { id: string; name: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; about: string; fee: string; photoUrl?: string; rating?: { avg: number; count: number } | null }) => ({
           id: d.id,
+          rating: d.rating || null,
           photoUrl: d.photoUrl || "",
           name: d.name,
           role: d.qualification,
@@ -176,6 +177,7 @@ function DietitiansContent() {
                     <div>
                       <h3>{d.name} {d.verified && <span className="verified">Verified</span>}</h3>
                       <p className="meta">{d.role} · {d.experienceYears} yrs experience · {d.location}</p>
+                      {d.rating && <p className="meta" style={{ color: "#B7791F", fontWeight: 700 }}>★ {d.rating.avg} <span style={{ fontWeight: 500, color: "var(--ink-soft)" }}>({d.rating.count} client ratings)</span></p>}
                       <div className="tags">{d.specializations.map((s) => <span key={s}>{s}</span>)}</div>
                     </div>
                     <button className="pill pill-outline" style={{ padding: "9px 18px", fontSize: ".8rem" }}>View Profile</button>

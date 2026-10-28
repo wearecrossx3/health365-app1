@@ -5,7 +5,7 @@ import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForU
 import { getAdminEmails } from "@/lib/email";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
-import { listBackups, restoreBackup } from "@/lib/appBackup";
+import { listBackups, restoreBackup, weightLog } from "@/lib/appBackup";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 import { suggestFromConsultation } from "@/lib/planSuggest";
 
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     } : null;
     return NextResponse.json({
       user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt, ...(await bestPhone(user, consultations)) },
-      ent, access: sevenDayAccess(ent), plans, consultations, appointments, backup, suggest: sug, client,
+      ent, access: sevenDayAccess(ent), plans, consultations, appointments, backup, suggest: sug, client, weights: await weightLog(id).catch(() => []),
     });
   }
   const users = await listAllUsers();

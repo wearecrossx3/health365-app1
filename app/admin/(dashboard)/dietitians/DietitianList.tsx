@@ -7,6 +7,7 @@ import MessageBox, { MB_CSS } from "./MessageBox";
 
 export type DtRow = {
   id: string; name: string; email: string; phone: string;
+  rating?: { avg: number; count: number; recent: { stars: number; comment: string; client: string; at: string }[] };
   status: "pending" | "approved" | "rejected"; portal: boolean;
   qualification: string; experienceYears: number; specializations: string[]; languages: string[];
   location: string; fee: number; feeText: string; about: string; joinedAt: string; termsAt: string; termsOk: boolean; photoUrl: string;
@@ -117,7 +118,7 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
               <span className="dl-right">
                 <span className={"dl-pill " + STATUS[r.status][1]}>{STATUS[r.status][0]}</span>
                 {r.pending && <span className="dl-pill dl-wait">Change to approve</span>}
-                {r.status === "approved" && <small>{r.total} consult{r.total === 1 ? "" : "s"}{r.waiting ? ` · ${r.waiting} waiting` : ""}</small>}
+                {r.status === "approved" && <small>{r.rating?.count ? `★ ${r.rating.avg} (${r.rating.count}) · ` : ""}{r.total} consult{r.total === 1 ? "" : "s"}{r.waiting ? ` · ${r.waiting} waiting` : ""}</small>}
               </span>
               <span className="dl-chev" aria-hidden>{isOpen ? "▴" : "▾"}</span>
             </button>
@@ -160,6 +161,8 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
                   <div><span>Fee per consult</span><b>{r.feeText || "—"}</b></div>
                   <div><span>Languages</span><b>{r.languages.join(", ") || "—"}</b></div>
                   <div><span>Applied on</span><b>{joined(r.joinedAt)}</b></div>
+                  <div><span>Rating</span><b>{r.rating?.count ? `★ ${r.rating.avg} from ${r.rating.count} client${r.rating.count > 1 ? "s" : ""}` : "No ratings yet"}</b></div>
+                  {r.rating?.recent?.filter((x) => x.comment).slice(0, 3).map((x, i) => <div key={i}><span>{"★".repeat(x.stars)} {x.client}</span><b style={{ fontWeight: 500 }}>“{x.comment}”</b></div>)}
                   <div><span>Terms</span><b style={{ color: r.termsOk ? undefined : "var(--terracotta)" }}>{r.termsOk ? `Accepted ${joined(r.termsAt)}` : r.termsAt ? "Old version, asked again" : "Not accepted yet"}</b></div>
                 </div>
                 {r.specializations.length > 0 && <div className="dl-tags">{r.specializations.map((s) => <span key={s}>{s}</span>)}</div>}

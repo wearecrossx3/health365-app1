@@ -4,6 +4,7 @@ import { getDietitianApplicationById, createOrUpdateDietitianApplication, getUse
 import { SPECIALIZATIONS } from "@/lib/dietConditions";
 import { logActivity } from "@/lib/consultChat";
 import { sendPushToAdmins } from "@/lib/push";
+import { ratingsFor } from "@/lib/ratings";
 
 // The dietitian edits their own profile in the Dietitian app.
 // Photo, about, languages, specialities and city go live at once.
@@ -26,9 +27,11 @@ export async function GET(req: NextRequest) {
   const me = await dietitianFromRequest(req);
   if (!me) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   const d = await getDietitianApplicationById(me.dietitianId);
-  if (!d) return NextResponse.json({ own: true }); // Dt. Astha: edited in Admin › Settings
+  const rt = await ratingsFor(me.dietitianId).catch(() => ({ avg: 0, count: 0, recent: [] }));
+  const rating = { avg: rt.avg, count: rt.count, recent: rt.recent.map((x) => ({ stars: x.stars, comment: x.comment, client: x.client })) };
+  if (!d) return NextResponse.json({ own: true, rating }); // Dt. Astha: edited in Admin › Settings
   const u = await getUserById(d.userId).catch(() => null);
-  return NextResponse.json({ profile: view(d, u?.phone || d.phone || ""), specializations: SPECIALIZATIONS, languages: LANGUAGES });
+  return NextResponse.json({ profile: view(d, u?.phone || d.phone || ""), specializations: SPECIALIZATIONS, languages: LANGUAGES, rating });
 }
 
 export async function POST(req: NextRequest) {
