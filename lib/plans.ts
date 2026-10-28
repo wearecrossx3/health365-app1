@@ -20,6 +20,8 @@ export interface AssignedPlan extends GeneratedPlan {
   assignedAt: string;
   startsOn: string; // YYYY-MM-DD (optional)
   active: boolean;
+  updatedAt?: string; // set when the plan was edited after sending
+  editedBy?: string; // who edited it last (admin or dietitian name)
 }
 
 export interface Entitlement {

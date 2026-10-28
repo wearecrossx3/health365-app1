@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import PlanBuilder from "../plan-generator/PlanBuilder";
+import PlanBuilder, { Plan, ClientInfo } from "../plan-generator/PlanBuilder";
 import ResetLinkBox from "../ResetLinkBox";
 import UserEmailBox from "./UserEmailBox";
 
 interface Row { id: string; name: string; email: string; phone: string; createdAt: string; freeUsed: boolean; grants: number; plans: number; access: string }
-interface PlanSummary { id: string; title: string; assignedAt: string; assignedBy: string; active: boolean; targetKcal: number; days: { kcal: number }[]; note: string }
+interface PlanSummary { id: string; title: string; assignedAt: string; assignedBy: string; active: boolean; targetKcal: number; days: { kcal: number }[]; note: string; updatedAt?: string; editedBy?: string }
 interface Detail {
   user: { id: string; name: string; email: string; phone: string; phoneFrom?: string; createdAt: string };
   ent: { freeUsed: boolean; freeUsedAt: string; grants: number; grantLog: { at: string; by: string; note: string; kind: string }[] };
@@ -15,6 +15,8 @@ interface Detail {
   consultations: { id: string; goal: string; conditions: string[]; createdAt: string; status: string }[];
   appointments: { id: string; date: string; time: string; dietitianName: string; status: string }[];
   backup?: { current: Backup | null; older: (Backup & { index: number })[] };
+  client?: ClientInfo | null;
+  suggest?: { goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null;
 }
 interface Backup { updatedAt: number; name: string; onboarded: boolean; hasPlan: boolean; planTitle: string; weights: number; foodDays: number; trackDays: number; lastActive: string; size: number }
 const when = (ms: number) => new Date(ms).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
@@ -39,11 +41,13 @@ export default function UsersManager() {
   const [delErr, setDelErr] = useState("");
   const [notice, setNotice] = useState("");
   const [mailOpen, setMailOpen] = useState(false);
+  const [editing, setEditing] = useState<PlanSummary | null>(null);
+  const [planSaved, setPlanSaved] = useState("");
 
   const load = () => fetch("/api/admin/users").then((r) => r.json()).then((d) => setRows(d.users || [])).catch(() => setRows([]));
   const loadDetail = (id: string) => fetch(`/api/admin/users?id=${encodeURIComponent(id)}`).then((r) => r.json()).then((d) => setDetail(d.user ? d : null));
   useEffect(() => { load(); }, []);
-  useEffect(() => { setDetail(null); setDelOpen(false); setDelText(""); setDelErr(""); if (sel) loadDetail(sel); }, [sel]);
+  useEffect(() => { setDetail(null); setEditing(null); setDelOpen(false); setDelText(""); setDelErr(""); if (sel) loadDetail(sel); }, [sel]);
 
   const list = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -115,10 +119,11 @@ export default function UsersManager() {
             <div key={p.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "12px 0", borderTop: "1px solid var(--line)" }}>
               <div>
                 <p style={{ fontWeight: 700 }}>{p.title} {p.active && <span style={{ fontSize: ".72rem", color: "#2E7D4F", marginLeft: 6 }}>● Showing in app</span>}</p>
-                <p style={{ fontSize: ".8rem", color: "var(--ink-soft)" }}>{p.days.length} day{p.days.length > 1 ? "s" : ""} · ~{p.targetKcal} kcal/day · by {p.assignedBy} · {fmt(p.assignedAt)}</p>
+                <p style={{ fontSize: ".8rem", color: "var(--ink-soft)" }}>{p.days.length} day{p.days.length > 1 ? "s" : ""} · ~{p.targetKcal} kcal/day · by {p.assignedBy} · {fmt(p.assignedAt)}{p.updatedAt ? ` · edited ${fmt(p.updatedAt)}${p.editedBy ? ` by ${p.editedBy}` : ""}` : ""}</p>
                 {p.note && <p style={{ fontSize: ".82rem", marginTop: 4 }}>“{p.note}”</p>}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end", flex: "none" }}>
+                <button onClick={() => { setPlanSaved(""); setEditing(p); setTimeout(() => document.getElementById("plan-maker")?.scrollIntoView({ behavior: "smooth" }), 50); }} style={{ background: "none", border: "none", color: "#287379", fontWeight: 700, fontSize: ".8rem", cursor: "pointer" }}>✏️ Edit</button>
                 {!p.active && <button onClick={() => act({ action: "activatePlan", planId: p.id })} style={{ background: "none", border: "none", color: "#287379", fontWeight: 700, fontSize: ".8rem", cursor: "pointer" }}>Show this one</button>}
                 <button onClick={() => confirm("Delete this plan?") && act({ action: "deletePlan", planId: p.id })} style={{ background: "none", border: "none", color: "var(--terracotta)", fontWeight: 600, fontSize: ".8rem", cursor: "pointer" }}>Delete</button>
               </div>
@@ -155,8 +160,14 @@ export default function UsersManager() {
           ))}
         </div>
 
-        <h2 style={{ fontSize: "1.1rem" }}>Make a plan for {detail.user.name.split(" ")[0]}</h2>
-        <PlanBuilder fixedUser={detail.user} onAssigned={() => loadDetail(detail.user.id)} />
+        <div id="plan-maker" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <h2 style={{ fontSize: "1.1rem" }}>{editing ? `Edit “${editing.title}”` : `Make a plan for ${detail.user.name.split(" ")[0]}`}</h2>
+          {editing && <button className="pill" onClick={() => setEditing(null)}>Cancel editing</button>}
+        </div>
+        {planSaved && !editing && <p style={{ background: "#E7F0DC", color: "#2E7D4F", borderRadius: 12, padding: "10px 14px", fontSize: ".88rem", fontWeight: 600 }}>{planSaved}</p>}
+        <PlanBuilder key={editing?.id || "new"} fixedUser={detail.user} client={detail.client} initialInput={detail.suggest || null}
+          initialPlan={editing ? (editing as unknown as Plan) : null} editId={editing?.id}
+          onAssigned={() => { if (editing) { setPlanSaved(`✓ Changes to “${editing.title}” saved. ${detail.user.name.split(" ")[0]} sees them the next time the app opens.`); setEditing(null); } loadDetail(detail.user.id); }} />
 
         <div className="panel" style={{ borderColor: "#F2C4C9" }}>
           <h2 style={{ fontSize: "1.05rem", color: "#A51F31" }}>Delete this user</h2>

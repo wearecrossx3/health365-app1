@@ -7,6 +7,7 @@ import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
 import { listBackups, restoreBackup } from "@/lib/appBackup";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
+import { suggestFromConsultation } from "@/lib/planSuggest";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,17 @@ export async function GET(req: NextRequest) {
       getEntitlement(id), listUserPlans(id), getConsultationsForUser(id).catch(() => []), getAppointmentsForUser(id).catch(() => []),
       listBackups(id).catch(() => ({ current: null, older: [] })),
     ]);
+    const latest = [...consultations].sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
+    const sug = suggestFromConsultation(latest);
+    // What the plan maker should keep in mind: from the user's latest consultation form.
+    const client = latest ? {
+      goal: sug?.goal, diet: sug?.diet, kcal: sug?.kcal || 0, basis: sug?.basis || "",
+      conditions: (latest.conditions || []).map(String).filter(Boolean),
+      allergens: ((latest as unknown as { allergens?: unknown[] }).allergens || []).map(String).filter(Boolean),
+    } : null;
     return NextResponse.json({
       user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt, ...(await bestPhone(user, consultations)) },
-      ent, access: sevenDayAccess(ent), plans, consultations, appointments, backup,
+      ent, access: sevenDayAccess(ent), plans, consultations, appointments, backup, suggest: sug, client,
     });
   }
   const users = await listAllUsers();
@@ -135,6 +144,15 @@ export async function POST(req: NextRequest) {
       active: true,
     };
     const plans = await listUserPlans(userId);
+    // Editing a plan that was already sent: replace it in place (same id,
+    // same "from" name, same active state) instead of adding a new one.
+    const old = b.replaceId ? plans.find((x) => x.id === String(b.replaceId)) : undefined;
+    if (b.replaceId && !old) return NextResponse.json({ error: "That plan wasn't found — it may have been deleted." }, { status: 404 });
+    if (old) {
+      const upd: AssignedPlan = { ...old, ...plan, id: old.id, createdAt: old.createdAt, assignedAt: old.assignedAt, assignedBy: old.assignedBy, byDietitian: old.byDietitian, active: old.active, note: plan.note || old.note, startsOn: plan.startsOn || old.startsOn, updatedAt: now, editedBy: by } as AssignedPlan;
+      await saveUserPlans(userId, plans.map((x) => (x.id === old.id ? upd : x)));
+      return NextResponse.json({ ok: true, plan: upd, updated: true });
+    }
     // Only one active plan at a time — the newest one is what the app shows.
     await saveUserPlans(userId, [plan, ...plans.map((x) => ({ ...x, active: false }))]);
     const ph = user.phone || (await bestPhone(user)).phone;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import PlanBuilder, { Plan } from "../(dashboard)/plan-generator/PlanBuilder";
+import PlanBuilder, { Plan, ClientInfo } from "../(dashboard)/plan-generator/PlanBuilder";
 import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
 import DietitianTermsText from "@/components/DietitianTermsText";
 
@@ -16,7 +16,7 @@ type Detail = {
   plans: { id: string; title: string; at: string; active: boolean; targetKcal: number; plan: Plan }[];
   messages: Msg[];
 };
-type View = { kind: "chat" | "client" | "plan"; id: string; copy?: Plan | null } | null;
+type View = { kind: "chat" | "client" | "plan"; id: string; copy?: Plan | null; editId?: string } | null;
 
 const COLORS = ["#F6961D", "#9997C9", "#4EAA67", "#287379", "#E5394F", "#C27A12"];
 const color = (s: string) => COLORS[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
@@ -89,14 +89,14 @@ export default function DietitianApp() {
   if (terms) return <div className="dta"><Style /><TermsGate onDone={() => setTerms(false)} /></div>;
   if (editing) return <div className="dta"><Style /><EditProfile onBack={() => { setEditing(false); load(); }} onPhoto={setPhoto} /></div>;
   if (view?.kind === "chat") return <div className="dta"><Style /><Chat id={view.id} row={rows.find((r) => r.id === view.id)} me={me.name} onBack={back} onOpen={(k) => setView({ kind: k, id: view.id })} /></div>;
-  if (view?.kind === "client") return <div className="dta"><Style /><Client id={view.id} onBack={back} onChat={() => setView({ kind: "chat", id: view.id })} onPlan={(copy) => setView({ kind: "plan", id: view.id, copy })} /></div>;
+  if (view?.kind === "client") return <div className="dta"><Style /><Client id={view.id} onBack={back} onChat={() => setView({ kind: "chat", id: view.id })} onPlan={(copy, editId) => setView({ kind: "plan", id: view.id, copy, editId })} /></div>;
   if (view?.kind === "plan") {
     const r = rows.find((x) => x.id === view.id);
     return (
       <div className="dta"><Style />
-        <div className="dta-top"><button className="dta-back" onClick={() => setView({ kind: "client", id: view.id })}>‹</button><div><b>New plan</b><small>for {r?.clientName}</small></div></div>
+        <div className="dta-top"><button className="dta-back" onClick={() => setView({ kind: "client", id: view.id })}>‹</button><div><b>{view.editId ? "Edit plan" : "New plan"}</b><small>for {r?.clientName}</small></div></div>
         <div className="dta-pb">
-          <PlanFor id={view.id} name={r?.clientName || ""} copy={view.copy || null} onDone={() => setTimeout(() => setView({ kind: "chat", id: view.id }), 1200)} />
+          <PlanFor id={view.id} name={r?.clientName || ""} copy={view.copy || null} editId={view.editId} onDone={() => setTimeout(() => setView({ kind: "chat", id: view.id }), 1200)} />
         </div>
       </div>
     );
@@ -246,14 +246,20 @@ export default function DietitianApp() {
 }
 
 // Plan builder pre-filled from the client's form (goal, food, conditions, calories).
-function PlanFor({ id, name, copy, onDone }: { id: string; name: string; copy: Plan | null; onDone: () => void }) {
+function PlanFor({ id, name, copy, editId, onDone }: { id: string; name: string; copy: Plan | null; editId?: string; onDone: () => void }) {
   const [sug, setSug] = useState<{ goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null | undefined>(undefined);
+  const [client, setClient] = useState<ClientInfo | null>(null);
   useEffect(() => {
-    fetch(`/api/admin/my-clients/${id}`, { cache: "no-store" }).then((r) => r.json()).then((j) => setSug(j.suggest || null)).catch(() => setSug(null));
+    fetch(`/api/admin/my-clients/${id}`, { cache: "no-store" }).then((r) => r.json()).then((j) => {
+      setSug(j.suggest || null);
+      // Show the client's goal, conditions, allergies and target calories above the plan.
+      const pr = j.profile;
+      if (pr || j.suggest) setClient({ goal: j.suggest?.goal, diet: j.suggest?.diet, kcal: j.suggest?.kcal || 0, basis: j.suggest?.basis || "", conditions: (pr?.conditions || []).map(String), allergens: (pr?.allergens || []).map(String) });
+    }).catch(() => setSug(null));
   }, [id]);
   if (sug === undefined) return <p className="dta-empty">Loading…</p>;
   return (
-    <PlanBuilder fixedUser={{ id, name, email: "", phone: "" }} initialPlan={copy} initialInput={sug}
+    <PlanBuilder fixedUser={{ id, name, email: "", phone: "" }} initialPlan={copy} initialInput={sug} client={client} editId={editId}
       portal={{ generateUrl: "/api/admin/my-clients/generate", assignUrl: `/api/admin/my-clients/${id}` }} onAssigned={onDone} />
   );
 }
@@ -360,7 +366,7 @@ function Chat({ id, row, me, onBack, onOpen }: { id: string; row?: Row; me: stri
   );
 }
 
-function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void; onChat: () => void; onPlan: (copy: Plan | null) => void }) {
+function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void; onChat: () => void; onPlan: (copy: Plan | null, editId?: string) => void }) {
   const [d, setD] = useState<Detail | null>(null);
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState("");
@@ -403,7 +409,7 @@ function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void
       </div>
       <div className="dta-card"><h3>Plans sent</h3>
         {d.plans.length === 0 ? <p className="dta-sub" style={{ margin: 0 }}>No plans sent yet.</p> : d.plans.map((pl) => (
-          <div key={pl.id} className="dta-it flat"><span className="dta-t"><b>{pl.title}</b><span>{pl.targetKcal ? `${pl.targetKcal} kcal · ` : ""}{fmtDate(pl.at.slice(0, 10))}{pl.active ? " · current" : ""}</span></span><button className="dta-link" onClick={() => onPlan(pl.plan)}>Copy ›</button></div>
+          <div key={pl.id} className="dta-it flat"><span className="dta-t"><b>{pl.title}</b><span>{pl.targetKcal ? `${pl.targetKcal} kcal · ` : ""}{fmtDate(pl.at.slice(0, 10))}{pl.active ? " · current" : ""}</span></span><span style={{ display: "flex", gap: 12, flex: "none" }}><button className="dta-link" onClick={() => onPlan(pl.plan, pl.id)}>Edit ✏️</button><button className="dta-link" onClick={() => onPlan(pl.plan)}>Copy ›</button></span></div>
         ))}
       </div>
       {d.thread.pay && d.thread.pay.status !== "verified" ? null : <button className="dta-cta" onClick={() => onPlan(null)}>📋 Make a new plan</button>}

@@ -93,6 +93,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       startsOn: /^\d{4}-\d{2}-\d{2}$/.test(String(b.startsOn || "")) ? String(b.startsOn) : "", active: true,
     };
     const plans = await listUserPlans(user.id);
+    if (b.replaceId) {
+      // Edit a plan this dietitian already sent: replace it in place.
+      const old = plans.find((x) => x.id === String(b.replaceId));
+      if (!old || old.byDietitian !== me.dietitianId) return NextResponse.json({ error: "You can only edit plans you sent." }, { status: 403 });
+      const upd: AssignedPlan = { ...old, ...plan, id: old.id, createdAt: old.createdAt, assignedAt: old.assignedAt, active: old.active, note: plan.note || old.note, startsOn: plan.startsOn || old.startsOn, updatedAt: now, editedBy: d.name } as AssignedPlan;
+      await saveUserPlans(user.id, plans.map((x) => (x.id === old.id ? upd : x)));
+      await addMessage(a.id, "team", `✏️ ${d.name} updated your diet plan. Open the Plan tab to see the changes.`);
+      await logActivity(me.dietitianId, `Edited the plan for ${firstName(user.name)}`);
+      sendNotifyToClient(a, "Your dietitian updated your diet plan ✏️").catch(() => {});
+      return NextResponse.json({ ok: true, plan: { id: upd.id, title: upd.title }, updated: true });
+    }
     await saveUserPlans(user.id, [plan, ...plans.map((x) => ({ ...x, active: false }))]);
     await addMessage(a.id, "team", `📋 ${d.name} sent you a new diet plan. Open the Plan tab to see it.`);
     await logActivity(me.dietitianId, `Assigned a plan to ${firstName(user.name)}`);
