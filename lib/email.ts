@@ -35,7 +35,8 @@ export async function sendEmailResult({
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to, subject, html }),
+      // Replies go to the support inbox (hello@thehealth365.in only sends).
+      body: JSON.stringify({ from, to, subject, html, reply_to: (process.env.RESEND_REPLY_TO || "health365.support@gmail.com").trim() }),
     });
     if (!res.ok) {
       const t = await res.text();
