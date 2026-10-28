@@ -14,6 +14,7 @@ export default function MessageBox({ ids, name, phone, onClose }: { ids: string[
   const [email, setEmail] = useState(true);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState("");
+  const [mailErr, setMailErr] = useState("");
   const many = ids.length > 1;
   const preview = (s: string) => (name ? fillDtMessage(s, name) : s);
 
@@ -22,13 +23,14 @@ export default function MessageBox({ ids, name, phone, onClose }: { ids: string[
     setK(key); setTitle(m.title); setBody(m.body); setDone("");
   };
   const send = async () => {
-    setBusy(true); setDone("");
+    setBusy(true); setDone(""); setMailErr("");
     const r = await fetch("/api/admin/dietitians", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "message", ids, title, body, app, email }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
     setBusy(false);
     if (!r || !r.ok) { setDone(j.error || "Couldn't send. Try again."); return; }
     const parts = [app && `in the app to ${j.sent}`, email && `email to ${j.emailed} of ${j.sent}`].filter(Boolean).join(", ");
     setDone(`Sent ✅ ${parts}`);
+    if (email && j.emailError) setMailErr(`Email didn't go — ${j.emailError}${ph ? " Use WhatsApp for now." : ""}`);
   };
   const ph = (phone || "").replace(/\D/g, "").slice(-10);
   const wa = ph ? `https://wa.me/91${ph}?text=${encodeURIComponent(preview(title) + "\n\n" + preview(body))}` : "";
@@ -53,6 +55,7 @@ export default function MessageBox({ ids, name, phone, onClose }: { ids: string[
         </button>
       </div>
       {done && <p className="mb-done">{done}</p>}
+      {mailErr && <p className="mb-err">{mailErr}</p>}
     </div>
   );
 }
@@ -67,5 +70,6 @@ export const MB_CSS = `
 .mb-opts{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:.85rem}
 .mb-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .mb-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px}
+.mb-err{font-size:.8rem;font-weight:600;color:#B4442A;margin-top:6px;text-align:right;line-height:1.45}
 .mb-done{font-size:.82rem;font-weight:600;color:var(--teal-deep);margin-top:8px;text-align:right}
 `;

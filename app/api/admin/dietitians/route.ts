@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { setDietitianStatus, getDietitianApplicationById, createOrUpdateDietitianApplication } from "@/lib/kv";
-import { sendEmail, emailWrapper, adminLink } from "@/lib/email";
+import { sendEmail, sendEmailResult, emailWrapper, adminLink } from "@/lib/email";
 import { addNotice } from "@/lib/dietitianNotices";
 import { fillDtMessage, DT_MESSAGES } from "@/lib/dietitianMessages";
 
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     const text = String(body.body || "").trim().slice(0, 1500);
     if (!title || !text) return NextResponse.json({ error: "Write a title and a message." }, { status: 400 });
     let sent = 0, emailed = 0;
+    let emailError = "";
     for (const id of ids) {
       const d = await getDietitianApplicationById(id);
       if (!d) continue;
@@ -28,11 +29,13 @@ export async function POST(req: NextRequest) {
       if (body.app !== false) await addNotice(d.id, { title: t, body: b });
       if (body.email) {
         const html = b.split(/\n+/).map((x) => `<p>${x.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] as string))}</p>`).join("");
-        if (await sendEmail({ to: d.email, subject: t, html: emailWrapper(t, html) }).catch(() => false)) emailed++;
+        const r = await sendEmailResult({ to: d.email, subject: t, html: emailWrapper(t, html) }).catch(() => ({ ok: false, error: "Couldn't reach the email service." }));
+        if (r.ok) emailed++;
+        else if (!emailError) emailError = `${d.name}${d.email ? ` (${d.email})` : ""}: ${r.error || "email failed"}`;
       }
       sent++;
     }
-    return NextResponse.json({ ok: true, sent, emailed });
+    return NextResponse.json({ ok: true, sent, emailed, emailError });
   }
   // Approve or turn down a dietitian's fee / qualification / experience change.
   if (body?.action === "changes") {

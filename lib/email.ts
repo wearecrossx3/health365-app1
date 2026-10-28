@@ -4,7 +4,13 @@
 // from (signup, booking, etc. should never fail because email isn't
 // configured yet).
 
-export async function sendEmail({
+export async function sendEmail(args: { to: string | string[]; subject: string; html: string }): Promise<boolean> {
+  return (await sendEmailResult(args)).ok;
+}
+
+// Same as sendEmail, but also says WHY an email didn't go (shown to the
+// owner in Admin, so a missing key or an unverified domain is easy to spot).
+export async function sendEmailResult({
   to,
   subject,
   html,
@@ -12,12 +18,13 @@ export async function sendEmail({
   to: string | string[];
   subject: string;
   html: string;
-}): Promise<boolean> {
+}): Promise<{ ok: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.log(`[email skipped — no RESEND_API_KEY] ${subject} -> ${to}`);
-    return false;
+    return { ok: false, error: "Email isn't set up yet: RESEND_API_KEY is missing in Vercel." };
   }
+  if (!to || (Array.isArray(to) && to.length === 0)) return { ok: false, error: "No email address on this account." };
   const from = process.env.RESEND_FROM_EMAIL || "Health365 <onboarding@resend.dev>";
 
   try {
@@ -30,13 +37,19 @@ export async function sendEmail({
       body: JSON.stringify({ from, to, subject, html }),
     });
     if (!res.ok) {
-      console.error("Email send failed:", await res.text());
-      return false;
+      const t = await res.text();
+      console.error("Email send failed:", t);
+      let m = t;
+      try { m = JSON.parse(t).message || t; } catch {}
+      if (/verify a domain|testing emails|own email address/i.test(m)) {
+        m = "Resend only sends to your own address until the thehealth365.in domain is verified in Resend (and RESEND_FROM_EMAIL uses it). " + m;
+      }
+      return { ok: false, error: String(m).slice(0, 300) };
     }
-    return true;
+    return { ok: true };
   } catch (err) {
     console.error("Email send error:", err);
-    return false;
+    return { ok: false, error: "Couldn't reach the email service." };
   }
 }
 

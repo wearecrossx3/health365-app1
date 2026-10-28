@@ -30,7 +30,7 @@ export default async function DietitiansPage() {
         id: d.id,
         name: d.name,
         email: d.email,
-        phone: user?.phone || "",
+        phone: user?.phone || d.phone || "",
         status: d.status,
         portal: d.portal !== false,
         qualification: d.qualification,

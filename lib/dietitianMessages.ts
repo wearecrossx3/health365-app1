@@ -14,8 +14,8 @@ export const DT_MESSAGES: { key: string; label: string; title: string; body: str
     body: "Hi {name}, a quick reminder: please open the H365 Dietitian app and accept the Terms for dietitians. You can see your clients and chats only after that.",
   },
   {
-    key: "photo", label: "Add photo and bio", title: "Add your photo",
-    body: "Hi {name}, please add a clear, friendly photo and a short bio in the H365 Dietitian app (Me › Edit profile). Clients see these before they book you.",
+    key: "photo", label: "Add photo, bio & mobile", title: "Complete your profile",
+    body: "Hi {name}, please open the H365 Dietitian app › Me › Edit profile and add your mobile number (WhatsApp), a clear, friendly photo and a short bio. Clients see your photo and bio before they book you, and our team uses your number to reach you.",
   },
   {
     key: "waiting", label: "Clients waiting", title: "Clients are waiting for you",

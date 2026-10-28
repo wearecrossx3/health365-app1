@@ -22,6 +22,7 @@ export default function JoinAsDietitianPage() {
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [location, setLocation] = useState("");
+  const [phone, setPhone] = useState("");
   const [fee, setFee] = useState("");
   const [about, setAbout] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -39,6 +40,7 @@ export default function JoinAsDietitianPage() {
           const res = await fetch("/api/dietitians/apply");
           const data = await res.json();
           if (data.application) setStatus(data.application.status);
+          if (data.phone) setPhone(data.phone);
         }
       })
       .finally(() => setCheckedAuth(true));
@@ -55,13 +57,17 @@ export default function JoinAsDietitianPage() {
       setError("Please fill in your qualification and location.");
       return;
     }
+    if (!/^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, ""))) {
+      setError("Please enter your 10-digit mobile number.");
+      return;
+    }
     // The terms come up first; the application goes in only after "I agree".
     if (!accepted) { setShowTerms(true); return; }
     setSubmitting(true);
     const res = await fetch("/api/dietitians/apply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qualification, experienceYears, specializations, languages, location, fee, about, termsAccepted: true }),
+      body: JSON.stringify({ qualification, experienceYears, specializations, languages, location, phone, fee, about, termsAccepted: true }),
     });
     const data = await res.json();
     setSubmitting(false);
@@ -119,6 +125,10 @@ export default function JoinAsDietitianPage() {
           ) : (
             <Reveal delay={120} className="step-card" style={{ marginTop: 32 }}>
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+                <div className="field">
+                  <label>Mobile number <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— WhatsApp, so our team can reach you</span></label>
+                  <input type="tel" inputMode="numeric" autoComplete="tel" maxLength={14} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 98765 43210" />
+                </div>
                 <div className="field">
                   <label>Qualification</label>
                   <input value={qualification} onChange={(e) => setQualification(e.target.value)} placeholder="e.g. M.Sc Clinical Nutrition" />

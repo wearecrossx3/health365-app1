@@ -567,7 +567,7 @@ function TermsGate({ onDone }: { onDone: () => void }) {
 
 // Edit profile: photo, about, specialities, languages and city save at once;
 // fee, qualification and experience go to the Health365 team to approve.
-type Prof = { name: string; photoUrl: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; fee: string; about: string; pending: { qualification?: string; experienceYears?: number; fee?: string; at: string } | null };
+type Prof = { name: string; phone: string; photoUrl: string; qualification: string; experienceYears: number; specializations: string[]; languages: string[]; location: string; fee: string; about: string; pending: { qualification?: string; experienceYears?: number; fee?: string; at: string } | null };
 function EditProfile({ onBack, onPhoto }: { onBack: () => void; onPhoto: (u: string) => void }) {
   const [p, setP] = useState<Prof | null>(null);
   const [own, setOwn] = useState(false);
@@ -646,6 +646,7 @@ function EditProfile({ onBack, onPhoto }: { onBack: () => void; onPhoto: (u: str
             </div>
 
             <label className="dta-f"><span>About you</span><textarea rows={4} maxLength={800} value={p.about} onChange={(e) => set("about", e.target.value)} placeholder="A short bio clients will read before booking." /></label>
+            <label className="dta-f"><span>Mobile number (WhatsApp)</span><input type="tel" inputMode="numeric" maxLength={14} value={p.phone || ""} onChange={(e) => set("phone", e.target.value)} placeholder="e.g. 98765 43210" /></label>
             <label className="dta-f"><span>City</span><input value={p.location} maxLength={80} onChange={(e) => set("location", e.target.value)} /></label>
             <div className="dta-f"><span>Languages</span><div className="dta-chips wrap">{opts.languages.map((l) => <button key={l} className={p.languages.includes(l) ? "on" : ""} onClick={() => tog("languages", l)}>{l}</button>)}</div></div>
             <div className="dta-f"><span>Specialities</span><div className="dta-chips wrap">{opts.specializations.map((l) => <button key={l} className={p.specializations.includes(l) ? "on" : ""} onClick={() => tog("specializations", l)}>{l}</button>)}</div></div>

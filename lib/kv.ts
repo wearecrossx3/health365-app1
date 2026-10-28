@@ -101,6 +101,26 @@ export async function getUserIdByPhone(phone: string): Promise<string | null> {
   return null;
 }
 
+// Add or change the mobile number on an account (used by dietitians who
+// signed up with Google or skipped the number). One account per number.
+export async function setUserPhone(userId: string, raw: string): Promise<{ ok: true; phone: string } | { ok: false; error: string }> {
+  const { normalizePhone, PHONE_ERROR } = await import("./phone");
+  const phone = normalizePhone(raw);
+  if (!phone) return { ok: false, error: PHONE_ERROR };
+  const user = await getUserById(userId);
+  if (!user) return { ok: false, error: "Account not found." };
+  if (user.phone === phone) return { ok: true, phone };
+  const owner = await getUserIdByPhone(phone);
+  if (owner && owner !== userId) return { ok: false, error: "This mobile number is already used by another Health365 account." };
+  if (user.phone) {
+    const old = await client().get(userPhoneKey(user.phone));
+    if (old === userId) await client().del(userPhoneKey(user.phone));
+  }
+  user.phone = phone;
+  await createUser(user);
+  return { ok: true, phone };
+}
+
 export async function saveConsultation(c: Consultation): Promise<void> {
   await setJSON(consultationKey(c.id), c);
   await client().lpush(userConsultationsKey(c.userId), c.id);
@@ -131,6 +151,7 @@ export interface DietitianApplication {
   termsAcceptedAt?: string; // when they accepted the dietitian terms
   termsVersion?: string; // which version (lib/dietitianTerms.ts TERMS_VERSION)
   photoUrl?: string; // profile photo the dietitian uploads in the Dietitian app
+  phone?: string; // mobile number given when joining (also saved on their account)
   // Fee / qualification / experience edits wait here until the owner approves them.
   pendingChanges?: { qualification?: string; experienceYears?: number; fee?: string; at: string };
 }

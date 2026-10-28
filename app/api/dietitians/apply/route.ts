@@ -5,6 +5,8 @@ import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
 import {
   createOrUpdateDietitianApplication,
   getDietitianApplicationByUserId,
+  getUserById,
+  setUserPhone,
   DietitianApplication,
 } from "@/lib/kv";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
@@ -23,6 +25,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // A mobile number is required, so the team can call / WhatsApp the dietitian.
+    const ph = await setUserPhone(session.userId, String(body.phone || ""));
+    if (!ph.ok) return NextResponse.json({ error: ph.error }, { status: 400 });
     const existing = await getDietitianApplicationByUserId(session.userId);
     const app: DietitianApplication = {
       id: existing?.id || crypto.randomUUID(),
@@ -40,6 +45,7 @@ export async function POST(req: NextRequest) {
       createdAt: existing?.createdAt || new Date().toISOString(),
       portal: existing?.portal,
       photoUrl: existing?.photoUrl,
+      phone: ph.phone,
       pendingChanges: existing?.pendingChanges,
       ...(body.termsAccepted ? { termsAcceptedAt: new Date().toISOString(), termsVersion: TERMS_VERSION } : { termsAcceptedAt: existing?.termsAcceptedAt, termsVersion: existing?.termsVersion }),
     };
@@ -52,7 +58,7 @@ export async function POST(req: NextRequest) {
         subject: "New dietitian application",
         html: emailWrapper(
           "New dietitian application",
-          `<p><b>${app.name}</b> (${app.email})</p>
+          `<p><b>${app.name}</b> (${app.email}${app.phone ? ` · ${app.phone}` : ""})</p>
            <p>${app.qualification} · ${app.experienceYears} yrs · ${app.location}</p>
            <p>Specializations: ${app.specializations.join(", ") || "none"}</p>
            <p style="margin-top:16px;">Review it here: ${adminLink("/admin")}</p>`
@@ -83,5 +89,6 @@ export async function GET(req: NextRequest) {
   const session = verifySessionCookieValue(cookie);
   if (!session) return NextResponse.json({ application: null });
   const app = await getDietitianApplicationByUserId(session.userId);
-  return NextResponse.json({ application: app });
+  const user = await getUserById(session.userId).catch(() => null);
+  return NextResponse.json({ application: app, phone: user?.phone || "" });
 }

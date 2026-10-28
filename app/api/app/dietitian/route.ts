@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import crypto from "crypto";
 import {
   createOrUpdateDietitianApplication,
+  setUserPhone,
+  getUserById,
   getDietitianApplicationByUserId,
   getAppointmentsForDietitian,
   DietitianApplication,
@@ -57,6 +59,15 @@ export async function POST(req: NextRequest) {
     Array.isArray(v) ? v.map((x) => String(x)).filter((x) => allowed.includes(x)).slice(0, 25) : [];
 
   try {
+    // Mobile number: saved if the app sends one (older app versions don't).
+    let phone: string | undefined;
+    if (body?.phone) {
+      const ph = await setUserPhone(session.userId, String(body.phone));
+      if (!ph.ok) return appJson({ error: ph.error }, 400);
+      phone = ph.phone;
+    } else {
+      phone = (await getUserById(session.userId).catch(() => null))?.phone;
+    }
     const existing = await getDietitianApplicationByUserId(session.userId);
     if (existing?.status === "approved") {
       return appJson({ error: "You're already an approved dietitian. Contact us to change your profile." }, 409);
@@ -77,6 +88,7 @@ export async function POST(req: NextRequest) {
       createdAt: existing?.createdAt || new Date().toISOString(),
       portal: existing?.portal,
       photoUrl: existing?.photoUrl,
+      phone: phone || existing?.phone,
       pendingChanges: existing?.pendingChanges,
       termsAcceptedAt: existing?.termsAcceptedAt, termsVersion: existing?.termsVersion,
     };
