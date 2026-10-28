@@ -74,6 +74,7 @@ export function adminLink(path: string): string {
 export function emailWrapper(title: string, bodyHtml: string): string {
   return `
     <div style="font-family:sans-serif; max-width:480px; margin:0 auto; padding:24px;">
+      <a href="https://www.thehealth365.in" style="display:inline-block; margin-bottom:20px;"><img src="https://www.thehealth365.in/email-logo.png" width="190" alt="Health365" style="display:block; width:190px; height:auto; border:0;"></a>
       <h2 style="color:#20241F; margin-bottom:16px;">${title}</h2>
       <div style="color:#444; font-size:14px; line-height:1.6;">${bodyHtml}</div>
       <p style="margin-top:28px; font-size:12px; color:#999;">Health365 — general nutrition guidance, not a medical diagnosis.</p>
