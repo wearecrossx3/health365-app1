@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import SetPasswordCard from "@/components/SetPasswordCard";
 import PlanBuilder, { Plan, ClientInfo } from "../(dashboard)/plan-generator/PlanBuilder";
 import WeightChart, { WeightPoint } from "@/components/WeightChart";
 import { TPL, fillTpl, Lang } from "@/lib/chatTemplates";
@@ -219,6 +220,7 @@ export default function DietitianApp() {
             </div>
             <button className="dta-edit" onClick={() => setEditing(true)}>✏️  Edit profile and photo</button>
             <MyRating />
+            <SetPasswordCard className="dta-card" style={{ marginTop: 12 }} compact />
             <div className="dta-stats">
               <div><small>This month</small><b>{earn.thisMonth}</b></div>
               <div><small>All clients</small><b>{earn.total}</b></div>

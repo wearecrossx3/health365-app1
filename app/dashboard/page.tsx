@@ -2,7 +2,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
-import { getConsultationsForUser, getAppointmentsForUser } from "@/lib/kv";
+import { getConsultationsForUser, getAppointmentsForUser, getUserById } from "@/lib/kv";
+import PhoneCard from "./PhoneCard";
+import SetPasswordCard from "@/components/SetPasswordCard";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import LogoutButton from "./LogoutButton";
@@ -13,10 +15,11 @@ export default async function DashboardPage() {
   const session = verifySessionCookieValue(cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (!session) redirect("/login");
 
-  const [consultations, appointments, chats] = await Promise.all([
+  const [consultations, appointments, chats, me] = await Promise.all([
     getConsultationsForUser(session.userId),
     getAppointmentsForUser(session.userId),
     threadsForClient(session.userId).catch(() => []),
+    getUserById(session.userId).catch(() => null),
   ]);
   const upcoming = appointments
     .filter((a) => a.status === "booked")
@@ -35,6 +38,8 @@ export default async function DashboardPage() {
             </div>
             <LogoutButton />
           </div>
+
+          <PhoneCard initial={(me?.phone || "").replace(/\D/g, "").slice(-10)} />
 
           {chats.length > 0 && (
             <div className="panel" style={{ marginBottom: 24 }}>
@@ -99,6 +104,8 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
+
+          <SetPasswordCard className="panel" style={{ marginTop: 20 }} />
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}>
             <Link href="/diet-plan" className="pill pill-outline" style={{ padding: "10px 18px", fontSize: ".85rem" }}>🥗 Generate a diet plan</Link>

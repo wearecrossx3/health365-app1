@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { appJson, appPreflight, getAppSession, limit } from "@/lib/appApi";
-import { getJSON } from "@/lib/kv";
+import { getJSON, getUserById, setUserPhone } from "@/lib/kv";
 import { saveBackup } from "@/lib/appBackup";
 
 // The app's own progress for a signed-in user — plan, ticked meals, food log,
@@ -43,6 +43,13 @@ export async function POST(req: NextRequest) {
     const state = b.state as Record<string, unknown>;
     for (const k of ["token", "user", "avatarImg", "editing"]) delete state[k];
     const updatedAt = await saveBackup(session.userId, state);
+    // The app keeps the number the person typed in their profile; if the
+    // account has none yet, copy it over so dietitians and admins see it.
+    const typed = typeof state.phone === "string" ? state.phone : "";
+    if (typed.replace(/\D/g, "").length >= 10) {
+      const u = await getUserById(session.userId).catch(() => null);
+      if (u && !u.phone) await setUserPhone(session.userId, typed).catch(() => null);
+    }
     return appJson({ ok: true, updatedAt });
   } catch (err) {
     console.error("App state POST failed:", err);

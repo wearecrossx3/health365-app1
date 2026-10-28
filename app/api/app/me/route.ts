@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getUserById, getConsultationsForUser, getAppointmentsForUser } from "@/lib/kv";
+import { getUserById, getConsultationsForUser, getAppointmentsForUser, setUserPhone } from "@/lib/kv";
 import { appJson, appPreflight, getAppSession } from "@/lib/appApi";
 import { createSessionCookieValue } from "@/lib/session";
 
@@ -35,4 +35,15 @@ export async function GET(req: NextRequest) {
     console.error("App /me failed:", err);
     return appJson({ error: "Couldn't load your account right now." }, 500);
   }
+}
+
+// Add or change the mobile number later (for people who skipped it or used Google).
+export async function POST(req: NextRequest) {
+  const session = getAppSession(req);
+  if (!session) return appJson({ error: "Please log in again.", code: "auth" }, 401);
+  const b = await req.json().catch(() => null);
+  if (!b || typeof b.phone !== "string") return appJson({ error: "Nothing to save." }, 400);
+  const r = await setUserPhone(session.userId, b.phone);
+  if (!r.ok) return appJson({ error: r.error, code: "phone" }, 400);
+  return appJson({ ok: true, phone: r.phone });
 }

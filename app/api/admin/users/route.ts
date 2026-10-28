@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { adminFromRequest, denied } from "@/lib/adminGuard";
-import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON, deleteUserAccount } from "@/lib/kv";
+import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON, deleteUserAccount, setUserPhone } from "@/lib/kv";
 import { getAdminEmails } from "@/lib/email";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
@@ -91,6 +91,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
   const by = session.name || session.email;
   const now = new Date().toISOString();
+
+  if (b.action === "setPhone") {
+    const r = await setUserPhone(user.id, String(b.phone || ""));
+    if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
+    return NextResponse.json({ ok: true, phone: r.phone });
+  }
 
   if (b.action === "restoreBackup") {
     const ok = await restoreBackup(user.id, Math.max(0, Math.floor(Number(b.index) || 0)));

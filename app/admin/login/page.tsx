@@ -14,6 +14,15 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [inApp, setInApp] = useState(true);
+  const [gMsg, setGMsg] = useState("");
+  // Google sign-in is blocked inside the apps, so people who joined with
+  // Google get an emailed link to set a password instead.
+  async function googleJoiner() {
+    if (!email.includes("@")) { setGMsg("Type the Gmail address you joined with in the Email box above, then tap this again."); return; }
+    setGMsg("Sending…");
+    const r = await fetch("/api/auth/forgot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: email }) });
+    setGMsg(r.ok ? `If ${email} has a Health365 account, we've emailed a link to set your password. Open it, set a password, then log in here.` : "Couldn't send right now — please try again in a few minutes.");
+  }
   useEffect(() => {
     // Google blocks sign-in inside the Admin/Dietitian apps, so the button shows only in a browser.
     setInApp(!!(window as unknown as { AdminApp?: unknown }).AdminApp);
@@ -104,6 +113,13 @@ export default function AdminLoginPage() {
           >
             {loading ? "Signing in…" : "Log in"}
           </button>
+          {inApp && (
+            <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 14, padding: "12px 14px", fontSize: ".84rem", color: "rgba(255,255,255,.8)" }}>
+              <b>Joined with Google?</b> Google sign-in doesn&apos;t work inside the app.{" "}
+              <button type="button" onClick={googleJoiner} style={{ background: "none", border: "none", padding: 0, color: "var(--mint)", fontWeight: 700, cursor: "pointer", fontSize: "inherit", textDecoration: "underline" }}>Email me a link to set a password</button>
+              {gMsg && <p style={{ margin: "8px 0 0" }}>{gMsg}</p>}
+            </div>
+          )}
           {!inApp && (
             <a href="/api/auth/google?admin=1" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "12px 20px", borderRadius: 999, background: "#fff", color: "#1F2B2C", fontWeight: 600, fontSize: ".92rem" }}>
               <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>

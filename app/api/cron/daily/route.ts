@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listAllAppointments, Appointment, getUserById } from "@/lib/kv";
+import { listAllAppointments, Appointment, getUserById, listAllUsers } from "@/lib/kv";
 import { getMeta, addMessage, chatOpen, paymentPending, firstName, listMessages } from "@/lib/consultChat";
 import { sendNotifyToClient } from "@/lib/consultClientNotify";
 import { addNotice } from "@/lib/dietitianNotices";
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   }
   const ago = (days: number) => istDate(now - days * DAY);
   const all = (await listAllAppointments()).filter((a) => a.status === "booked");
-  const out = { rated: 0, waiting: 0, checkins: 0 };
+  const out = { rated: 0, waiting: 0, checkins: 0, phoneAsks: 0 };
 
   // 1. Rating requests: consultations 1–14 days ago, paid (or free), asked once.
   for (const a of all) {
@@ -100,6 +100,25 @@ export async function GET(req: NextRequest) {
       out.checkins++;
     }
   }
+
+  // 4. People with no mobile number on their account (mostly Google sign-ups):
+  //    one friendly email asking them to add it. At most 25 a day (email limits).
+  try {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in";
+    const users = (await listAllUsers()).filter((u) => !u.phone && u.email && now - Date.parse(u.createdAt || "") > DAY);
+    for (const u of users) {
+      if (out.phoneAsks >= 25) break;
+      const ok = await redis().set(`phone_asked:${u.id}`, "1", "EX", 365 * 24 * 3600, "NX");
+      if (!ok) continue;
+      const nm = (u.name || "").split(" ")[0].replace(/</g, "&lt;") || "there";
+      await sendEmail({
+        to: u.email,
+        subject: "Add your mobile number — Health365",
+        html: emailWrapper("Add your mobile number", `<p>Hi ${nm},</p><p>Your Health365 account doesn't have a mobile number yet. Adding it lets your dietitian reach you about appointments and plans, and helps you log in if you ever forget your password.</p><p><a href="${base}/dashboard" style="display:inline-block;background:#287379;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600;">Add my number</a></p><p style="color:#666;font-size:13px">In the app, you can also add it under Profile.</p>`),
+      }).catch(() => null);
+      out.phoneAsks++;
+    }
+  } catch (e) { console.error("cron phone asks failed", e); }
 
   return NextResponse.json({ ok: true, today, ...out });
 }

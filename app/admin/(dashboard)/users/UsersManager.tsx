@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import AdminPhone from "./AdminPhone";
 import PlanBuilder, { Plan, ClientInfo } from "../plan-generator/PlanBuilder";
 import ResetLinkBox from "../ResetLinkBox";
 import UserEmailBox from "./UserEmailBox";
@@ -85,16 +86,7 @@ export default function UsersManager() {
         <div className="panel">
           <h2 style={{ fontSize: "1.3rem" }}>{detail.user.name}</h2>
           <p style={{ color: "var(--ink-soft)", fontSize: ".9rem", marginTop: 4 }}>{detail.user.email} · joined {fmt(detail.user.createdAt)}</p>
-          {detail.user.phone ? (
-            <p style={{ marginTop: 8, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", fontSize: ".95rem" }}>
-              <b>📞 +91 {detail.user.phone}</b>
-              <a href={`tel:+91${detail.user.phone}`} className="pill pill-outline" style={{ padding: "4px 12px", fontSize: ".78rem" }}>Call</a>
-              <a href={`https://wa.me/91${detail.user.phone}`} target="_blank" rel="noreferrer" className="pill pill-outline" style={{ padding: "4px 12px", fontSize: ".78rem" }}>WhatsApp</a>
-              {detail.user.phoneFrom && detail.user.phoneFrom !== "account" && <span style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>(from their {detail.user.phoneFrom === "consultation" ? "consultation form" : "app profile"})</span>}
-            </p>
-          ) : (
-            <p style={{ marginTop: 8, fontSize: ".85rem", color: "var(--ink-soft)" }}>📞 No mobile number — this account was made before the number was required.</p>
-          )}
+          <AdminPhone key={detail.user.id} userId={detail.user.id} phone={detail.user.phone} phoneFrom={detail.user.phoneFrom} onSaved={() => { loadDetail(detail.user.id); load(); }} />
           <div style={{ marginTop: 12 }}>
             <ResetLinkBox key={detail.user.id} userId={detail.user.id} phone={detail.user.phone} name={detail.user.name} />
           </div>
