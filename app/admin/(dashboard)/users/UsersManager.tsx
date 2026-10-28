@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PlanBuilder from "../plan-generator/PlanBuilder";
 import ResetLinkBox from "../ResetLinkBox";
+import UserEmailBox from "./UserEmailBox";
 
 interface Row { id: string; name: string; email: string; phone: string; createdAt: string; freeUsed: boolean; grants: number; plans: number; access: string }
 interface PlanSummary { id: string; title: string; assignedAt: string; assignedBy: string; active: boolean; targetKcal: number; days: { kcal: number }[]; note: string }
@@ -37,6 +38,7 @@ export default function UsersManager() {
   const [delText, setDelText] = useState("");
   const [delErr, setDelErr] = useState("");
   const [notice, setNotice] = useState("");
+  const [mailOpen, setMailOpen] = useState(false);
 
   const load = () => fetch("/api/admin/users").then((r) => r.json()).then((d) => setRows(d.users || [])).catch(() => setRows([]));
   const loadDetail = (id: string) => fetch(`/api/admin/users?id=${encodeURIComponent(id)}`).then((r) => r.json()).then((d) => setDetail(d.user ? d : null));
@@ -100,6 +102,10 @@ export default function UsersManager() {
             {detail.ent.grants > 0 && <button className="pill" disabled={busy} onClick={() => act({ action: "revoke" })}>Remove unused grants</button>}
             {detail.ent.freeUsed && <button className="pill" disabled={busy} onClick={() => act({ action: "resetFree" })}>Reset first free plan</button>}
           </div>
+        </div>
+
+        <div className="panel">
+          <UserEmailBox key={detail.user.id} ids={[detail.user.id]} name={detail.user.name} />
         </div>
 
         <div className="panel">
@@ -183,7 +189,18 @@ export default function UsersManager() {
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email or phone…" style={{ padding: "12px 16px", border: "1px solid var(--line)", borderRadius: 999, fontSize: ".92rem", background: "#fff" }} />
       {notice && <p style={{ background: "#E7F0DC", color: "#2E7D4F", borderRadius: 12, padding: "10px 14px", fontSize: ".88rem", fontWeight: 600 }}>✓ {notice}</p>}
       {rows === null && <p style={{ color: "var(--ink-soft)" }}>Loading…</p>}
-      {rows && <p style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>{list.length} of {rows.length} users</p>}
+      {rows && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <p style={{ fontSize: ".82rem", color: "var(--ink-soft)" }}>{list.length} of {rows.length} users</p>
+          <button className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => setMailOpen((v) => !v)}>{mailOpen ? "Close email" : `✉️ Email ${q.trim() ? "these" : "all"} ${list.length} user${list.length === 1 ? "" : "s"}`}</button>
+        </div>
+      )}
+      {rows && mailOpen && (
+        <div className="panel">
+          <UserEmailBox ids={list.map((u) => u.id)} label={`Email ${list.length} user${list.length === 1 ? "" : "s"}${q.trim() ? " in this search" : ""}`} />
+          <p style={{ fontSize: ".75rem", color: "var(--ink-soft)", marginTop: 8 }}>Free email plan: up to 100 emails a day. Type in the search box to email a smaller group.</p>
+        </div>
+      )}
       {sel && !detail && <p style={{ color: "var(--ink-soft)" }}>Opening…</p>}
       {list.map((u) => {
         const [label, col] = ACCESS[u.access] || ["", "#555"];
