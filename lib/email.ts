@@ -19,13 +19,14 @@ export async function sendEmailResult({
   subject: string;
   html: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
+  // Trim stray spaces / quotes / "KEY=" that sneak in when pasting into Vercel.
+  const apiKey = (process.env.RESEND_API_KEY || "").trim().replace(/^RESEND_API_KEY\s*=\s*/, "").replace(/^["']|["']$/g, "").trim();
   if (!apiKey) {
     console.log(`[email skipped — no RESEND_API_KEY] ${subject} -> ${to}`);
     return { ok: false, error: "Email isn't set up yet: RESEND_API_KEY is missing in Vercel." };
   }
   if (!to || (Array.isArray(to) && to.length === 0)) return { ok: false, error: "No email address on this account." };
-  const from = process.env.RESEND_FROM_EMAIL || "Health365 <onboarding@resend.dev>";
+  const from = (process.env.RESEND_FROM_EMAIL || "").trim().replace(/^["']|["']$/g, "") || "Health365 <onboarding@resend.dev>";
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -41,7 +42,9 @@ export async function sendEmailResult({
       console.error("Email send failed:", t);
       let m = t;
       try { m = JSON.parse(t).message || t; } catch {}
-      if (/verify a domain|testing emails|own email address/i.test(m)) {
+      if (/api key is invalid/i.test(m)) {
+        m = "Resend says the API key is invalid. In Vercel, RESEND_API_KEY must be the full key starting with re_ (no spaces or quotes), then Redeploy.";
+      } else if (/verify a domain|testing emails|own email address/i.test(m)) {
         m = "Resend only sends to your own address until the thehealth365.in domain is verified in Resend (and RESEND_FROM_EMAIL uses it). " + m;
       }
       return { ok: false, error: String(m).slice(0, 300) };
