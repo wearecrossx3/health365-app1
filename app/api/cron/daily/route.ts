@@ -23,10 +23,17 @@ const istDate = (ms: number) => new Date(ms + 5.5 * 60 * 60 * 1000).toISOString(
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   const auth = req.headers.get("authorization") || "";
-  if (!secret || auth !== `Bearer ${secret}`) return NextResponse.json({ error: "Not authorized." }, { status: 401 });
-
   const now = Date.now();
   const today = istDate(now);
+  if (secret) {
+    if (auth !== `Bearer ${secret}`) return NextResponse.json({ error: "Not authorized." }, { status: 401 });
+  } else {
+    // No CRON_SECRET set yet: only Vercel's own cron, and only once per day.
+    const ua = req.headers.get("user-agent") || "";
+    if (!ua.startsWith("vercel-cron")) return NextResponse.json({ error: "Not authorized." }, { status: 401 });
+    const first = await redis().set(`cron_daily_ran:${today}`, "1", "EX", 2 * 24 * 3600, "NX");
+    if (!first) return NextResponse.json({ ok: true, skipped: "already ran today" });
+  }
   const ago = (days: number) => istDate(now - days * DAY);
   const all = (await listAllAppointments()).filter((a) => a.status === "booked");
   const out = { rated: 0, waiting: 0, checkins: 0 };
