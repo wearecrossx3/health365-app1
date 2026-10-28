@@ -43,7 +43,8 @@ export async function sendEmailResult({
       let m = t;
       try { m = JSON.parse(t).message || t; } catch {}
       if (/api key is invalid/i.test(m)) {
-        m = "Resend says the API key is invalid. In Vercel, RESEND_API_KEY must be the full key starting with re_ (no spaces or quotes), then Redeploy.";
+        // Safe hint only: the first 3 characters and the length, never the key itself.
+        m = `Resend says the API key is invalid. The key Vercel has starts with "${apiKey.slice(0, 3)}" and is ${apiKey.length} characters long. A Resend key starts with "re_" and is usually about 36 characters. Paste a fresh key into RESEND_API_KEY, then Redeploy.`;
       } else if (/verify a domain|testing emails|own email address/i.test(m)) {
         m = "Resend only sends to your own address until the thehealth365.in domain is verified in Resend (and RESEND_FROM_EMAIL uses it). " + m;
       }
