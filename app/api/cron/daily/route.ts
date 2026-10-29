@@ -7,7 +7,7 @@ import { dietitianInfo } from "@/lib/portal";
 import { sendEmail, emailWrapper } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { listUserPlans } from "@/lib/plans";
-import { markAsked, rateLink } from "@/lib/ratings";
+import { markAsked, rateLink, rateAskText, siteUrl } from "@/lib/ratings";
 import { redis } from "@/lib/kv";
 
 // Runs once a day (Vercel Cron, 10:00 IST — see vercel.json):
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     const msgs = await listMessages(a.id).catch(() => []);
     if (!msgs.length) continue; // no conversation happened
     if (!(await markAsked(a.id))) continue;
-    await addMessage(a.id, "team", `⭐ How was your consultation with ${a.dietitianName}? Please rate it — it takes 10 seconds: ${rateLink(a.id)}`);
+    await addMessage(a.id, "team", rateAskText(a.dietitianName, a.id));
     // Email with a tap-able button (links in the app chat may not be clickable).
     const u = await getUserById(a.userId).catch(() => null);
     if (u?.email) {
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     await addNotice(dtId, { title: `${list.length} client${list.length > 1 ? "s are" : " is"} waiting for your reply`, body: `${names} wrote more than 24 hours ago. Clients expect an answer within 24 hours — please reply in Chats.` }).catch(() => {});
     const d = await dietitianInfo(dtId).catch(() => null);
     if (d?.email) {
-      const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in";
+      const base = siteUrl();
       await sendEmail({ to: d.email, subject: `${list.length} client${list.length > 1 ? "s" : ""} waiting for your reply — Health365`, html: emailWrapper("Clients are waiting", `<p>Hi ${firstName(d.name)}, ${list.length} client${list.length > 1 ? "s have" : " has"} been waiting more than 24 hours for your reply (${names}).</p><p><a href="${base}/admin/my-clients">Open the H365 Dietitian app</a> to reply.</p>`) }).catch(() => {});
     }
     summary.push(`${d?.name || "Dietitian"} (${list.length})`);
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
   // 4. People with no mobile number on their account (mostly Google sign-ups):
   //    one friendly email asking them to add it. At most 25 a day (email limits).
   try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in";
+    const base = siteUrl();
     const users = (await listAllUsers()).filter((u) => !u.phone && u.email && now - Date.parse(u.createdAt || "") > DAY);
     for (const u of users) {
       if (out.phoneAsks >= 25) break;

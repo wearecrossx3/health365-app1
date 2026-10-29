@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAppt, firstName, addMessage } from "@/lib/consultChat";
-import { rateTokenOk, getRating, saveRating } from "@/lib/ratings";
-import { addNotice } from "@/lib/dietitianNotices";
+import { getAppt, firstName } from "@/lib/consultChat";
+import { rateTokenOk, getRating, recordRating } from "@/lib/ratings";
 
 // Public rating endpoint (the link in the chat carries a signed token).
 export const dynamic = "force-dynamic";
@@ -25,11 +24,6 @@ export async function POST(req: NextRequest) {
   const stars = Math.round(Number(b.stars));
   if (!(stars >= 1 && stars <= 5)) return NextResponse.json({ error: "Pick 1 to 5 stars." }, { status: 400 });
   const comment = String(b.comment || "").replace(/\s+/g, " ").trim().slice(0, 600);
-  const first = !(await getRating(id));
-  await saveRating({ apptId: id, dietitianId: a.dietitianId, stars, comment, client: firstName(a.userName), at: new Date().toISOString() });
-  if (first) {
-    await addMessage(id, "team", `⭐ Thank you for rating your consultation ${"★".repeat(stars)}${"☆".repeat(5 - stars)}`).catch(() => {});
-    await addNotice(a.dietitianId, { title: `New rating: ${"★".repeat(stars)}`, body: `${firstName(a.userName)} rated your consultation ${stars}/5${comment ? `: “${comment}”` : "."}` }).catch(() => {});
-  }
+  await recordRating(a, stars, comment, firstName(a.userName));
   return NextResponse.json({ ok: true });
 }

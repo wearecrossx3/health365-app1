@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { appJson, appPreflight, getAppSession, limit } from "@/lib/appApi";
 import { getAppt, isChatAppointment, chatOpen, paymentPending, listMessages, addMessage, markRead, saveImage, getMeta, CHAT_OPEN_DAYS } from "@/lib/consultChat";
 import { notifyDietitian } from "@/lib/consultNotify";
+import { parseChatRating, wasAsked, getRating, recordRating } from "@/lib/ratings";
+import { firstName } from "@/lib/consultChat";
 
 export const dynamic = "force-dynamic";
 export async function OPTIONS() { return appPreflight(); }
@@ -39,6 +41,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
   if (!text && !img) return appJson({ error: "Type a message first." }, 400);
   const m = await addMessage(r.a.id, "client", text, img);
+  // Reply to the rating question with "1"–"5" → saved as their rating.
+  const pr = !img ? parseChatRating(text) : null;
+  if (pr && (await wasAsked(r.a.id)) && !(await getRating(r.a.id))) {
+    await recordRating(r.a, pr.stars, pr.comment, firstName(r.a.userName)).catch(() => {});
+  }
   notifyDietitian(r.a, await getMeta(r.a.id)).catch(() => {});
   const { orig: _o, ...safe } = m; void _o;
   return appJson({ ok: true, message: safe, masked: !!m.flagged });

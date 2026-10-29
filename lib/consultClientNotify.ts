@@ -11,7 +11,7 @@ export async function sendNotifyToClient(a: Appointment, title = "Your dietitian
   const u = await getUserById(a.userId);
   if (!u?.email) return;
   await updateMeta(a.id, { clientEmailAt: Date.now() });
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in";
+  const base = "https://www.thehealth365.in";
   await sendEmail({
     to: u.email,
     subject: `${title} — Health365`,

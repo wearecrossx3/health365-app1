@@ -71,6 +71,12 @@ export async function listMessages(id: string, opts: { owner?: boolean } = {}): 
   return raw.map((r) => {
     const m = JSON.parse(r) as ChatMsg;
     if (!opts.owner) delete m.orig;
+    // Rating asks sent before 29 Oct 2026 had a vercel.app link and no reply option.
+    if (m.from === "team" && m.text.includes("Please rate it — it takes 10 seconds:")) {
+      m.text = m.text
+        .replace("Please rate it — it takes 10 seconds:", 'Just reply here with a number from 1 to 5 (5 = excellent). You can add a few words too, e.g. "5 very helpful". Or rate on the website:')
+        .replace(/https?:\/\/[a-z0-9-]+\.vercel\.app/i, "https://www.thehealth365.in");
+    }
     return m;
   });
 }
