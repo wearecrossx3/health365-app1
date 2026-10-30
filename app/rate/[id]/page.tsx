@@ -60,7 +60,7 @@ export default function RatePage({ params, searchParams }: { params: { id: strin
             <p style={{ fontSize: 44, margin: 0 }}>🙏</p>
             <h1 style={{ fontSize: "1.3rem" }}>Thank you!</h1>
             <p style={{ color: "#6B7672" }}>Your rating helps other people find the right dietitian.</p>
-            <a href="/app" style={{ display: "inline-block", marginTop: 10, color: "#287379", fontWeight: 700 }}>Open the Health365 app ›</a>
+            <a href="https://play.google.com/store/apps/details?id=com.frontpagestudios.health365" style={{ display: "inline-block", marginTop: 10, color: "#287379", fontWeight: 700 }}>Open the Health365 app ›</a>
           </>
         )}
       </div>
