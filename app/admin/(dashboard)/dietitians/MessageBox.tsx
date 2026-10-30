@@ -6,8 +6,8 @@ import { DT_MESSAGES, fillDtMessage } from "@/lib/dietitianMessages";
 // Pick a ready message, change it if needed, then send it in the Dietitian app
 // (pop-up + phone notification) and/or by email, or open it in WhatsApp.
 export default function MessageBox({ ids, name, phone, onClose }: { ids: string[]; name?: string; phone?: string; onClose?: () => void }) {
-  const [k, setK] = useState(DT_MESSAGES[0].key);
-  const first = DT_MESSAGES[0];
+  const first = DT_MESSAGES.find((m) => m.key === "welcome") || DT_MESSAGES[0];
+  const [k, setK] = useState(first.key);
   const [title, setTitle] = useState(first.title);
   const [body, setBody] = useState(first.body);
   const [app, setApp] = useState(true);
@@ -49,7 +49,8 @@ export default function MessageBox({ ids, name, phone, onClose }: { ids: string[
       </div>
       <div className="mb-btns">
         {onClose && <button className="pill pill-outline" onClick={onClose} style={{ padding: "8px 16px", fontSize: ".8rem" }}>Close</button>}
-        {wa && <a className="pill pill-outline" href={wa} target="_blank" rel="noopener" style={{ padding: "8px 16px", fontSize: ".8rem" }}>Open in WhatsApp</a>}
+        {wa ? <a className="pill pill-outline" href={wa} target="_blank" rel="noopener" style={{ padding: "8px 16px", fontSize: ".8rem", color: "#128C4A", borderColor: "#9FD8B5" }}>🟢 Send on WhatsApp</a>
+          : !many && <span style={{ fontSize: ".75rem", color: "var(--ink-soft)", alignSelf: "center" }}>No mobile number — WhatsApp not available</span>}
         <button className="pill pill-primary" disabled={busy || (!app && !email)} onClick={send} style={{ padding: "8px 16px", fontSize: ".8rem" }}>
           {busy ? "Sending…" : many ? `Send to ${ids.length}` : "Send"}
         </button>

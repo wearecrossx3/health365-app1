@@ -112,7 +112,7 @@ export default function UsersManager() {
         </div>
 
         <div className="panel">
-          <UserEmailBox key={detail.user.id} ids={[detail.user.id]} name={detail.user.name} />
+          <UserEmailBox key={detail.user.id + (detail.user.phone || "")} ids={[detail.user.id]} name={detail.user.name} phone={detail.user.phone} />
         </div>
 
         <div className="panel">

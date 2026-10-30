@@ -10,7 +10,7 @@ import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 import { suggestFromConsultation } from "@/lib/planSuggest";
 import { getMeta, listMessages, chatOpen } from "@/lib/consultChat";
 import { getRating, wasAsked } from "@/lib/ratings";
-import { sentTo } from "@/lib/sentLog";
+import { sentTo, logSent } from "@/lib/sentLog";
 import { purgeBooking } from "@/lib/purgeBooking";
 import { stateKey } from "@/lib/appBackup";
 import type { Appointment, User } from "@/lib/kv";
@@ -44,7 +44,8 @@ async function journey(user: User, appointments: Appointment[]) {
       rating: rating ? { stars: rating.stars, comment: rating.comment } : null, ratingAsked: asked,
     };
   }));
-  const sent = (await sentTo(user.email, user.phone || "").catch(() => [])).slice(0, 25);
+  const ph = user.phone || (await bestPhone(user)).phone;
+  const sent = (await sentTo(user.email, ph).catch(() => [])).slice(0, 25);
   return { joinedVia: user.google ? "Google" : "email & password", app, bookings, sent };
 }
 
@@ -131,6 +132,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
   const by = session.name || session.email;
   const now = new Date().toISOString();
+
+  if (b.action === "logWhatsApp") {
+    const ph = user.phone || (await bestPhone(user)).phone;
+    if (ph) await logSent(ph, { via: "whatsapp", what: `${txt(b.what, 60) || "Message"} (opened by ${by})`, ok: true });
+    return NextResponse.json({ ok: true });
+  }
 
   if (b.action === "deleteBooking") {
     const id = txt(b.apptId, 80);
