@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionCookieValue, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
-import { deleteAppointment } from "@/lib/kv";
+import { purgeBooking } from "@/lib/purgeBooking";
 
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
@@ -13,6 +13,6 @@ export async function POST(req: NextRequest) {
   if (!body?.id) {
     return NextResponse.json({ error: "Missing appointment id." }, { status: 400 });
   }
-  await deleteAppointment(body.id);
+  await purgeBooking(String(body.id));
   return NextResponse.json({ ok: true });
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 
 // "Client journey": one place that answers — did they pay? did a dietitian
 // reach out, who and when? what did the client actually receive?
@@ -37,8 +38,17 @@ function Step({ ok, icon, title, children }: { ok: "yes" | "no" | "wait"; icon: 
   );
 }
 
-export default function JourneyCard({ j, createdAt, consultations, plans }: { j: Journey; createdAt: string; consultations: { goal: string; conditions: string[]; createdAt: string }[]; plans: { title: string; assignedBy: string; assignedAt: string }[] }) {
+export default function JourneyCard({ j, userId, onChanged, createdAt, consultations, plans }: { j: Journey; userId: string; onChanged: () => void; createdAt: string; consultations: { goal: string; conditions: string[]; createdAt: string }[]; plans: { title: string; assignedBy: string; assignedAt: string }[] }) {
   const a = j.app;
+  const [busy, setBusy] = useState("");
+  async function del(id: string, label: string) {
+    if (!confirm(`Delete the booking “${label}”?\n\nThis removes the booking, its chat, rating and reminders for everyone — the client app, the dietitian app and admin. Use it for test bookings. It can't be undone.`)) return;
+    setBusy(id);
+    const r = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, action: "deleteBooking", apptId: id }) });
+    setBusy("");
+    if (!r.ok) { alert("Couldn't delete — please try again."); return; }
+    onChanged();
+  }
   const latestForm = [...consultations].sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
   const conds = a?.conds.length ? a.conds.map((c) => COND[c] || c) : latestForm?.conditions || [];
   const paid = j.bookings.filter((b) => b.payment?.status === "verified" || (!b.payment && b.status === "booked"));
@@ -76,7 +86,8 @@ export default function JourneyCard({ j, createdAt, consultations, plans }: { j:
         return (
           <div key={b.id}>
             <Step ok={!pay || pay.status === "verified" ? "yes" : pay.status === "rejected" ? "no" : "wait"} icon="💳" title={`Booked ${b.dietitianName} for ${b.date} ${b.time}${b.status !== "booked" ? ` (${b.status})` : ""}`}>
-              {payTxt}. Booked on {day(b.createdAt)}.
+              {payTxt}. Booked on {day(b.createdAt)}.{" "}
+              <button disabled={busy === b.id} onClick={() => del(b.id, `${b.dietitianName}, ${b.date}`)} style={{ background: "none", border: "none", padding: 0, color: "#B03A2E", fontWeight: 700, cursor: "pointer", fontSize: ".82rem" }}>{busy === b.id ? "Deleting…" : "🗑 Delete booking"}</button>
             </Step>
             <Step ok={dtOk ? "yes" : b.open ? "wait" : "no"} icon="💬" title={dtOk ? `${b.dietitianName} replied${b.chat.firstDtAt ? ` — first on ${when(b.chat.firstDtAt)} (${gap(Date.parse(b.createdAt), b.chat.firstDtAt)})` : ""}` : b.open ? `${b.dietitianName} hasn't written yet` : "Chat not open"}>
               {b.chat.client} message{b.chat.client === 1 ? "" : "s"} from the client · {b.chat.dietitian} from the dietitian · {b.chat.team} from Health365.

@@ -3,6 +3,7 @@ import { listAllAppointments, Appointment, getUserById, listAllUsers } from "@/l
 import { getMeta, addMessage, chatOpen, paymentPending, firstName, listMessages } from "@/lib/consultChat";
 import { sendNotifyToClient } from "@/lib/consultClientNotify";
 import { addNotice } from "@/lib/dietitianNotices";
+import { isTeamBooking } from "@/lib/purgeBooking";
 import { dietitianInfo } from "@/lib/portal";
 import { sendEmail, emailWrapper } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
@@ -35,7 +36,10 @@ export async function GET(req: NextRequest) {
     if (!first) return NextResponse.json({ ok: true, skipped: "already ran today" });
   }
   const ago = (days: number) => istDate(now - days * DAY);
-  const all = (await listAllAppointments()).filter((a) => a.status === "booked");
+  const booked = (await listAllAppointments()).filter((a) => a.status === "booked");
+  // Skip test bookings made by the team or a dietitian themselves.
+  const all: Appointment[] = [];
+  for (const a of booked) if (!(await isTeamBooking(a))) all.push(a);
   const out = { rated: 0, waiting: 0, checkins: 0, phoneAsks: 0 };
 
   // 1. Rating requests: consultations 1–14 days ago, paid (or free), asked once.

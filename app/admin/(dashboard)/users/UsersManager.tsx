@@ -104,7 +104,7 @@ export default function UsersManager() {
           </div>
         </div>
 
-        {detail.journey && <JourneyCard j={detail.journey} createdAt={detail.user.createdAt} consultations={detail.consultations} plans={detail.plans} />}
+        {detail.journey && <JourneyCard j={detail.journey} userId={detail.user.id} onChanged={() => { loadDetail(detail.user.id); load(); }} createdAt={detail.user.createdAt} consultations={detail.consultations} plans={detail.plans} />}
 
         <div className="panel">
           <h2 style={{ fontSize: "1.05rem", marginBottom: 10 }}>Weight progress</h2>

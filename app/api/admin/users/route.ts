@@ -11,6 +11,7 @@ import { suggestFromConsultation } from "@/lib/planSuggest";
 import { getMeta, listMessages, chatOpen } from "@/lib/consultChat";
 import { getRating, wasAsked } from "@/lib/ratings";
 import { sentTo } from "@/lib/sentLog";
+import { purgeBooking } from "@/lib/purgeBooking";
 import { stateKey } from "@/lib/appBackup";
 import type { Appointment, User } from "@/lib/kv";
 
@@ -130,6 +131,14 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
   const by = session.name || session.email;
   const now = new Date().toISOString();
+
+  if (b.action === "deleteBooking") {
+    const id = txt(b.apptId, 80);
+    const own = (await getAppointmentsForUser(user.id).catch(() => [])).some((a) => a.id === id);
+    if (!id || !own) return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+    await purgeBooking(id);
+    return NextResponse.json({ ok: true });
+  }
 
   if (b.action === "setPhone") {
     const r = await setUserPhone(user.id, String(b.phone || ""));

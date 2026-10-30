@@ -97,7 +97,15 @@ export default function ConsultChats() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <button className="pill pill-outline" style={{ alignSelf: "flex-start", padding: "6px 14px" }} onClick={() => { setSel(null); load(); }}>← All chats</button>
-          <h2 style={{ fontSize: "1.2rem" }}>{sel.clientName} ↔ {sel.dietitianName}</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <h2 style={{ fontSize: "1.2rem", flex: 1 }}>{sel.clientName} ↔ {sel.dietitianName}</h2>
+            <button className="pill pill-outline" style={{ padding: "6px 14px", color: "#B03A2E", borderColor: "#E3B5AE" }} onClick={async () => {
+              if (!confirm(`Delete this booking and chat (${sel.clientName} ↔ ${sel.dietitianName}, ${sel.date})?\n\nIt disappears from the client app, the dietitian app and admin, with its reminders and rating. Use it for test bookings. It can't be undone.`)) return;
+              const r = await fetch("/api/admin/appointments/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: sel.id }) });
+              if (!r.ok) { alert("Couldn't delete — only the owner can delete bookings."); return; }
+              setSel(null); load();
+            }}>🗑 Delete booking</button>
+          </div>
           <ConsultChatPanel threadId={sel.id} loadUrl={`/api/admin/consult-chats/${sel.id}`} me="team" canSend showOriginals
             names={{ client: sel.clientName, dietitian: sel.dietitianName }}
             send={(b) => fetch(`/api/admin/consult-chats/${sel.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }).then((r) => r.json().then((d) => ({ ok: r.ok, ...d })))} />
