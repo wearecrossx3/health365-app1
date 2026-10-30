@@ -83,6 +83,7 @@ export async function sendWhatsAppTemplate(msg: WhatsAppTemplateMessage): Promis
         },
       }),
     });
+    await import("./sentLog").then((x) => x.logSent(to, { via: "whatsapp", what: msg.templateName, ok: res.ok })).catch(() => {});
     if (res.ok) await recordWhatsApp(true, msg.templateName, "");
     else {
       const d = await res.json().catch(() => ({}));

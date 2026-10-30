@@ -8,6 +8,44 @@ import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, Assigned
 import { listBackups, restoreBackup, weightLog } from "@/lib/appBackup";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 import { suggestFromConsultation } from "@/lib/planSuggest";
+import { getMeta, listMessages, chatOpen } from "@/lib/consultChat";
+import { getRating, wasAsked } from "@/lib/ratings";
+import { sentTo } from "@/lib/sentLog";
+import { stateKey } from "@/lib/appBackup";
+import type { Appointment, User } from "@/lib/kv";
+
+// Everything that has happened with one client, in order — for the
+// "Client journey" card in Admin › Users.
+async function journey(user: User, appointments: Appointment[]) {
+  const st = (await getJSON<{ state?: Record<string, unknown>; updatedAt?: number }>(stateKey(user.id)).catch(() => null)) || {};
+  const S = (st.state || {}) as Record<string, unknown>;
+  const arr = (v: unknown) => (Array.isArray(v) ? v.map(String).filter(Boolean) : []);
+  const plan = (S.plan || null) as { title?: string; dt?: { title?: string } } | null;
+  const days = [...Object.keys((S.food as object) || {}), ...Object.keys((S.track as object) || {})].sort();
+  const app = st.state ? {
+    onboarded: !!S.onboarded, goal: String(S.goal || ""), conds: arr(S.conds), otherCond: String(S.otherCond || ""),
+    pref: String(S.pref || ""), kg: Number(S.kg) || 0, allergies: arr(S.allergies).length ? arr(S.allergies) : (S.allergies ? [String(S.allergies)] : []),
+    activity: String(S.activity || ""), planTitle: plan ? String(plan.dt?.title || plan.title || "Plan") : "",
+    lastActive: days[days.length - 1] || "", savedAt: st.updatedAt || 0,
+  } : null;
+  const bookings = await Promise.all([...appointments].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map(async (a) => {
+    const [meta, msgs, rating, asked] = await Promise.all([getMeta(a.id), listMessages(a.id).catch(() => []), getRating(a.id).catch(() => null), wasAsked(a.id).catch(() => false)]);
+    const firstDt = msgs.find((m) => m.from === "dietitian");
+    return {
+      id: a.id, dietitianName: a.dietitianName, date: a.date, time: a.time, status: a.status, createdAt: a.createdAt,
+      payment: a.payment ? { amount: a.payment.amount, status: a.payment.status, checkedBy: a.payment.checkedBy || "", checkedAt: a.payment.checkedAt || "" } : null,
+      open: chatOpen(a),
+      chat: {
+        client: msgs.filter((m) => m.from === "client").length, dietitian: msgs.filter((m) => m.from === "dietitian").length, team: msgs.filter((m) => m.from === "team").length,
+        firstDtAt: firstDt?.at || 0, lastAt: meta.lastAt || 0, lastFrom: meta.lastFrom || "", clientRead: meta.clientRead || 0,
+        recent: msgs.slice(-6).map((m) => ({ from: m.from, text: m.img && !m.text ? "📷 Photo" : m.text.slice(0, 220), at: m.at })),
+      },
+      rating: rating ? { stars: rating.stars, comment: rating.comment } : null, ratingAsked: asked,
+    };
+  }));
+  const sent = (await sentTo(user.email, user.phone || "").catch(() => [])).slice(0, 25);
+  return { joinedVia: user.google ? "Google" : "email & password", app, bookings, sent };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +88,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt, ...(await bestPhone(user, consultations)) },
       ent, access: sevenDayAccess(ent), plans, consultations, appointments, backup, suggest: sug, client, weights: await weightLog(id).catch(() => []),
+      journey: await journey(user, appointments).catch((e) => { console.error("journey failed", e); return null; }),
     });
   }
   const users = await listAllUsers();

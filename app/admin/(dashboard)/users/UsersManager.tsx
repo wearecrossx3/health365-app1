@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdminPhone from "./AdminPhone";
+import JourneyCard, { Journey } from "./JourneyCard";
 import PlanBuilder, { Plan, ClientInfo } from "../plan-generator/PlanBuilder";
 import ResetLinkBox from "../ResetLinkBox";
 import UserEmailBox from "./UserEmailBox";
@@ -20,6 +21,7 @@ interface Detail {
   client?: ClientInfo | null;
   weights?: WeightPoint[];
   suggest?: { goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null;
+  journey?: Journey | null;
 }
 interface Backup { updatedAt: number; name: string; onboarded: boolean; hasPlan: boolean; planTitle: string; weights: number; foodDays: number; trackDays: number; lastActive: string; size: number }
 const when = (ms: number) => new Date(ms).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
@@ -102,6 +104,8 @@ export default function UsersManager() {
           </div>
         </div>
 
+        {detail.journey && <JourneyCard j={detail.journey} createdAt={detail.user.createdAt} consultations={detail.consultations} plans={detail.plans} />}
+
         <div className="panel">
           <h2 style={{ fontSize: "1.05rem", marginBottom: 10 }}>Weight progress</h2>
           <WeightChart points={detail.weights || []} />
@@ -130,13 +134,6 @@ export default function UsersManager() {
           ))}
         </div>
 
-        {(detail.consultations.length > 0 || detail.appointments.length > 0) && (
-          <div className="panel" style={{ fontSize: ".88rem" }}>
-            <h2 style={{ fontSize: "1.05rem", marginBottom: 10 }}>Consultations &amp; bookings</h2>
-            {detail.appointments.map((a) => <p key={a.id}>📅 {a.date} {a.time} with {a.dietitianName} — {a.status}</p>)}
-            {detail.consultations.slice(0, 5).map((c) => <p key={c.id}>📝 {fmt(c.createdAt)} · {c.goal}{c.conditions?.length ? ` · ${c.conditions.join(", ")}` : ""} — {c.status}</p>)}
-          </div>
-        )}
 
         <div className="panel" style={{ fontSize: ".88rem" }}>
           <h2 style={{ fontSize: "1.05rem", marginBottom: 6 }}>App progress backup</h2>

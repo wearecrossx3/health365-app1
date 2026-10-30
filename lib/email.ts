@@ -10,7 +10,16 @@ export async function sendEmail(args: { to: string | string[]; subject: string; 
 
 // Same as sendEmail, but also says WHY an email didn't go (shown to the
 // owner in Admin, so a missing key or an unverified domain is easy to spot).
-export async function sendEmailResult({
+export async function sendEmailResult(m: { to: string | string[]; subject: string; html: string }): Promise<{ ok: boolean; error?: string }> {
+  const r = await sendRaw(m);
+  // Keep a note per recipient so Admin › Users shows what reached each client.
+  if (m.to && (process.env.RESEND_API_KEY || "").trim()) {
+    await import("./sentLog").then((x) => x.logSent(m.to, { via: "email", what: m.subject, ok: r.ok, err: r.ok ? undefined : r.error?.slice(0, 120) })).catch(() => {});
+  }
+  return r;
+}
+
+async function sendRaw({
   to,
   subject,
   html,
