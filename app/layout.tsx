@@ -3,7 +3,6 @@ import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 import AuthModalProvider from "@/components/AuthModalProvider";
 import OfferPopup from "@/components/OfferPopup";
-import ActivityToast from "@/components/ActivityToast";
 import ChatWidget from "@/components/ChatWidget";
 import ThemeInjector from "@/components/ThemeInjector";
 import MetricoolTracker from "@/components/MetricoolTracker";
@@ -97,7 +96,6 @@ export default function RootLayout({
         <ThemeInjector />
         <AuthModalProvider>{children}</AuthModalProvider>
         <OfferPopup />
-        <ActivityToast />
         <ChatWidget />
         <MetricoolTracker />
       </body>
