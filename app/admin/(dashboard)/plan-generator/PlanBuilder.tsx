@@ -16,7 +16,7 @@ type FoodRow = [string, string, string, string, number, number, number, number, 
 export interface ClientInfo { kg?: number; goal?: string; diet?: string; conditions?: string[]; allergens?: string[]; kcal?: number; basis?: string; notes?: string }
 interface Meal { slot: string; label: string; time: string; title: string; items: Item[]; kcal: number; protein: number; carbs: number; fat: number; fibre: number; alt: string }
 interface Day { day: number; label: string; meals: Meal[]; kcal: number; protein: number }
-export interface Plan { title: string; goal: string; diet: string; region: string; conditions: string[]; targetKcal: number; days: Day[]; tips: string[]; source: string }
+export interface Plan { title: string; goal: string; diet: string; region: string; conditions: string[]; targetKcal: number; days: Day[]; tips: string[]; source: string; lang?: string }
 interface UserRow { id: string; name: string; email: string; phone: string }
 type Tpl = { id: string; name: string; savedAt: string; by: string; plan: Plan };
 
@@ -24,6 +24,8 @@ const GOALS = [["lose", "Lose weight"], ["maintain", "Maintain"], ["gain", "Gain
 const DIETS = [["veg", "Vegetarian"], ["eggetarian", "Eggetarian"], ["nonveg", "Non-veg"], ["jain", "Jain"], ["vegan", "Vegan"]];
 const REGIONS = [["gujarati", "Gujarati"], ["north", "North Indian"], ["south", "South Indian"], ["mixed", "Mixed"]];
 const CONDS = [["diabetes", "Diabetes"], ["pcos", "PCOS"], ["thyroid", "Thyroid"], ["cholesterol", "Cholesterol"], ["digestive", "Digestive"], ["weight", "Weight mgmt"], ["oncology", "Cancer care"]];
+
+const LANGS = [["en", "English"], ["gu", "ગુજરાતી"], ["hi", "हिंदी"], ["mr", "मराठी"], ["pa", "ਪੰਜਾਬੀ"], ["bn", "বাংলা"], ["ta", "தமிழ்"], ["te", "తెలుగు"], ["kn", "ಕನ್ನಡ"], ["ml", "മലയാളം"], ["ur", "اردو"], ["hinglish", "Hinglish"], ["gujlish", "Gujarati in English letters"]];
 
 const chip = (on: boolean) => ({
   padding: "7px 12px", borderRadius: 999, fontSize: ".8rem", fontWeight: 600, cursor: "pointer",
@@ -77,7 +79,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
     loadTpls();
   }
   function applyTpl(t: Tpl) {
-    setPlan(structuredClone(t.plan)); setOpenDay(0); setMsg(null);
+    setPlan(structuredClone(t.plan)); setOpenDay(0); setMsg(null); setEnPlan(null); setTrMsg("");
     if (t.plan.targetKcal && !kcal) setKcal(String(t.plan.targetKcal));
     setTplMsg(`Started from “${t.name}”. Change anything, then send.`);
   }
@@ -99,6 +101,41 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   const [q, setQ] = useState("");
   const [userId, setUserId] = useState(fixedUser?.id || "");
   const [note, setNote] = useState("");
+  // Language: the English version is kept so "English" brings it back.
+  const [enPlan, setEnPlan] = useState<{ plan: Plan; note: string } | null>(null);
+  const [trBusy, setTrBusy] = useState("");
+  const [trMsg, setTrMsg] = useState("");
+  async function translateTo(l: string) {
+    if (!plan) return;
+    setTrMsg("");
+    if (l === "en") { if (enPlan) { setPlan(enPlan.plan); setNote(enPlan.note); setEnPlan(null); } return; }
+    const src = enPlan || { plan, note };
+    setTrBusy(l);
+    const r = await fetch("/api/plan-translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: clean(src.plan), lang: l, note: src.note }) }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) : {};
+    setTrBusy("");
+    if (!r || !r.ok || !j.plan) { setTrMsg(j.error || "Couldn't translate — try again."); return; }
+    if (!enPlan) setEnPlan({ plan, note });
+    setPlan(j.plan); if (src.note) setNote(j.note || src.note);
+    setTrMsg("✓ Translated. Read it once before sending — you can still edit any line.");
+  }
+  // Plan length tools: make it a 1-day plan, add or remove a day.
+  function keepOnlyThisDay() {
+    if (!plan) return;
+    const dd = plan.days[openDay];
+    setPlan({ ...plan, title: plan.title.replace(/7-day/i, "1-day"), days: [{ ...dd, day: 1 }] }); setOpenDay(0); setEnPlan(null);
+  }
+  function addDay() {
+    if (!plan || plan.days.length >= 7) return;
+    const dd = structuredClone(plan.days[openDay]);
+    const n = plan.days.length + 1;
+    setPlan({ ...plan, title: n === 7 ? plan.title.replace(/1-day/i, "7-day") : plan.title, days: [...plan.days, { ...dd, day: n, label: `Day ${n}` }] }); setOpenDay(n - 1); setEnPlan(null);
+  }
+  function removeDay() {
+    if (!plan || plan.days.length <= 1 || !confirm(`Remove ${plan.days[openDay].label}?`)) return;
+    const days = plan.days.filter((_, i) => i !== openDay).map((x, i) => ({ ...x, day: i + 1 }));
+    setPlan({ ...plan, title: days.length === 1 ? plan.title.replace(/7-day/i, "1-day") : plan.title, days }); setOpenDay(Math.max(0, openDay - 1)); setEnPlan(null);
+  }
   const [startsOn, setStartsOn] = useState("");
   const [signedAs, setSignedAs] = useState("Dt. Astha Jadeja");
 
@@ -123,7 +160,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
     const d = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setMsg({ ok: false, text: d.error || "Couldn't generate." });
-    setPlan(d.plan); setOpenDay(0);
+    setPlan(d.plan); setOpenDay(0); setEnPlan(null); setTrMsg("");
   }
 
   function editItem(di: number, mi: number, ii: number, patch: Partial<Item>) {
@@ -266,6 +303,22 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
             <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => openPrint(clean(plan), { client: fixedUser?.name || chosen?.name, from: portal ? undefined : signedAs, note })}>🖨️ PDF / Print</button>
             <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => sharePlanText(clean(plan), { client: (fixedUser?.name || chosen?.name || "").split(" ")[0], from: portal ? undefined : signedAs, phone: portal ? undefined : chosen?.phone })}>📲 WhatsApp</button>
             <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={saveTpl}>💾 Save as template</button>
+          </div>
+          <div style={{ border: "1px solid var(--line)", borderRadius: 14, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={{ fontWeight: 700, fontSize: ".85rem" }}>🌐 Plan language <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— the app stays in English, the plan shows in this language</span></p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {LANGS.map(([k, l]) => (
+                <button type="button" key={k} disabled={!!trBusy} style={chip((plan.lang || "en") === k)} onClick={() => translateTo(k)}>{trBusy === k ? "Translating…" : l}</button>
+              ))}
+            </div>
+            {trMsg && <p style={{ fontSize: ".8rem", fontWeight: 600, color: trMsg.startsWith("✓") ? "#287379" : "#B4442A" }}>{trMsg}</p>}
+            {plan.lang && plan.lang !== "en" && <p style={{ fontSize: ".76rem", color: "var(--ink-soft)" }}>Tip: translate as the last step. If you change foods after translating, type them in this language too. Tap English to go back.</p>}
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", fontSize: ".8rem" }}>
+            <b>{plan.days.length === 1 ? "1-day plan" : `${plan.days.length}-day plan`}</b>
+            {plan.days.length > 1 && <button type="button" style={chip(false)} onClick={keepOnlyThisDay}>Make it a 1-day plan (keep {plan.days[openDay].label})</button>}
+            {plan.days.length < 7 && <button type="button" style={chip(false)} onClick={addDay}>+ Add a day (copy of {plan.days[openDay].label})</button>}
+            {plan.days.length > 1 && <button type="button" style={{ ...chip(false), color: "#B4442A" }} onClick={removeDay}>Remove {plan.days[openDay].label}</button>}
           </div>
           <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
             {plan.days.map((x, i) => (
