@@ -46,12 +46,12 @@ export default async function DietitianDashboardPage() {
           {app.status === "approved" && (
             <div style={{ marginTop: 14, background: "#E3F0F0", borderRadius: 14, padding: 16, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/downloads/dietitian-icon.png" alt="" width={52} height={52} style={{ borderRadius: 14 }} />
+              <img src="/icon-192.png" alt="" width={52} height={52} style={{ borderRadius: 14 }} />
               <div style={{ flex: 1, minWidth: 200 }}>
-                <b>Get the Health365 Dietitian app</b>
-                <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 2 }}>Chat with your clients and send diet plans from your phone.</p>
+                <b>Work from the Health365 app</b>
+                <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginTop: 2 }}>Install it, tap “I&apos;m a dietitian” and log in to chat with clients and send diet plans.</p>
               </div>
-              <Link href="/dietitian-app" className="pill pill-primary" style={{ padding: "10px 18px" }}>Download</Link>
+              <a href="https://play.google.com/store/apps/details?id=com.frontpagestudios.health365" className="pill pill-primary" style={{ padding: "10px 18px" }}>Get the app</a>
               <Link href="/admin/login" className="pill pill-outline" style={{ padding: "10px 18px" }}>Open in browser</Link>
             </div>
           )}

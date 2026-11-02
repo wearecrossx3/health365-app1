@@ -11,7 +11,7 @@ import DietitianActionButtons from "./DietitianActionButtons";
 import { getScanHealth } from "@/lib/scanStats";
 import AdminAlertsCard from "./AdminAlertsCard";
 import WhatsAppAlertsCard from "./WhatsAppAlertsCard";
-import { ADMIN_APP, DIETITIAN_APP } from "@/lib/appDownloads";
+import { ADMIN_APP } from "@/lib/appDownloads";
 import { getWhatsAppHealth } from "@/lib/whatsapp";
 
 export default async function AdminPage({ searchParams }: { searchParams?: { full?: string } }) {
@@ -86,11 +86,11 @@ export default async function AdminPage({ searchParams }: { searchParams?: { ful
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/downloads/dietitian-icon.png" alt="" width={40} height={40} style={{ borderRadius: 11 }} />
-              <span style={{ flex: 1, minWidth: 160 }}><b>{DIETITIAN_APP.name}</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· v{DIETITIAN_APP.version} · share with joined dietitians</span></span>
+              <img src="/icon-192.png" alt="" width={40} height={40} style={{ borderRadius: 11 }} />
+              <span style={{ flex: 1, minWidth: 160 }}><b>Dietitians use the Health365 app</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· “I&apos;m a dietitian” login · no separate app</span></span>
               <a href="/dietitian-app" target="_blank" className="pill pill-outline" style={{ padding: "7px 14px", fontSize: ".82rem" }}>Open page</a>
             </div>
-            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share this link with a dietitian: <b>thehealth365.in/dietitian-app</b> — it&apos;s also in their approval email.</p>
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share this link with a dietitian: <b>thehealth365.in/dietitian-app</b> — it shows how to log in from the Health365 app, and it&apos;s also in their approval email.</p>
           </div>
         </div>
 

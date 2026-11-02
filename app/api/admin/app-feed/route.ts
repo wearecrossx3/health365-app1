@@ -37,11 +37,11 @@ export async function GET(req: NextRequest) {
     const when = (d: string, t: string) => `${new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${t}`;
     const bookings = threads
       .filter((t) => t.status === "booked" && (!t.pay || t.pay.status === "verified"))
-      .map((t) => ({ id: `book-${t.id}`, title: `New booking: ${t.clientName} 📅`, body: `${when(t.date, t.time)}. ${t.pay ? "Payment confirmed. " : ""}Open Health365 Dietitian to say hello.`, url: "/admin/my-clients", at: t.pay ? t.pay.at : t.bookedAt }))
+      .map((t) => ({ id: `book-${t.id}`, title: `New booking: ${t.clientName} 📅`, body: `${when(t.date, t.time)}. ${t.pay ? "Payment confirmed. " : ""}Open Health365 to say hello.`, url: "/admin/my-clients", at: t.pay ? t.pay.at : t.bookedAt }))
       .filter((e) => e.at > since);
     const chats = threads
       .filter((t) => t.unread && t.lastAt > since && t.lastFrom === "client")
-      .map((t) => ({ id: `chat-${t.id}-${t.lastAt}`, title: `New message from ${t.clientName} 💬`, body: "Open Health365 Dietitian to reply.", url: "/admin/my-clients", at: t.lastAt }));
+      .map((t) => ({ id: `chat-${t.id}-${t.lastAt}`, title: `New message from ${t.clientName} 💬`, body: "Open Health365 to reply.", url: "/admin/my-clients", at: t.lastAt }));
     const notes = (await listNotices(portalId).catch(() => []))
       .filter((n) => n.at > since && !n.seen)
       .map((n) => ({ id: `note-${n.id}`, title: `Health365 team: ${n.title}`, body: n.body.slice(0, 140), url: "/admin/my-clients", at: n.at }));

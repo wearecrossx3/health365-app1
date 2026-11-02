@@ -41,7 +41,7 @@ export default function ConsultChats() {
         {astha && (
           <div style={{ borderTop: "1px solid var(--line)", padding: "10px 0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ flex: 1, minWidth: 160 }}><b>Dt. Astha Jadeja</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· Dietitian app login</span></span>
+              <span style={{ flex: 1, minWidth: 160 }}><b>Dt. Astha Jadeja</b> <span className="text-sm" style={{ color: "var(--ink-soft)" }}>· dietitian login</span></span>
               <input value={aEmail} onChange={(e) => { setAEmail(e.target.value); setAMsg(""); }} type="email" style={{ padding: "7px 10px", borderRadius: 10, border: "1.5px solid var(--line)", minWidth: 220 }} />
               <button className="pill pill-outline" style={{ padding: "5px 12px", fontSize: ".78rem" }} onClick={async () => {
                 const r = await fetch("/api/admin/consult-chats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "asthaEmail", email: aEmail }) });
@@ -49,7 +49,7 @@ export default function ConsultChats() {
               }}>Save</button>
               <button className="pill pill-outline" style={{ padding: "5px 12px", fontSize: ".78rem" }} onClick={() => setShowLog(showLog === "dr-astha" ? "" : "dr-astha")}>Activity</button>
             </div>
-            <p className="text-sm" style={{ color: aMsg.startsWith("Saved") ? "#2E7D4F" : "var(--ink-soft)", marginTop: 4 }}>{aMsg || "Whoever logs in to the Dietitian app with this email sees Dt. Astha's clients and chats. In the Admin app the same login still opens the full admin."}</p>
+            <p className="text-sm" style={{ color: aMsg.startsWith("Saved") ? "#2E7D4F" : "var(--ink-soft)", marginTop: 4 }}>{aMsg || "Whoever logs in with this email as a dietitian (Health365 app › “I'm a dietitian”) sees Dt. Astha's clients and chats. In the Admin app the same login still opens the full admin."}</p>
             {showLog === "dr-astha" && (
               <ul style={{ margin: "8px 0 0 18px", fontSize: ".8rem", color: "var(--ink-soft)" }}>
                 {astha.activity.length === 0 ? <li>No activity yet.</li> : astha.activity.map((a, i) => <li key={i}>{when(a.at)} — {a.what}</li>)}

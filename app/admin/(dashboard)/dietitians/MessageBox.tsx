@@ -44,7 +44,7 @@ export default function MessageBox({ ids, name, phone, onClose }: { ids: string[
       <textarea className="mb-in" rows={5} value={body} onChange={(e) => setBody(e.target.value)} aria-label="Message" maxLength={1500} />
       <p className="mb-hint">{"{name}"} becomes {many ? "each dietitian's" : "their"} first name{name ? ` (${name.split(" ")[0]})` : ""}.</p>
       <div className="mb-opts">
-        <label><input type="checkbox" checked={app} onChange={(e) => setApp(e.target.checked)} /> In the Dietitian app</label>
+        <label><input type="checkbox" checked={app} onChange={(e) => setApp(e.target.checked)} /> In their app (pop-up)</label>
         <label><input type="checkbox" checked={email} onChange={(e) => setEmail(e.target.checked)} /> Email</label>
       </div>
       <div className="mb-btns">

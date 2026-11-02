@@ -5,7 +5,7 @@ export const TERMS_VERSION = "2026-10-21";
 export const TERMS_UPDATED = "21 October 2026";
 
 export const TERMS_INTRO =
-  "These terms apply to every dietitian who joins Health365 (run by Frontpage Studios). By applying or using the H365 Dietitian app, you agree to them.";
+  "These terms apply to every dietitian who joins Health365 (run by Frontpage Studios). By applying or working as a dietitian in the Health365 app, you agree to them.";
 
 export const TERMS: { h: string; items: string[] }[] = [
   { h: "Who can join", items: [

@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     const d = await dietitianInfo(dtId).catch(() => null);
     if (d?.email) {
       const base = siteUrl();
-      await sendEmail({ to: d.email, subject: `${list.length} client${list.length > 1 ? "s" : ""} waiting for your reply — Health365`, html: emailWrapper("Clients are waiting", `<p>Hi ${firstName(d.name)}, ${list.length} client${list.length > 1 ? "s have" : " has"} been waiting more than 24 hours for your reply (${names}).</p><p><a href="${base}/admin/my-clients">Open the H365 Dietitian app</a> to reply.</p>`) }).catch(() => {});
+      await sendEmail({ to: d.email, subject: `${list.length} client${list.length > 1 ? "s" : ""} waiting for your reply — Health365`, html: emailWrapper("Clients are waiting", `<p>Hi ${firstName(d.name)}, ${list.length} client${list.length > 1 ? "s have" : " has"} been waiting more than 24 hours for your reply (${names}).</p><p><a href="${base}/admin/my-clients">Open your Health365 dietitian portal</a> to reply (Health365 app › “I'm a dietitian”).</p>`) }).catch(() => {});
     }
     summary.push(`${d?.name || "Dietitian"} (${list.length})`);
   }

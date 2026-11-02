@@ -100,8 +100,8 @@ export async function POST(req: NextRequest) {
             ? `<p>Great news, ${app.name}! Your dietitian profile is now live on Health365.</p>
                <p><b>Next steps</b></p>
                <ol>
-                 <li>Download the <b>H365 Dietitian app</b> (Android): ${adminLink("/dietitian-app")}<br>On iPhone or a computer, open ${adminLink("/admin/my-clients")} instead.</li>
-                 <li>Log in with the same email and password as your Health365 account.</li>
+                 <li>Install the <b>Health365</b> app from Google Play: <a href="https://play.google.com/store/apps/details?id=com.frontpagestudios.health365">Get the app</a><br>On iPhone or a computer, open ${adminLink("/admin/my-clients")} instead.</li>
+                 <li>Open the app, tap <b>“I'm a dietitian”</b> and log in with the same email and password as your Health365 account (or Google).</li>
                  <li>Read the Terms for dietitians and tap “I agree”.</li>
                  <li>Add your photo and a short bio in Me › Edit profile.</li>
                </ol>
