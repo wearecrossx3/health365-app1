@@ -37,6 +37,24 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ ok: true, sent, emailed, emailError });
   }
+  // Owner sets a dietitian's consultation fee directly.
+  if (body?.action === "setFee") {
+    const d = await getDietitianApplicationById(String(body.id || ""));
+    if (!d) return NextResponse.json({ error: "Dietitian not found." }, { status: 404 });
+    const fee = String(body.fee ?? "").replace(/\s+/g, " ").trim().slice(0, 60);
+    if (fee && !/\d/.test(fee)) return NextResponse.json({ error: "Write the fee with a number, e.g. ₹500 per session." }, { status: 400 });
+    const old = d.fee || "";
+    d.fee = fee;
+    if (d.pendingChanges?.fee !== undefined) {
+      const { fee: _f, ...rest } = d.pendingChanges; void _f;
+      d.pendingChanges = Object.keys(rest).filter((k) => k !== "at").length ? (rest as typeof d.pendingChanges) : undefined;
+    }
+    await createOrUpdateDietitianApplication(d);
+    if (body.notify !== false && fee !== old) {
+      await import("@/lib/dietitianNotices").then((m) => m.addNotice(d.id, { title: "Your consultation fee is updated", body: `Hi ${String(d.name || "").split(" ")[0]}, the Health365 team has set your consultation fee to ${fee || "not shown"}. New bookings use this fee.` })).catch(() => {});
+    }
+    return NextResponse.json({ ok: true, fee });
+  }
   // Approve or turn down a dietitian's fee / qualification / experience change.
   if (body?.action === "changes") {
     const d = await getDietitianApplicationById(String(body.id || ""));

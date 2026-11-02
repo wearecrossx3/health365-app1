@@ -158,7 +158,7 @@ export default function DietitianList({ rows }: { rows: DtRow[] }) {
                   <div><span>Qualification</span><b>{r.qualification || "—"}</b></div>
                   <div><span>Experience</span><b>{r.experienceYears ? `${r.experienceYears} years` : "—"}</b></div>
                   <div><span>City</span><b>{r.location || "—"}</b></div>
-                  <div><span>Fee per consult</span><b>{r.feeText || "—"}</b></div>
+                  <div><span>Fee per consult</span><FeeEdit id={r.id} fee={r.feeText} onSaved={() => router.refresh()} /></div>
                   <div><span>Languages</span><b>{r.languages.join(", ") || "—"}</b></div>
                   <div><span>Applied on</span><b>{joined(r.joinedAt)}</b></div>
                   <div><span>Rating</span><b>{r.rating?.count ? `★ ${r.rating.avg} from ${r.rating.count} client${r.rating.count > 1 ? "s" : ""}` : "No ratings yet"}</b></div>
@@ -277,3 +277,38 @@ const CSS = `
   .dl-right small{display:none}
 }
 `;
+
+// Owner can change any dietitian's fee here. The dietitian gets a notice in their app.
+function FeeEdit({ id, fee, onSaved }: { id: string; fee: string; onSaved: () => void }) {
+  const [edit, setEdit] = useState(false);
+  const [v, setV] = useState(fee || "");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState(false);
+  if (!edit) return (
+    <b style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+      {fee || "—"}{done && <span style={{ color: "var(--teal)", fontSize: ".75rem" }}>Saved ✓</span>}
+      <button onClick={() => { setV(fee || ""); setEdit(true); setErr(""); setDone(false); }} style={{ background: "none", border: "none", color: "var(--teal)", fontWeight: 700, fontSize: ".78rem", cursor: "pointer", padding: 0 }}>✏️ Change</button>
+    </b>
+  );
+  const save = async () => {
+    setBusy(true); setErr("");
+    const r = await fetch("/api/admin/dietitians", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "setFee", id, fee: v }) }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) : {};
+    setBusy(false);
+    if (!r || !r.ok) { setErr(j.error || "Couldn't save."); return; }
+    setEdit(false); setDone(true); onSaved();
+  };
+  return (
+    <span style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <input value={v} onChange={(e) => setV(e.target.value)} placeholder="e.g. ₹500 per session" maxLength={60} autoFocus
+          style={{ flex: "1 1 140px", padding: "7px 10px", borderRadius: 10, border: "1px solid var(--line)", font: "inherit", fontSize: ".85rem" }} />
+        <button className="pill pill-primary" disabled={busy} onClick={save} style={{ padding: "6px 14px", fontSize: ".78rem" }}>{busy ? "Saving…" : "Save"}</button>
+        <button className="pill pill-outline" onClick={() => setEdit(false)} style={{ padding: "6px 12px", fontSize: ".78rem" }}>Cancel</button>
+      </span>
+      <small style={{ color: "var(--ink-soft)", fontSize: ".72rem" }}>New bookings use this fee. The dietitian gets a notice in their app.</small>
+      {err && <small style={{ color: "#B4442A", fontWeight: 600 }}>{err}</small>}
+    </span>
+  );
+}

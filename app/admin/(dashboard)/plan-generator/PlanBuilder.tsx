@@ -105,17 +105,20 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   const [enPlan, setEnPlan] = useState<{ plan: Plan; note: string } | null>(null);
   const [trBusy, setTrBusy] = useState("");
   const [trMsg, setTrMsg] = useState("");
-  async function translateTo(l: string) {
-    if (!plan) return;
-    setTrMsg("");
-    if (l === "en") { if (enPlan) { setPlan(enPlan.plan); setNote(enPlan.note); setEnPlan(null); } return; }
-    const src = enPlan || { plan, note };
+  const [planLang, setPlanLang] = useState("en"); // chosen before generating
+  async function translateTo(l: string, fresh?: Plan) {
+    const cur = fresh || plan;
+    if (!cur) return;
+    setTrMsg(""); setPlanLang(l);
+    if (l === "en") { if (enPlan && !fresh) { setPlan(enPlan.plan); setNote(enPlan.note); setEnPlan(null); } return; }
+    const base = fresh ? null : enPlan;
+    const src = base || { plan: cur, note };
     setTrBusy(l);
     const r = await fetch("/api/plan-translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: clean(src.plan), lang: l, note: src.note }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
     setTrBusy("");
-    if (!r || !r.ok || !j.plan) { setTrMsg(j.error || "Couldn't translate — try again."); return; }
-    if (!enPlan) setEnPlan({ plan, note });
+    if (!r || !r.ok || !j.plan) { setTrMsg((j.error || "Couldn't translate — try again.") + (j.detail ? ` (${j.detail})` : "")); return; }
+    if (!base) setEnPlan({ plan: cur, note });
     setPlan(j.plan); if (src.note) setNote(j.note || src.note);
     setTrMsg("✓ Translated. Read it once before sending — you can still edit any line.");
   }
@@ -161,6 +164,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
     setBusy(false);
     if (!res.ok) return setMsg({ ok: false, text: d.error || "Couldn't generate." });
     setPlan(d.plan); setOpenDay(0); setEnPlan(null); setTrMsg("");
+    if (planLang !== "en") translateTo(planLang, d.plan);
   }
 
   function editItem(di: number, mi: number, ii: number, patch: Partial<Item>) {
@@ -287,8 +291,12 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
             </div>
           </div>
         </div>
+        <div>
+          <p style={{ fontWeight: 700, fontSize: ".85rem", marginBottom: 8 }}>🌐 Plan language <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— the plan is made in this language (the app stays in English)</span></p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{LANGS.map(([k, l]) => <button type="button" key={k} style={chip(planLang === k)} onClick={() => setPlanLang(k)}>{l}</button>)}</div>
+        </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button type="button" className="pill pill-primary" disabled={busy} onClick={generate}>{busy ? "Working…" : plan ? "↻ Generate another" : "Generate plan"}</button>
+          <button type="button" className="pill pill-primary" disabled={busy || !!trBusy} onClick={generate}>{busy ? "Working…" : trBusy ? "Translating…" : plan ? "↻ Generate another" : "Generate plan"}</button>
         </div>
         <p style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>Calories are worked out from USDA FoodData Central values (public domain) using standard Indian home recipes. Every click makes a different week. While editing, type in a food box to pick from the food list — calories fill in, and change when you change the portion (e.g. &ldquo;150 g&rdquo; or &ldquo;2 medium&rdquo;).</p>
       </div>
