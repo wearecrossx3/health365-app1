@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getUserByEmail } from "@/lib/kv";
 import { verifyPassword } from "@/lib/auth";
 import { createSessionCookieValue } from "@/lib/session";
+import { dietitianStatus } from "@/lib/portalHandoff";
 import { appJson, appPreflight, limit, str } from "@/lib/appApi";
 
 export async function OPTIONS() {
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
       return appJson({ error: "Incorrect email or password." }, 401);
     }
     const token = createSessionCookieValue({ userId: user.id, email: user.email, name: user.name });
-    return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "", google: !!user.google } });
+    return appJson({ ok: true, token, user: { id: user.id, email: user.email, name: user.name, phone: user.phone || "", google: !!user.google }, dietitian: await dietitianStatus(user.id).catch(() => null) });
   } catch (err) {
     console.error("App login failed:", err);
     return appJson({ error: "Couldn't log in right now — please try again." }, 500);
