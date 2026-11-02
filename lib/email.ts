@@ -1,3 +1,4 @@
+import { siteUrl } from "./site";
 // Minimal email sending via Resend's REST API (https://resend.com) —
 // no npm package needed, just a fetch call. If RESEND_API_KEY isn't
 // set, this quietly skips instead of breaking the flow it's called
@@ -75,8 +76,7 @@ export function getAdminEmails(): string[] {
 }
 
 export function adminLink(path: string): string {
-  const base = process.env.NEXT_PUBLIC_SITE_URL;
-  return base ? `${base.replace(/\/$/, "")}${path}` : path;
+  return `${siteUrl()}${path}`;
 }
 
 // Shared, simple email wrapper so every notification looks consistent.

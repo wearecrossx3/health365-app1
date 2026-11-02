@@ -2,6 +2,7 @@ import { Appointment } from "./kv";
 import { dietitianInfo } from "./portal";
 import { sendEmail, emailWrapper } from "./email";
 import { updateMeta, ChatMeta, firstName } from "./consultChat";
+import { siteUrl } from "./site";
 
 // Emails the dietitian (at most once every 20 minutes per chat) when a client
 // writes. The email carries no client details — just a nudge to open the portal.
@@ -10,7 +11,7 @@ export async function notifyDietitian(a: Appointment, meta: ChatMeta) {
   const d = await dietitianInfo(a.dietitianId);
   if (!d?.email) return;
   await updateMeta(a.id, { dtEmailAt: Date.now() });
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in";
+  const base = siteUrl();
   await sendEmail({
     to: d.email,
     subject: `New message from ${firstName(a.userName)} — Health365`,

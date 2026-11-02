@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { getJSON, setJSON, redis } from "./kv";
 import type { Appointment } from "./kv";
 import { addNotice } from "./dietitianNotices";
+import { siteUrl } from "./site";
 
 // Client ratings for a consultation (1–5 stars + optional comment).
 // The rating link carries an HMAC so only the client we sent it to can rate.
@@ -14,10 +15,7 @@ export const rateTokenOk = (apptId: string, t: string) => {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
 // Public links always use the real domain (the env may still point at *.vercel.app).
-export const siteUrl = () => {
-  const env = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
-  return env && !/vercel\.app/i.test(env) ? env : "https://www.thehealth365.in";
-};
+export { siteUrl };
 export const rateLink = (apptId: string) => `${siteUrl()}/rate/${apptId}?t=${rateToken(apptId)}`;
 
 // The chat message asking for a rating. Links can't be tapped in the app's

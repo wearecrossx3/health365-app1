@@ -2,6 +2,7 @@ import { createResetLink } from "@/lib/passwordReset";
 import { sendEmail, emailWrapper } from "@/lib/email";
 import { sendWhatsAppTemplate, isWhatsAppConfigured } from "@/lib/whatsapp";
 import type { User } from "@/lib/kv";
+import { siteUrl } from "./site";
 
 // One place that makes a one-time password-reset link and sends it by
 // email (when RESEND_API_KEY is set) and WhatsApp (when the Meta keys are set).
@@ -38,8 +39,16 @@ export async function sendResetLink(user: User, base: string, by: string) {
   return { link, hours, emailed, whatsapped };
 }
 
-export function siteBase(req: { headers: Headers; nextUrl: { origin: string } }) {
+// Google sign-in must come back to the same address it started on.
+export function requestBase(req: { headers: Headers; nextUrl: { origin: string } }) {
   const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
   const proto = req.headers.get("x-forwarded-proto") || "https";
-  return (host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin).replace(/\/$/, "");
+  return (host ? `${proto}://${host}` : req.nextUrl.origin).replace(/\/$/, "");
+}
+
+// Links inside emails / WhatsApp: always the real domain.
+export function siteBase(req: { headers: Headers; nextUrl: { origin: string } }) {
+  void req;
+  // Always the real domain (never a vercel.app or internal address).
+  return siteUrl();
 }

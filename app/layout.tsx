@@ -6,6 +6,7 @@ import OfferPopup from "@/components/OfferPopup";
 import ChatWidget from "@/components/ChatWidget";
 import ThemeInjector from "@/components/ThemeInjector";
 import MetricoolTracker from "@/components/MetricoolTracker";
+import { siteUrl } from "@/lib/site";
 
 const heading = Fredoka({
   subsets: ["latin"],
@@ -19,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Health365 — Your health, your 365.",
     template: "%s — Health365",
@@ -68,7 +69,7 @@ export default function RootLayout({
     name: "Health365",
     description:
       "Nutrition platform offering consultations, personalised diet plans, and dietitian bookings.",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.thehealth365.in",
+    url: siteUrl(),
     areaServed: "IN",
     founder: {
       "@type": "Person",

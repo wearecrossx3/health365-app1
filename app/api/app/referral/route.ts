@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { appJson, appPreflight, getAppSession } from "@/lib/appApi";
 import { getOrCreateCode, referralStats } from "@/lib/referral";
+import { hostBase } from "@/lib/site";
 
 // The signed-in user's invite code and how many friends joined with it.
 export const dynamic = "force-dynamic";
@@ -12,8 +13,8 @@ export async function GET(req: NextRequest) {
   try {
     const code = await getOrCreateCode(s.userId, s.name);
     const st = await referralStats(s.userId);
-    const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "www.thehealth365.in";
-    return appJson({ code, link: `https://${host}/r/${code}`, ...st });
+    const base = hostBase(req.headers.get("x-forwarded-host") || req.headers.get("host"));
+    return appJson({ code, link: `${base}/r/${code}`, ...st });
   } catch (err) {
     console.error("Referral failed:", err);
     return appJson({ error: "Couldn't load right now." }, 500);

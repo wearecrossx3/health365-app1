@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { googleProfile, userForGoogle, makeAppCode } from "@/lib/googleAuth";
-import { siteBase } from "@/lib/resetDelivery";
+import { requestBase } from "@/lib/resetDelivery";
 import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_MAX_AGE, ADMIN_SESSION_COOKIE_NAME } from "@/lib/session";
 import { getUserByEmail } from "@/lib/kv";
 import { getAdminAccess } from "@/lib/admin";
@@ -8,7 +8,7 @@ import { getAdminAccess } from "@/lib/admin";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const base = siteBase(req);
+  const base = requestBase(req);
   let st: { nonce?: string; app?: boolean; admin?: boolean; next?: string } = {};
   try { st = JSON.parse(req.cookies.get("h365_gstate")?.value || "{}"); } catch { /* ignore */ }
   const code = req.nextUrl.searchParams.get("code");

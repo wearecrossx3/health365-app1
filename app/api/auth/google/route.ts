@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { googleEnabled, googleAuthUrl } from "@/lib/googleAuth";
-import { siteBase } from "@/lib/resetDelivery";
+import { requestBase } from "@/lib/resetDelivery";
 
 // GET /api/auth/google?app=1  → sends the browser to Google's sign-in.
 // GET /api/auth/google?status=1 → { enabled }
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams;
   if (q.get("status")) return NextResponse.json({ enabled: googleEnabled() }, { headers: { "Access-Control-Allow-Origin": "*" } });
-  const base = siteBase(req);
+  const base = requestBase(req);
   if (!googleEnabled()) return NextResponse.redirect(`${base}/login?google=off`);
   const app = q.get("app") === "1";
   const admin = q.get("admin") === "1"; // Team & Dietitian login (browser only)
