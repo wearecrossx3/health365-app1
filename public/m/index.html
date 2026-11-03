@@ -203,6 +203,7 @@ textarea.field{height:96px;padding:14px 18px;resize:none}
 .stat{background:var(--card);border-radius:16px;padding:11px 10px}
 .stat small{font-size:11px;color:var(--mute)}.stat b{display:block;font-size:17px;margin-top:2px;font-weight:800}
 .days{display:flex;gap:8px;overflow-x:auto;padding:18px 24px 4px;scrollbar-width:none}
+.plangs{display:flex;gap:8px;overflow-x:auto;margin:14px -24px 0;padding:0 24px 2px;scrollbar-width:none;align-items:center}.plangs::-webkit-scrollbar{display:none}.plangs:empty{display:none}.plangs small{flex:0 0 auto;font-size:12px;color:var(--mute);font-weight:700}.plangs button{flex:0 0 auto;padding:7px 14px;border-radius:999px;background:var(--card);font-size:13px;font-weight:700;color:var(--ink);border:2px solid transparent}.plangs button.on{background:var(--teal);color:#fff}.plangs button.busy{opacity:.6}
 .days::-webkit-scrollbar{display:none}
 .days button{flex:0 0 auto;min-width:54px;height:62px;border-radius:16px;background:var(--card);font-size:11.5px;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:2px solid transparent;font-weight:700}
 .days button b{font-size:18px;color:var(--ink);font-weight:800}
@@ -1012,6 +1013,7 @@ if(I18)new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='cha
       <h1 style="font-size:30px;font-weight:600">Your diet plan</h1>
       <p class="sub" id="planSub"></p>
       <div class="stats" id="planStats"></div>
+      <div class="plangs" id="planLang" data-notr></div>
       <div id="planNote"></div>
     </div>
     <div class="days" id="dayTabs"></div>
@@ -1715,20 +1717,21 @@ function renderPlan(){
   $('#planPdfRow').style.display=needsDt()?'none':'';
   if(needsDt()){const p=S.plan;$('#planSub').textContent=tr('Built with a dietitian');$('#planStats').innerHTML=[['Calories',p.kcal.toLocaleString('en-IN')],['Protein',p.protein+'g'],['Carbs',p.carbs+'g'],['Water',p.water+'L']].map(s=>`<div class="stat"><small>${s[0]}</small><b>${s[1]}</b></div>`).join('');
     $('#planNote').innerHTML=`<div style="margin:16px -24px 0">${dtNeedCard('plan')}</div>`;$('#dayTabs').innerHTML='';$('#meals').innerHTML='';
-    $('#tips').innerHTML='';return}
+    $('#tips').innerHTML='';$('#planLang').innerHTML='';return}
   const p=S.plan,td=planDay(),L=planLen(),exp=planExpired();if(day===null||day>=L)day=td;
   $('#planSub').textContent=p.dt?`From ${p.dt.by} · ${p.kcal.toLocaleString('en-IN')} kcal a day`:`${L===1?'Today’s plan':GOALTXT[p.goal]} · ${p.cm} cm · ${S.kg} kg · ${p.age} yrs`;
   $('#planStats').innerHTML=[['Calories',p.kcal.toLocaleString('en-IN')],['Protein',p.protein+'g'],['Carbs',p.carbs+'g'],['Water',p.water+'L']].map(s=>`<div class="stat"><small>${s[0]}</small><b>${s[1]}</b></div>`).join('');
-  $('#planNote').innerHTML=(exp?`<div style="margin:16px -24px 0">${lockCard('plan')}</div>`:'')+(p.dt?`<div class="dtnote"><b>${esc(p.dt.title||'Your personal plan')}</b>${p.dt.note?`<br>${esc(p.dt.note)}`:''}<br><span style="opacity:.8">— ${esc(p.dt.by)}</span></div>`:'')+(p.tpl?`<div class="tplnote"><b>Prepared by the Health365 team for ${esc(p.tpl.label)}.</b>${p.tpl.tips?`<br>${esc(p.tpl.tips)}`:''}</div>`:'')+p.notes.map(n=>`<div class="note">${esc(n)}</div>`).join('');
+  const PLg=S.planLang||'en';$('#planLang').innerHTML=`<small>🌐 ${tr('Plan language')}</small>`+PLANGS.map(l=>`<button class="${PLg===l[0]?'on':''}${ptBusy===l[0]?' busy':''}" onclick="setPlanLang('${l[0]}')">${l[1]}</button>`).join('');
+  $('#planNote').innerHTML=(exp?`<div style="margin:16px -24px 0">${lockCard('plan')}</div>`:'')+(p.dt?`<div class="dtnote"><b>${esc(PT(p.dt.title||'Your personal plan'))}</b>${p.dt.note?`<br>${esc(String(p.dt.note).split('\n').map(PT).join('\n'))}`:''}<br><span style="opacity:.8">— ${esc(p.dt.by)}</span></div>`:'')+(p.tpl?`<div class="tplnote"><b>Prepared by the Health365 team for ${esc(p.tpl.label)}.</b>${p.tpl.tips?`<br>${esc(PT(p.tpl.tips))}`:''}</div>`:'')+p.notes.map(n=>`<div class="note">${esc(PT(n))}</div>`).join('');
   $('#dayTabs').innerHTML=p.days.map((_,i)=>`<button class="${i===day?'on':''}${i===td&&!exp?' td':''}" onclick="day=${i};renderPlan()"><span>${i===td&&!exp?'Today':'Day'}</span><b>${i+1}</b><span>${dayName(i)}</span></button>`).join('');
   const isT=day===td&&!exp,done=T().done;
   $('#meals').innerHTML=p.slotIdx.map((si,k)=>{const s=SLOTS[si],m=p.days[day][k];if(!m)return'';
     const btns=`${p.tpl||p.dt||exp?'':`<button class="sw" onclick="openSwap(${k})" aria-label="Swap">${I.swap}</button>`}${isT?`<button class="chk${done.includes(si)?' on':''}" onclick="toggleMeal(${si})">${I.check}</button>`:''}`;
-    if(m.it)return `<div class="meal mi"><div class="mh">${shp(s[4],s[5])}<div class="mt"><small>${s[1]} · ${s[2]}</small><b>${m.k} kcal</b></div>${btns}</div><div class="items">${m.it.map(x=>`<div><span>${esc(x[0])}</span><span>${esc(x[1])} · ${x[2]} kcal</span></div>`).join('')}</div>${m.n?`<em class="swi" style="white-space:pre-line">${S.plan&&S.plan.dt?'📝 Note':'Swap idea'}: ${esc(m.n)}</em>`:''}</div>`;
-    const body=`<p>${esc(fix(m.t,p))}</p>${m.p?`<small style="font-weight:600">${esc(m.p)}</small>`:''}`;
-    return `<div class="meal">${shp(s[4],s[5])}<div class="tx"><small>${s[1]} · ${s[2]} · ${esc(mealKcal(p,m,si))}</small>${body}${m.n?`<em style="white-space:pre-line">${S.plan&&S.plan.dt?'📝 Note':(m.it?'Swap idea':'Tip')}: ${esc(m.n)}</em>`:''}</div>${p.tpl||p.dt||exp?'':`<button class="sw" onclick="openSwap(${k})" aria-label="Swap">${I.swap}</button>`}${isT?`<button class="chk${done.includes(si)?' on':''}" onclick="toggleMeal(${si})">${I.check}</button>`:''}</div>`}).join('');
+    if(m.it)return `<div class="meal mi"><div class="mh">${shp(s[4],s[5])}<div class="mt"><small>${s[1]} · ${s[2]}</small><b>${m.k} kcal</b></div>${btns}</div><div class="items">${m.it.map(x=>`<div><span>${esc(PT(x[0]))}</span><span>${esc(PT(x[1]))} · ${x[2]} kcal</span></div>`).join('')}</div>${m.n?`<em class="swi" style="white-space:pre-line">${S.plan&&S.plan.dt?'📝 Note':tr('Swap idea')}: ${esc(PT(m.n))}</em>`:''}</div>`;
+    const body=`<p>${esc(PT(fix(m.t,p)))}</p>${m.p?`<small style="font-weight:600">${esc(PT(m.p))}</small>`:''}`;
+    return `<div class="meal">${shp(s[4],s[5])}<div class="tx"><small>${s[1]} · ${s[2]} · ${esc(mealKcal(p,m,si))}</small>${body}${m.n?`<em style="white-space:pre-line">${S.plan&&S.plan.dt?'📝 Note':tr(m.it?'Swap idea':'Tip')}: ${esc(PT(m.n))}</em>`:''}</div>${p.tpl||p.dt||exp?'':`<button class="sw" onclick="openSwap(${k})" aria-label="Swap">${I.swap}</button>`}${isT?`<button class="chk${done.includes(si)?' on':''}" onclick="toggleMeal(${si})">${I.check}</button>`:''}</div>`}).join('');
   let t='';
-  if((p.genTips||[]).length)t+=`<div class="tipbox"><h4><i style="background:${C.g}"></i>Tips for this plan</h4><ul class="dv">${p.genTips.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></div>`;
+  if((p.genTips||[]).length)t+=`<div class="tipbox"><h4><i style="background:${C.g}"></i>Tips for this plan</h4><ul class="dv">${p.genTips.map(v=>`<li>${esc(PT(v))}</li>`).join('')}</ul></div>`;
   if(p.cs.includes('oncology'))t+=`<div class="warn"><b>Medical supervision needed.</b> Cancer care nutrition must be guided by your oncologist. Our dietitian can personalise this for you.</div>`;
   for(const c of p.cs){const x=TIPS[c];if(!x)continue;t+=`<div class="tipbox"><h4><i style="background:${x[2]}"></i>${x[0]}</h4><p class="sub" style="margin:-4px 0 8px;font-size:13px">${x[1]}</p><ul class="dv">${x[3].map(v=>`<li>${v}</li>`).join('')}</ul><p style="font-size:13px;color:var(--red);margin:8px 0 2px;font-weight:600">Avoid</p><ul class="av">${x[4].map(v=>`<li>${v}</li>`).join('')}</ul></div>`}
   if(p.other)t+=`<div class="tipbox"><h4><i style="background:${C.lav}"></i>${esc(p.other)}</h4><p style="font-size:14px">Share your reports with our dietitian — we'll adjust your plan for this.</p><button class="btn sm" style="margin-top:10px" onclick="chooseDt()">Book a consultation</button></div>`;
@@ -1736,7 +1739,29 @@ function renderPlan(){
   t+=`<p class="sub" style="font-size:12px;margin-top:14px">${tr(p.dt?'Prepared for you by your Health365 dietitian.':p.tpl?'Prepared by the Health365 team as general guidance — not a medically prescribed diet.':p.gen?'Built by the Health365 plan engine from everyday Indian meals, with calories worked out per portion — general guidance, not reviewed by a dietitian.':'Generated from general nutrition guidelines — not reviewed by a dietitian.')} ${tr('If you have a diagnosed condition, please book a consultation before making big changes.')}</p>`;
   $('#tips').innerHTML=t;
   $('#meals').classList.toggle('planlocked',exp);$('#tips').classList.toggle('planlocked',exp);
+  ptFill();
 }
+// Plan language: food names, portions, notes and tips in Gujarati, Hindi…
+// Translations come from the server once and are kept on the phone.
+const PLANGS=[['en','English'],['gu','ગુજરાતી'],['hi','हिन्दी'],['gujlish','Gujlish'],['hinglish','Hinglish'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['bn','বাংলা'],['ta','தமிழ்'],['te','తెలుగు'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['ur','اردو']];
+const PTC={};let ptBusy='',ptTried='';
+function ptLoad(l){if(!PTC[l]){try{PTC[l]=JSON.parse(localStorage.getItem('h365pt_'+l)||'{}')||{}}catch(e){PTC[l]={}}}return PTC[l]}
+function PT(s){const l=S.planLang;if(!l||l==='en'||s==null)return s;const k=String(s).trim();return ptLoad(l)[k]||s}
+function planStrings(p){const a=new Set(),add=x=>{const t=x==null?'':String(x).trim();if(t&&!/^[\d\s.,/+-]*$/.test(t))a.add(t)};
+  (p.days||[]).forEach(d=>(d||[]).forEach(m=>{if(!m)return;if(m.it)m.it.forEach(x=>{add(x[0]);add(x[1])});else{add(fix(m.t,p));add(m.p)}add(m.n)}));
+  (p.genTips||[]).forEach(add);(p.notes||[]).forEach(add);if(p.dt){add(p.dt.title||'Your personal plan');String(p.dt.note||'').split('\n').forEach(add)}if(p.tpl&&p.tpl.tips)add(p.tpl.tips);return[...a]}
+async function ptFetch(l){const c=ptLoad(l),need=planStrings(S.plan).filter(s=>!c[s]);if(!need.length)return{ok:true};
+  const r=await api('/plan-translate',{method:'POST',body:{lang:l,strings:need.slice(0,600)},auth:false,timeout:60000});
+  if(!r.ok)return{ok:false,error:r.data.error};Object.assign(c,r.data.t||{});try{localStorage.setItem('h365pt_'+l,JSON.stringify(c))}catch(e){}return{ok:true}}
+async function setPlanLang(l){if(ptBusy||!S.plan)return;const prev=S.planLang||'en';if(l===prev)return;
+  if(l==='en'){S.planLang='en';save();renderPlan();return}
+  const c=ptLoad(l);if(planStrings(S.plan).some(s=>!c[s])){ptBusy=l;renderPlan();toast(tr('Translating your plan…'));const r=await ptFetch(l);ptBusy='';
+    if(!r.ok){renderPlan();toast(r.error||tr('Couldn’t translate right now — please try again.'));return}}
+  S.planLang=l;ptTried='';save();renderPlan();if(typeof FX!=='undefined'&&FX.pop)try{FX.pop()}catch(e){}}
+// A new plan (or a dietitian's plan) while a language is on: fill the gaps quietly.
+function ptFill(){const l=S.planLang;if(!l||l==='en'||ptBusy||!S.plan)return;const c=ptLoad(l),need=planStrings(S.plan).filter(s=>!c[s]);if(!need.length)return;
+  const key=l+':'+need.length+':'+(need[0]||'');if(ptTried===key)return;ptTried=key;ptBusy=l;ptFetch(l).then(r=>{ptBusy='';if(r.ok&&cur==='plan')renderPlan()})}
+
 function openSwap(k){const p=S.plan,si=p.slotIdx[k],o=optionsFor(SLOTS[si][0],new Set(p.ex),p.custom||[]);
   $('#sheetIn').innerHTML=`<h3>Swap ${SLOTS[si][1].toLowerCase()}</h3><p class="sub" style="margin:-4px 0 8px">Options that fit your plan</p><div class="body">${o.map((x,i)=>`<button class="swopt${x[0]===p.days[day][k].t?' sel':''}" data-i="${i}">${esc(fix(x[0],p))}</button>`).join('')}</div>`;
   $$('#sheetIn .swopt').forEach(b=>b.onclick=()=>{p.days[day][k]={t:o[+b.dataset.i][0]};save();closeSheet();renderPlan();toast('Meal swapped')});openDim()}
