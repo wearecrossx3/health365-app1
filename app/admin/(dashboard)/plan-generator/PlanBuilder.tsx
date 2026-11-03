@@ -87,11 +87,22 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   useEffect(() => {
     fetch("/api/app/foods?compact=1").then((r) => r.json()).then((j) => setFoods(j.rows || [])).catch(() => {});
   }, []);
+  // Food names in the plan's language: type in English, pick the local name.
+  const [locNames, setLocNames] = useState<{ lang: string; names: Record<string, string>; servings: Record<string, string> } | null>(null);
+  const [locBusy, setLocBusy] = useState(false);
+  const loadNames = (lang: string) => {
+    if (!lang || lang === "en" || locNames?.lang === lang) return;
+    setLocBusy(true);
+    fetch(`/api/food-names?lang=${encodeURIComponent(lang)}`).then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j && j.names) setLocNames({ lang, names: j.names, servings: j.servings || {} }); })
+      .catch(() => {}).finally(() => setLocBusy(false));
+  };
+  const loc = (f: FoodRow) => (locNames ? locNames.names[f[0]] || "" : "");
   const suggestFor = (text: string) => {
     const words = text.toLowerCase().split(/\s+/).filter((w) => w.length > 1);
     if (!words.length) return [];
     return foods
-      .filter((f) => { const h = `${f[1]} ${f[2]}`.toLowerCase(); return words.every((w) => h.includes(w)); })
+      .filter((f) => { const h = `${f[1]} ${f[2]} ${loc(f)}`.toLowerCase(); return words.every((w) => h.includes(w)); })
       .sort((a, b) => (a[9] === "serving" ? 0 : 1) - (b[9] === "serving" ? 0 : 1) || a[1].length - b[1].length)
       .slice(0, 8);
   };
@@ -106,6 +117,8 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   const [trBusy, setTrBusy] = useState("");
   const [trMsg, setTrMsg] = useState("");
   const [planLang, setPlanLang] = useState("en"); // chosen before generating
+  const curLang = plan?.lang || planLang;
+  useEffect(() => { loadNames(curLang); }, [curLang]); // eslint-disable-line react-hooks/exhaustive-deps
   async function translateTo(l: string, fresh?: Plan) {
     const cur = fresh || plan;
     if (!cur) return;
@@ -192,7 +205,9 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   function pickFood(di: number, mi: number, ii: number, f: FoodRow) {
     const per = f[9] === "serving" ? "serving" : "100g";
     const b: Base = { kcal: f[4], protein: f[5], per, serving: f[10] };
-    editItem(di, mi, ii, { name: f[1], portion: per === "serving" ? f[10] || "1 serving" : "100 g", kcal: Math.round(f[4]), protein: Math.round(f[5] * 10) / 10, _b: b });
+    const useLoc = !!locNames && locNames.lang === (plan?.lang || planLang) && !!loc(f);
+    const sv = per === "serving" ? f[10] || "1 serving" : "100 g";
+    editItem(di, mi, ii, { name: useLoc ? loc(f) : f[1], portion: useLoc && per === "serving" ? locNames!.servings[f[10]] || sv : sv, kcal: Math.round(f[4]), protein: Math.round(f[5] * 10) / 10, _b: b });
     setSugAt("");
   }
   function setMealNote(di: number, mi: number, v: string) {
@@ -330,7 +345,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
               ))}
             </div>
             {trMsg && <p style={{ fontSize: ".8rem", fontWeight: 600, color: trMsg.startsWith("✓") ? "#287379" : "#B4442A" }}>{trMsg}</p>}
-            {plan.lang && plan.lang !== "en" && <p style={{ fontSize: ".76rem", color: "var(--ink-soft)" }}>Tip: translate as the last step. If you change foods after translating, type them in this language too. Tap English to go back.</p>}
+            {plan.lang && plan.lang !== "en" && <p style={{ fontSize: ".76rem", color: "var(--ink-soft)" }}>Type foods in English — suggestions come in this language{locBusy ? " (loading…)" : ""}. Tap English to go back.</p>}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", fontSize: ".8rem" }}>
             <b>{plan.days.length === 1 ? "1-day plan" : `${plan.days.length}-day plan`}</b>
@@ -377,7 +392,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
                       <div style={{ position: "absolute", zIndex: 30, top: "100%", left: 0, right: -200, marginTop: 4, background: "#fff", border: "1px solid var(--line)", borderRadius: 12, boxShadow: "0 10px 28px rgba(0,0,0,.14)", overflow: "hidden" }}>
                         {suggestFor(it.name).map((f) => (
                           <button type="button" key={f[0]} onMouseDown={(e) => { e.preventDefault(); pickFood(openDay, mi, ii, f); }} style={{ display: "flex", justifyContent: "space-between", gap: 10, width: "100%", textAlign: "left", padding: "8px 12px", background: "#fff", border: "none", borderBottom: "1px solid var(--line)", cursor: "pointer", fontSize: ".84rem" }}>
-                            <span><b>{f[1]}</b> <span style={{ color: "var(--ink-soft)" }}>· {f[9] === "serving" ? f[10] : "per 100 g"}</span></span>
+                            <span>{loc(f) && locNames?.lang === (plan?.lang || planLang) ? <><b>{loc(f)}</b> <span style={{ color: "var(--ink-soft)", fontSize: ".78rem" }}>({f[1]})</span></> : <b>{f[1]}</b>} <span style={{ color: "var(--ink-soft)" }}>· {f[9] === "serving" ? (locNames?.lang === (plan?.lang || planLang) && locNames?.servings[f[10]]) || f[10] : "per 100 g"}</span></span>
                             <span style={{ fontWeight: 700, color: "#287379", flex: "none" }}>{Math.round(f[4])} kcal</span>
                           </button>
                         ))}
