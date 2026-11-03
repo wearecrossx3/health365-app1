@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
   const cached = await r.hmget(cacheKey(lang), ...ids).catch(() => ids.map(() => null));
   const t: Record<string, string> = {};
   const miss: string[] = [];
-  strings.forEach((s, i) => { const c = cached[i]; if (c) t[s] = c; else miss.push(s); });
+  strings.forEach((s, i) => { const c = cached[i]; if (c && !wrongScript(c, lang)) t[s] = c; else miss.push(s); }); // a cached line in the wrong script is redone
 
   if (miss.length) {
     const tooMany = await limit(req, "plan-tr", 30, 3600);
