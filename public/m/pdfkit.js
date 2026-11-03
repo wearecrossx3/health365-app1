@@ -451,6 +451,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     };
     doc.setProperties({ title: '7-Day Diet Plan — ' + D.name, author: 'Health365', creator: 'Health365 app' });
 
+    var T = function (x) { return D.T ? D.T(x) : x; };
     var logoCream = await logoPng(D.logoSvg.replace(/FILL_WORD/g, C.cream).replace(/FILL_LEAF/g, C.cream));
     var logoInk = await logoPng(D.logoSvg.replace(/FILL_WORD/g, C.ink).replace(/FILL_LEAF/g, C.g));
 
@@ -472,15 +473,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     alpha(1);
     if (logoCream) doc.addImage(logoCream, 'PNG', M + 4, 40, 138, 27);
     else { font('Fredoka', 'bold', 24); color(C.cream); doc.text('Health365', M + 4, 62); }
-    font('Fredoka', 'bold', 30); color(C.cream); doc.text('Your 7-day', M + 4, 118); doc.text('diet plan', M + 4, 150);
+    font('Fredoka', 'bold', 30); color(C.cream); doc.text(T('Your 7-day'), M + 4, 118); doc.text(T('diet plan'), M + 4, 150);
     font('Inter', 'bold', 13); doc.text(D.name, M + 4, 180);
-    font('Inter', 'normal', 10); alpha(0.85); doc.text(D.subtitle + '  ·  ' + D.created, M + 4, 198); alpha(1);
+    font('Inter', 'normal', 10); alpha(0.85); doc.text(wrap(T(D.subtitle) + '  ·  ' + T(D.created), W - 2 * M - 8)[0], M + 4, 198); alpha(1);
 
     // stats card overlapping the band
     var cy = 222, cw = W - 2 * M;
     fill('#000000'); alpha(0.06); doc.roundedRect(M, cy + 4, cw, 118, 18, 18, 'F'); alpha(1);
     box(M, cy, cw, 118, 18, C.card);
-    var st = [['Calories', D.stats.kcal, 'kcal / day'], ['Protein', D.stats.protein, 'g / day'], ['Carbs', D.stats.carbs, 'g / day'], ['Fat', D.stats.fat, 'g / day']];
+    var st = [[T('Calories'), D.stats.kcal, T('kcal / day')], [T('Protein'), D.stats.protein, T('g / day')], [T('Carbs'), D.stats.carbs, T('g / day')], [T('Fat'), D.stats.fat, T('g / day')]];
     var colW = cw / 4;
     st.forEach(function (s, i) {
       var x = M + i * colW + 14;
@@ -491,46 +492,46 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     box(M + 10, cy + 84, cw - 20, 24, 10, C.blueSoft);
     font('Inter', 'bold', 9.5); color(C.blue);
-    doc.text('Water ' + D.stats.water + ' L a day  ·  about ' + D.stats.glasses + ' glasses', M + 22, cy + 100);
-    color(C.teal); doc.text('BMI ' + D.stats.bmi + ' · ' + D.stats.bmiLabel, W - M - 22, cy + 100, { align: 'right' });
+    doc.text(T('Water ' + D.stats.water + ' L a day') + '  ·  ' + T('about ' + D.stats.glasses + ' glasses'), M + 22, cy + 100);
+    color(C.teal); doc.text('BMI ' + D.stats.bmi + ' · ' + T(D.stats.bmiLabel), W - M - 22, cy + 100, { align: 'right' });
 
     // about you
     var y = cy + 146;
-    font('Fredoka', 'bold', 15); color(C.ink); doc.text('About you', M, y); y += 12;
+    font('Fredoka', 'bold', 15); color(C.ink); doc.text(T('About you'), M, y); y += 12;
     var rows = D.profile, rh = 26, ph = rows.length * rh + 10;
     box(M, y, cw, ph, 16, C.card);
     rows.forEach(function (r, i) {
       var ry = y + 5 + i * rh;
       if (i) { stroke(C.line); doc.setLineWidth(0.8); doc.line(M + 16, ry, W - M - 16, ry); }
-      font('Inter', 'normal', 9.5); color(C.mute); doc.text(r[0], M + 16, ry + 17);
+      font('Inter', 'normal', 9.5); color(C.mute); doc.text(T(r[0]), M + 16, ry + 17);
       font('Inter', 'bold', 10); color(C.ink);
-      var v = wrap(r[1], cw - 150)[0]; doc.text(v, W - M - 16, ry + 17, { align: 'right' });
+      var v = wrap(T(r[1]), cw - 150)[0]; doc.text(v, W - M - 16, ry + 17, { align: 'right' });
     });
     y += ph + 16;
 
     function noteBox(title, text, bg, fg) {
-      var lines = wrap(text, cw - 32); var h = 34 + lines.length * 13;
+      title = T(title); var lines = wrap(text, cw - 32); var h = 34 + lines.length * 13;
       if (y + h > H - 40) return;
       box(M, y, cw, h, 14, bg);
       font('Inter', 'bold', 10); color(fg); doc.text(title, M + 16, y + 20);
       font('Inter', 'normal', 9.5); color(C.ink); doc.text(lines, M + 16, y + 36);
       y += h + 10;
     }
-    if (D.dtBy) noteBox('Your personal plan from ' + D.dtBy, D.dtNote || 'Made for you after your consultation — follow it as your dietitian advised.', C.gs, '#256B3C');
+    if (D.dtBy) noteBox(T('Your personal plan from') + ' ' + D.dtBy, D.dtNote || T('Made for you after your consultation — follow it as your dietitian advised.'), C.gs, '#256B3C');
     // how to use this plan
     (function () {
       var items = D.dtBy
         ? ['Tick each meal in the Health365 app as you eat it', 'Want something changed? Message ' + D.dtBy + ' in the app', 'Log your weight once a week so your dietitian can track progress']
         : ['Tick each meal in the Health365 app as you eat it', 'Tap the swap icon to change any meal you don’t like', 'Log your weight once a week — your plan adjusts to it'];
-      var h = 34 + items.length * 20;
+      items = items.map(T); var h = 34 + items.length * 20;
       if (y + h > H - 40) return;
       box(M, y, cw, h, 16, C.card);
-      font('Inter', 'bold', 10); color(C.teal); doc.text('How to use this plan', M + 16, y + 22);
+      font('Inter', 'bold', 10); color(C.teal); doc.text(T('How to use this plan'), M + 16, y + 22);
       items.forEach(function (t, i) {
         var iy = y + 42 + i * 20;
         box(M + 16, iy - 9, 14, 14, 4, C.gs);
         font('Inter', 'bold', 8.5); color(C.g); doc.text(String(i + 1), M + 23, iy + 1, { align: 'center' });
-        font('Inter', 'normal', 9.5); color(C.ink); doc.text(t, M + 38, iy + 1);
+        font('Inter', 'normal', 9.5); color(C.ink); doc.text(wrap(t, cw - 54)[0], M + 38, iy + 1);
       });
       y += h + 10;
     })();
@@ -542,24 +543,24 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       doc.addPage([W, H], 'portrait'); page();
       if (logoInk) doc.addImage(logoInk, 'PNG', M, 30, 82, 16);
       font('Inter', 'bold', 9); color(C.mute); doc.text(D.name, W - M, 42, { align: 'right' });
-      font('Fredoka', 'bold', 30); color(C.ink); doc.text(day.title, M, 92);
-      var tw = doc.getTextWidth(day.title);
-      font('Inter', 'bold', 9.5); var dw = doc.getTextWidth(day.date) + 22;
-      box(M + tw + 12, 74, dw, 24, 12, C.teal); color('#FFFFFF'); doc.text(day.date, M + tw + 12 + 11, 90);
-      font('Inter', 'normal', 10); color(C.mute); doc.text(day.summary, M, 112);
+      font('Fredoka', 'bold', 30); color(C.ink); var dtl = T(day.title); doc.text(dtl, M, 92);
+      var tw = doc.getTextWidth(dtl); var ddt = T(day.date);
+      font('Inter', 'bold', 9.5); var dw = doc.getTextWidth(ddt) + 22;
+      box(M + tw + 12, 74, dw, 24, 12, C.teal); color('#FFFFFF'); doc.text(ddt, M + tw + 12 + 11, 90);
+      font('Inter', 'normal', 10); color(C.mute); doc.text(T(day.summary), M, 112);
 
       var yy = 128;
       day.meals.forEach(function (m) {
         var tx = M + 58, txw = cw - 58 - 70;
         font('Inter', 'bold', 12); var t = wrap(m.text, txw).slice(0, 3);
         font('Inter', 'normal', 9); var sub = m.sub ? wrap(m.sub, txw).slice(0, 2) : [];
-        var tip = m.tip ? wrap('Tip: ' + m.tip, txw).slice(0, 2) : [];
+        var tip = m.tip ? wrap(T('Tip') + ': ' + m.tip, txw).slice(0, 3) : [];
         var h = 30 + t.length * 15 + sub.length * 12 + tip.length * 12 + 8;
         if (yy + h > H - 44) { doc.addPage([W, H], 'portrait'); page(); yy = 40; }
         box(M, yy, cw, h, 16, C.card);
         box(M + 12, yy + 14, 34, 34, 10, m.color);
         fill(C.cream); alpha(0.95); doc.circle(M + 29, yy + 31, 6, 'F'); alpha(1);
-        label(m.slot + '  ·  ' + m.time, tx, yy + 22);
+        label(T(m.slot) + '  ·  ' + m.time, tx, yy + 22);
         font('Inter', 'bold', 12); color(C.ink); doc.text(t, tx, yy + 40);
         var ly = yy + 40 + t.length * 15 - 3;
         if (sub.length) { font('Inter', 'normal', 9); color(C.mute); doc.text(sub, tx, ly); ly += sub.length * 12; }
@@ -570,7 +571,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (yy + 34 <= H - 40) {
         box(M, yy + 2, cw, 30, 12, C.blueSoft);
         font('Inter', 'bold', 9.5); color(C.blue);
-        doc.text('Drink ' + D.stats.water + ' L of water today — about ' + D.stats.glasses + ' glasses.', M + 14, yy + 21);
+        doc.text(wrap(T('Drink ' + D.stats.water + ' L of water today — about ' + D.stats.glasses + ' glasses.'), cw - 28)[0], M + 14, yy + 21);
       }
     });
 
@@ -578,27 +579,27 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     doc.addPage([W, H], 'portrait'); page();
     var ty = 40;
     if (logoInk) doc.addImage(logoInk, 'PNG', M, 30, 82, 16);
-    font('Fredoka', 'bold', 28); color(C.ink); doc.text('Tips for you', M, 92); ty = 108;
+    font('Fredoka', 'bold', 28); color(C.ink); doc.text(T('Tips for you'), M, 92); ty = 108;
     function ensure(h) { if (ty + h > H - 44) { doc.addPage([W, H], 'portrait'); page(); ty = 40; } }
     if (D.warn) {
-      var wl = wrap(D.warn, cw - 32); var wh = 20 + wl.length * 13; ensure(wh);
+      var wl = wrap(T(D.warn), cw - 32); var wh = 20 + wl.length * 13; ensure(wh);
       box(M, ty, cw, wh, 14, C.redSoft); font('Inter', 'normal', 9.5); color('#8A1F2D'); doc.text(wl, M + 16, ty + 18); ty += wh + 10;
     }
     D.tips.forEach(function (tp) {
       font('Inter', 'normal', 9.5);
-      var dl = tp.do.map(function (x) { return wrap(x, cw - 58); });
-      var al = tp.avoid.map(function (x) { return wrap(x, cw - 58); });
+      var dl = tp.do.map(function (x) { return wrap(T(x), cw - 58); });
+      var al = tp.avoid.map(function (x) { return wrap(T(x), cw - 58); });
       var n = 0; dl.forEach(function (l) { n += l.length; }); al.forEach(function (l) { n += l.length; });
       var h = 52 + n * 13 + (al.length ? 22 : 0) + dl.length * 3 + al.length * 3;
       ensure(h);
       box(M, ty, cw, h, 16, C.card);
       box(M + 16, ty + 16, 10, 10, 3, tp.color);
-      font('Fredoka', 'bold', 14); color(C.ink); doc.text(tp.title, M + 34, ty + 25);
-      font('Inter', 'normal', 9); color(C.mute); doc.text(tp.subtitle || '', M + 16, ty + 42);
+      font('Fredoka', 'bold', 14); color(C.ink); doc.text(T(tp.title), M + 34, ty + 25);
+      font('Inter', 'normal', 9); color(C.mute); doc.text(wrap(T(tp.subtitle || ''), cw - 32)[0] || '', M + 16, ty + 42);
       var ly = ty + 60;
       dl.forEach(function (l) { font('Inter', 'bold', 10); color(C.g); doc.text('✓', M + 18, ly); font('Inter', 'normal', 9.5); color(C.ink); doc.text(l, M + 34, ly); ly += l.length * 13 + 3; });
       if (al.length) {
-        ly += 4; label('Avoid', M + 18, ly, C.red); ly += 14;
+        ly += 4; label(T('Avoid'), M + 18, ly, C.red); ly += 14;
         al.forEach(function (l) { font('Inter', 'bold', 10); color(C.red); doc.text('×', M + 18, ly); font('Inter', 'normal', 9.5); color(C.ink); doc.text(l, M + 34, ly); ly += l.length * 13 + 3; });
       }
       ty += h + 10;
@@ -607,22 +608,22 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ensure(110);
     box(M, ty, cw, 100, 18, C.teal);
     alpha(0.14); fill(C.cream); doc.circle(W - M - 20, ty + 20, 36, 'F'); alpha(1);
-    font('Fredoka', 'bold', 17); color(C.cream); doc.text(D.dtBy ? 'Questions about your plan?' : 'Want a plan made just for you?', M + 18, ty + 32);
-    font('Inter', 'normal', 10); var cl = wrap(D.dtBy
+    font('Fredoka', 'bold', 17); color(C.cream); doc.text(T(D.dtBy ? 'Questions about your plan?' : 'Want a plan made just for you?'), M + 18, ty + 32);
+    font('Inter', 'normal', 10); var cl = wrap(T(D.dtBy
       ? 'Message ' + D.dtBy + ' or book a follow-up in the Health365 app — your plan can be adjusted as you go.'
-      : 'Book a 1:1 consultation with ' + D.dietitian + ' in the Health365 app — around your reports, routine and kitchen.', cw - 36);
+      : 'Book a 1:1 consultation with ' + D.dietitian + ' in the Health365 app — around your reports, routine and kitchen.'), cw - 36);
     doc.text(cl, M + 18, ty + 52);
     ty += 112;
     ensure(40);
     font('Inter', 'normal', 8.5); color(C.mute);
-    doc.text(wrap(D.disclaimer, cw), M, ty + 8);
+    doc.text(wrap(T(D.disclaimer), cw), M, ty + 8);
 
     /* ---------- footer on every page ---------- */
     var n = doc.getNumberOfPages();
     for (var i = 1; i <= n; i++) {
       doc.setPage(i);
       font('Inter', 'normal', 7.5); color(i === 1 ? C.mute : C.mute);
-      doc.text(D.dtBy ? 'Health365 · personal plan prepared by ' + D.dtBy : 'Health365 · general nutrition guidance, not a medical diagnosis', M, H - 18);
+      doc.text(wrap('Health365 · ' + (D.dtBy ? T('Personal plan prepared by') + ' ' + D.dtBy : T('General nutrition guidance, not a medical diagnosis')), cw - 40)[0], M, H - 18);
       doc.text(i + ' / ' + n, W - M, H - 18, { align: 'right' });
     }
     return doc;

@@ -1750,12 +1750,14 @@ function ptLoad(l){if(!PTC[l]){try{PTC[l]=JSON.parse(localStorage.getItem('h365p
 const INDIC=/[\u0900-\u0DFF\u0600-\u06FF]/;
 function planSrc(p){const a=planStrings(p).join(' ');return /[\u0A80-\u0AFF]/.test(a)?'gu':/[\u0900-\u097F]/.test(a)?'hi':'en'}
 function ptNeeds(l,s){return l!=='en'||INDIC.test(s)}
-function PT(s){const l=S.planLang;if(!l||s==null)return s;const k=String(s).trim();if(!ptNeeds(l,k))return s;return ptLoad(l)[k]||s}
+function effL(){if(S.planLang)return S.planLang;if(!S.plan)return null;const l=planSrc(S.plan);return l==='en'?null:l}
+function PTL(l,s){if(!l||s==null)return s;const k=String(s).trim();if(!ptNeeds(l,k))return s;const v=ptLoad(l)[k];if(!v)return s;return /Health365/.test(k)?v.replace(/\S*365/g,'Health365'):v}
+function PT(s){return PTL(effL(),s)}
 function planStrings(p){const a=new Set(),add=x=>{const t=x==null?'':String(x).trim();if(t&&!/^[\d\s.,/+-]*$/.test(t))a.add(t)};
   (p.days||[]).forEach(d=>(d||[]).forEach(m=>{if(!m)return;if(m.it)m.it.forEach(x=>{add(x[0]);add(x[1])});else{add(fix(m.t,p));add(m.p)}add(m.n)}));
   (p.genTips||[]).forEach(add);(p.notes||[]).forEach(add);if(p.dt){add(p.dt.title||'Your personal plan');String(p.dt.note||'').split('\n').forEach(add)}if(p.tpl&&p.tpl.tips)add(p.tpl.tips);return[...a]}
 const PTSKIP={};
-async function ptFetch(l){const c=ptLoad(l),sk=PTSKIP[l]||(PTSKIP[l]={}),need=planStrings(S.plan).filter(s=>ptNeeds(l,s)&&!c[s]&&!sk[s]);if(!need.length)return{ok:true};
+async function ptFetch(l,list){const c=ptLoad(l),sk=PTSKIP[l]||(PTSKIP[l]={}),need=[...new Set(list||planStrings(S.plan))].filter(s=>s&&ptNeeds(l,s)&&!c[s]&&!sk[s]&&!/^[\d\s.,/+·%-]*$/.test(s));if(!need.length)return{ok:true};
   const r=await api('/plan-translate',{method:'POST',body:{lang:l,strings:need.slice(0,600)},auth:false,timeout:60000});
   if(!r.ok)return{ok:false,error:r.data.error};const t=r.data.t||{};need.forEach(s=>{if(t[s]&&t[s]!==s)c[s]=t[s];else sk[s]=1});try{localStorage.setItem('h365pt2_'+l,JSON.stringify(c))}catch(e){}return{ok:true}}
 async function setPlanLang(l){if(ptBusy||!S.plan)return;const prev=S.planLang||planSrc(S.plan);if(l===prev&&S.planLang)return;
@@ -1763,7 +1765,7 @@ async function setPlanLang(l){if(ptBusy||!S.plan)return;const prev=S.planLang||p
     if(!r.ok){renderPlan();toast(r.error||tr('Couldn’t translate right now — please try again.'));return}}
   S.planLang=l;ptTried='';save();renderPlan();if(typeof FX!=='undefined'&&FX.pop)try{FX.pop()}catch(e){}}
 // A new plan (or a dietitian's plan) while a language is on: fill the gaps quietly.
-function ptFill(){const l=S.planLang;if(!l||ptBusy||!S.plan)return;const c=ptLoad(l),sk=PTSKIP[l]||{},need=planStrings(S.plan).filter(s=>ptNeeds(l,s)&&!c[s]&&!sk[s]);if(!need.length)return;
+function ptFill(){const l=effL();if(!l||ptBusy||!S.plan)return;const c=ptLoad(l),sk=PTSKIP[l]||{},need=planStrings(S.plan).filter(s=>ptNeeds(l,s)&&!c[s]&&!sk[s]);if(!need.length)return;
   const key=l+':'+need.length+':'+(need[0]||'');if(ptTried===key)return;ptTried=key;ptBusy=l;ptFetch(l).then(r=>{ptBusy='';if(r.ok&&cur==='plan')renderPlan()})}
 
 function openSwap(k){const p=S.plan,si=p.slotIdx[k],o=optionsFor(SLOTS[si][0],new Set(p.ex),p.custom||[]);
@@ -1795,9 +1797,14 @@ function pdfData(){const p=S.plan,b=p.bmi,al=S.allergies.length?S.allergies.join
     dietitian:(R.dietitians[0]||{}).name||'our dietitian',disclaimer:dt?('Prepared for you by '+dtBy+', your Health365 dietitian, based on your consultation. If your health, medicines or routine change, please tell your dietitian before continuing.'):(p.tpl?'Prepared by the Health365 team as general guidance — not a medically prescribed diet.':p.gen?'Built by the Health365 plan engine from everyday Indian meals — general guidance, not reviewed by a dietitian.':'Generated from general nutrition guidelines — not reviewed by a dietitian.')+' If you have a diagnosed condition, are pregnant or take medication, please speak to your doctor before changing your diet.',
     logoSvg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 378.55 74.13"><g fill="FILL_WORD">${LOGO_L}</g><g fill="FILL_LEAF">${LOGO_LEAF}</g></svg>`}}
 function pdfName(){return 'Health365-Diet-Plan-'+((S.name||'My').replace(/[^A-Za-z0-9]+/g,'-'))+'.pdf'}
+// The PDF in the plan's language: a first pass collects every label, they're translated once, then the real PDF is made.
+async function buildPdfDoc(){await loadPdfKit();let D=pdfData();const L=effL();
+  if(L&&L!=='en'){const seen=new Set(planStrings(S.plan));D.T=x=>{if(x!=null)seen.add(String(x).trim());return x};await H365PDF.build(D);await ptFetch(L,[...seen]);D=pdfData();D.T=x=>PTL(L,x)}
+  else if(L==='en')await ptFetch('en');
+  return H365PDF.build(D)}
 async function makePdf(mode){
   const ov=document.createElement('div');ov.className='pdfbusy';ov.innerHTML='<div class="ring2"></div>Preparing your PDF…';$('#app').appendChild(ov);
-  try{await loadPdfKit();const doc=await H365PDF.build(pdfData());
+  try{const doc=await buildPdfDoc();
     if(hasA()&&typeof Android.savePdf==='function'){
       const b64=doc.output('datauristring').split('base64,')[1];const r=Android.savePdf(b64,pdfName(),mode);
       if(r==='ok'){toast(mode==='share'?'Choose where to send your plan':'Saved to Downloads › Health365');return}
