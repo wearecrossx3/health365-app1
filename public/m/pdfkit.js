@@ -402,7 +402,20 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
   }
 
+  var gujLoaded = null;
+  function loadGuj() {
+    if (gujLoaded) return gujLoaded;
+    gujLoaded = Promise.all([400, 600, 700].map(function (w) {
+      try {
+        var f = new FontFace('H365 Gujarati', 'url(fonts/noto-sans-gujarati-' + w + '.woff2)', { weight: String(w), unicodeRange: 'U+0A80-0AFF, U+200C-200D, U+0964-0965' });
+        return f.load().then(function (x) { document.fonts.add(x); }).catch(function () {});
+      } catch (e) { return null; }
+    }));
+    return gujLoaded;
+  }
+
   async function build(D) {
+    await loadGuj();
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'pt', format: [W, H], orientation: 'portrait', compress: true });
     var F = window.H365FONTS;
@@ -416,8 +429,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // drawn by the phone's own text engine onto a canvas and placed as images.
     var IND = /[؀-ۿऀ-෿]/, CUR = { f: 'Inter', s: 'normal', z: 10 };
     var mcv = document.createElement('canvas').getContext('2d');
-    function cssFont(z) { var w = CUR.s === 'bold' ? (CUR.f === 'Fredoka' ? 700 : 600) : 400; return w + ' ' + z + 'px "Noto Sans Gujarati","Noto Sans Devanagari","Noto Sans",sans-serif'; }
-    function mw(s) { mcv.font = cssFont(CUR.z); return mcv.measureText(String(s)).width; }
+    // Gujarati uses our own bundled font (phones' built-in Gujarati fonts can be very thin), a touch larger.
+    var GUJ = /[\u0A80-\u0AFF]/;
+    function zs(s) { return CUR.z * (GUJ.test(String(s)) ? 1.08 : 1); }
+    function cssFont(z) { var w = CUR.s === 'bold' ? (CUR.f === 'Fredoka' ? 700 : 600) : 500; return w + ' ' + z + 'px "H365 Gujarati","Noto Sans Gujarati","Noto Sans Devanagari","Noto Sans",sans-serif'; }
+    function mw(s) { mcv.font = cssFont(zs(s)); return mcv.measureText(String(s)).width; }
     var _split = doc.splitTextToSize.bind(doc), _width = doc.getTextWidth.bind(doc), _text = doc.text.bind(doc);
     doc.splitTextToSize = function (t, w, o) {
       t = String(t == null ? '' : t); if (!IND.test(t)) return _split(t, w, o);
@@ -435,7 +451,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     };
     doc.getTextWidth = function (s) { return IND.test(String(s)) ? mw(s) : _width(s); };
     function img(s, x, y, al) {
-      var z = CUR.z, S = 4, wd = mw(s), cv = document.createElement('canvas');
+      var z = zs(s), S = 4, wd = mw(s), cv = document.createElement('canvas');
       cv.width = Math.ceil((wd + 4) * S); cv.height = Math.ceil(z * 1.7 * S);
       var c = cv.getContext('2d'); c.scale(S, S); c.font = cssFont(z); c.fillStyle = doc.getTextColor(); c.textBaseline = 'alphabetic';
       c.fillText(s, 2, z * 1.25);
@@ -492,7 +508,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     box(M + 10, cy + 84, cw - 20, 24, 10, C.blueSoft);
     font('Inter', 'bold', 9.5); color(C.blue);
-    doc.text(T('Water ' + D.stats.water + ' L a day') + '  ·  ' + T('about ' + D.stats.glasses + ' glasses'), M + 22, cy + 100);
+    doc.text(T('Water ' + D.stats.water + ' L a day') + '  ·  ' + T('about ' + D.stats.glasses + ' glasses of water'), M + 22, cy + 100);
     color(C.teal); doc.text('BMI ' + D.stats.bmi + ' · ' + T(D.stats.bmiLabel), W - M - 22, cy + 100, { align: 'right' });
 
     // about you
