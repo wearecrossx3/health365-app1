@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { dietitianFromRequest } from "@/lib/dietitianGuard";
-import { getAppt, isChatAppointment, chatOpen, paymentPending, listMessages, addMessage, markRead, saveImage, getMeta, updateMeta, safeAnswers, firstName, logActivity } from "@/lib/consultChat";
+import { getAppt, isChatAppointment, chatOpen, paymentPending, planAllowed, listMessages, addMessage, markRead, saveImage, getMeta, updateMeta, safeAnswers, firstName, logActivity } from "@/lib/consultChat";
 import { getConsultationsForUser, getUserById } from "@/lib/kv";
 import { dietitianInfo } from "@/lib/portal";
 import { suggestFromConsultation } from "@/lib/planSuggest";
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const c = consults.sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
   await logActivity(me.dietitianId, `Opened chat with ${firstName(a.userName)} (${a.date})`);
   return NextResponse.json({
-    thread: { id: a.id, client: firstName(a.userName), date: a.date, time: a.time, status: a.status, open: chatOpen(a), note: meta.note, outcome: meta.outcome, pay: a.payment ? { status: a.payment.status, amount: a.payment.amount, utr: a.payment.utr } : null },
+    thread: { id: a.id, client: firstName(a.userName), date: a.date, time: a.time, status: a.status, open: chatOpen(a), planOk: planAllowed(a), note: meta.note, outcome: meta.outcome, pay: a.payment ? { status: a.payment.status, amount: a.payment.amount, utr: a.payment.utr } : null },
     suggest: suggestFromConsultation(c),
     profile: c ? { goal: c.goal, diet: c.dietType, conditions: c.conditions, allergens: c.allergens, answers: safeAnswers(c.raw), at: c.createdAt } : null,
     plans: plans.filter((p) => p.byDietitian === me.dietitianId).map((p) => ({ id: p.id, title: p.title, at: p.assignedAt, active: p.active, targetKcal: p.targetKcal, plan: { title: p.title, goal: p.goal, diet: p.diet, region: p.region, conditions: p.conditions, targetKcal: p.targetKcal, days: p.days, tips: p.tips, source: p.source, note: p.note || "" } })),
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ ok: true });
   }
   if (b.action === "assign") {
-    if (paymentPending(a)) return NextResponse.json({ error: "You can send a plan after Health365 confirms this client’s payment." }, { status: 400 });
+    if (!planAllowed(a)) return NextResponse.json({ error: "A custom plan can be sent only after the client pays. Health365 will open it once the payment is confirmed." }, { status: 400 });
     const user = await getUserById(a.userId);
     const d = await dietitianInfo(me.dietitianId);
     if (!user || !d.name) return NextResponse.json({ error: "Client not found." }, { status: 404 });

@@ -34,6 +34,10 @@ export const isChatAppointment = (a: Appointment | null | undefined) => !!a; // 
 const PAY_RULE_FROM = Date.parse("2026-11-03T11:45:00+05:30");
 export const isPaid = (a: Appointment) =>
   !!a.free || a.payment?.status === "verified" || (!a.payment && Date.parse(a.createdAt || "") < PAY_RULE_FROM);
+/** Custom plans need a real payment: the owner confirmed the UPI payment or
+ *  approved it (Mark as paid / Give free). Old unpaid bookings that still
+ *  have their chat open do NOT get free plans. */
+export const planAllowed = (a: Appointment) => !!a.free || a.payment?.status === "verified";
 /** Not paid yet (UPI reference waiting for the owner, or no payment at all). */
 export const paymentPending = (a: Appointment) => !isPaid(a);
 /** Booked without sending any payment. */

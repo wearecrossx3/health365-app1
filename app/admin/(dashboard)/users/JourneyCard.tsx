@@ -10,7 +10,7 @@ export interface Journey {
   bookings: {
     id: string; dietitianName: string; date: string; time: string; status: string; createdAt: string;
     payment: { amount: number; status: string; checkedBy: string; checkedAt: string } | null;
-    open: boolean; paid?: boolean; free?: { by: string; reason: string } | null;
+    open: boolean; paid?: boolean; planOk?: boolean; free?: { by: string; reason: string } | null;
     chat: { client: number; dietitian: number; team: number; firstDtAt: number; lastAt: number; lastFrom: string; clientRead: number; recent: { from: string; text: string; at: number }[] };
     rating: { stars: number; comment: string } | null; ratingAsked: boolean;
   }[];
@@ -94,8 +94,8 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
         return (
           <div key={b.id}>
             <Step ok={b.paid !== false ? "yes" : pay?.status === "rejected" ? "no" : "wait"} icon="💳" title={`Booked ${b.dietitianName} for ${b.date} ${b.time}${b.status !== "booked" ? ` (${b.status})` : ""}`}>
-              {payTxt}. Booked on {day(b.createdAt)}.{" "}
-              {b.paid === false && b.status === "booked" && (<>
+              {payTxt}{b.planOk === false && b.paid !== false ? " — chat is open, but custom plans stay locked until you mark it paid or free" : ""}. Booked on {day(b.createdAt)}.{" "}
+              {b.planOk === false && b.status === "booked" && (<>
                 <button disabled={busy === b.id} onClick={() => mark(b.id, "markPaid")} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>✓ Mark as paid</button>
                 <button disabled={busy === b.id} onClick={() => mark(b.id, "markFree")} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>🎁 Give free</button>
               </>)}

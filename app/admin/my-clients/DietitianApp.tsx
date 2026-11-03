@@ -13,7 +13,7 @@ type Pay = { status: "unverified" | "verified" | "rejected"; amount: number; utr
 const PAY: Record<Pay["status"], [string, string]> = { unverified: ["Waiting for payment check", "pchk"], verified: ["Paid ✓", "pok"], rejected: ["Payment not received", "pno"] };
 type Msg = { id: string; from: "client" | "dietitian" | "team"; text: string; img?: string; at: number; flagged?: boolean };
 type Detail = {
-  thread: { id: string; client: string; date: string; time: string; status: string; open: boolean; note: string; outcome: string; pay?: Pay | null };
+  thread: { id: string; client: string; date: string; time: string; status: string; open: boolean; planOk?: boolean; note: string; outcome: string; pay?: Pay | null };
   profile: { goal: string; diet: string; conditions: string[]; allergens: string[]; answers: [string, string][]; at: string } | null;
   plans: { id: string; title: string; at: string; active: boolean; targetKcal: number; plan: Plan }[];
   messages: Msg[];
@@ -415,10 +415,10 @@ function Client({ id, onBack, onChat, onPlan }: { id: string; onBack: () => void
       <div className="dta-card"><h3>Weight progress</h3><WeightChart points={d.weights || []} /></div>
       <div className="dta-card"><h3>Plans sent</h3>
         {d.plans.length === 0 ? <p className="dta-sub" style={{ margin: 0 }}>No plans sent yet.</p> : d.plans.map((pl) => (
-          <div key={pl.id} className="dta-it flat"><span className="dta-t"><b>{pl.title}</b><span>{pl.targetKcal ? `${pl.targetKcal} kcal · ` : ""}{fmtDate(pl.at.slice(0, 10))}{pl.active ? " · current" : ""}</span></span><span style={{ display: "flex", gap: 12, flex: "none" }}><button className="dta-link" onClick={() => onPlan(pl.plan, pl.id)}>Edit ✏️</button><button className="dta-link" onClick={() => onPlan(pl.plan)}>Copy ›</button></span></div>
+          <div key={pl.id} className="dta-it flat"><span className="dta-t"><b>{pl.title}</b><span>{pl.targetKcal ? `${pl.targetKcal} kcal · ` : ""}{fmtDate(pl.at.slice(0, 10))}{pl.active ? " · current" : ""}</span></span>{d.thread.planOk !== false && <span style={{ display: "flex", gap: 12, flex: "none" }}><button className="dta-link" onClick={() => onPlan(pl.plan, pl.id)}>Edit ✏️</button><button className="dta-link" onClick={() => onPlan(pl.plan)}>Copy ›</button></span>}</div>
         ))}
       </div>
-      {d.thread.pay && d.thread.pay.status !== "verified" ? null : <button className="dta-cta" onClick={() => onPlan(null)}>📋 Make a new plan</button>}
+      {d.thread.planOk === false ? <p className="dta-closed">🔒 Custom diet plans open only after the client pays for the consultation. Health365 will unlock it once the payment is confirmed.</p> : <button className="dta-cta" onClick={() => onPlan(null)}>📋 Make a new plan</button>}
       <p className="dta-priv">Phone and email stay private with Health365</p>
     </div>
   );

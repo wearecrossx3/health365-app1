@@ -8,7 +8,7 @@ import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, Assigned
 import { listBackups, restoreBackup, weightLog } from "@/lib/appBackup";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 import { suggestFromConsultation } from "@/lib/planSuggest";
-import { getMeta, listMessages, chatOpen, isPaid } from "@/lib/consultChat";
+import { getMeta, listMessages, chatOpen, isPaid, planAllowed } from "@/lib/consultChat";
 import { getRating, wasAsked } from "@/lib/ratings";
 import { sentTo, logSent } from "@/lib/sentLog";
 import { purgeBooking } from "@/lib/purgeBooking";
@@ -35,7 +35,7 @@ async function journey(user: User, appointments: Appointment[]) {
     return {
       id: a.id, dietitianName: a.dietitianName, date: a.date, time: a.time, status: a.status, createdAt: a.createdAt,
       payment: a.payment ? { amount: a.payment.amount, status: a.payment.status, checkedBy: a.payment.checkedBy || "", checkedAt: a.payment.checkedAt || "" } : null,
-      open: chatOpen(a), paid: isPaid(a), free: a.free ? { by: a.free.by, reason: a.free.reason } : null,
+      open: chatOpen(a), paid: isPaid(a), planOk: planAllowed(a), free: a.free ? { by: a.free.by, reason: a.free.reason } : null,
       chat: {
         client: msgs.filter((m) => m.from === "client").length, dietitian: msgs.filter((m) => m.from === "dietitian").length, team: msgs.filter((m) => m.from === "team").length,
         firstDtAt: firstDt?.at || 0, lastAt: meta.lastAt || 0, lastFrom: meta.lastFrom || "", clientRead: meta.clientRead || 0,
