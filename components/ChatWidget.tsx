@@ -14,7 +14,7 @@ export default function ChatWidget() {
   const [error, setError] = useState<string | null>(null);
 
   // Don't show the customer-facing chat bubble inside the admin panel.
-  if (pathname?.startsWith("/admin")) return null;
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/dietitian-apply")) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

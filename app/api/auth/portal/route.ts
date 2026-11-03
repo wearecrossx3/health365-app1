@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const value = createSessionCookieValue({ userId: u.id, email: u.email, name: u.name });
   const opts = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", maxAge: SESSION_MAX_AGE };
   const st = await dietitianStatus(u.id);
-  const res = NextResponse.redirect(`${base}${st.portal ? "/admin/my-clients" : "/join-as-dietitian?app=1"}`);
+  const res = NextResponse.redirect(`${base}${st.portal ? "/admin/my-clients" : "/dietitian-apply"}`);
   res.cookies.set(SESSION_COOKIE_NAME, value, opts);
   if (st.portal) res.cookies.set(ADMIN_SESSION_COOKIE_NAME, value, opts);
   return res;

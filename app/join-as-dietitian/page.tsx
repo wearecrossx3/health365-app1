@@ -32,6 +32,8 @@ export default function JoinAsDietitianPage() {
   const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
+    // Inside the Health365 app the application has its own app-style screens.
+    if (new URLSearchParams(window.location.search).get("app") === "1") { window.location.replace("/dietitian-apply"); return; }
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then(async (d) => {
@@ -119,7 +121,7 @@ export default function JoinAsDietitianPage() {
               <p style={{ marginTop: 10 }}>Your profile is live in the Health365 directory. Clients book you and chat with you in the Health365 app — tap “I&apos;m a dietitian” to log in.</p>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
                 <a href="https://play.google.com/store/apps/details?id=com.frontpagestudios.health365" className="pill pill-primary">⬇️ Get the Health365 app</a>
-                <Link href="/admin/my-clients" className="pill pill-outline">Open on this device</Link>
+                <a href="/api/auth/portal-open" className="pill pill-outline">Open on this device</a>
               </div>
             </div>
           ) : (

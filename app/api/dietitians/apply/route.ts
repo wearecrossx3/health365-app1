@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     const ph = await setUserPhone(session.userId, String(body.phone || ""));
     if (!ph.ok) return NextResponse.json({ error: ph.error }, { status: 400 });
     const existing = await getDietitianApplicationByUserId(session.userId);
+    if (!body.termsAccepted && !existing?.termsAcceptedAt) return NextResponse.json({ error: "Please read and accept the Terms for dietitians." }, { status: 400 });
     const app: DietitianApplication = {
       id: existing?.id || crypto.randomUUID(),
       userId: session.userId,
