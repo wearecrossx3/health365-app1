@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { verifySessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/session";
-import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserByEmail } from "@/lib/kv";
+import { createAppointment, getAppointmentsForUser, isSlotTaken, getUserByEmail, saveAppointment } from "@/lib/kv";
+import type { Appointment } from "@/lib/kv";
+import { consultPrice } from "@/lib/dietitianFee";
+import { addMessage } from "@/lib/consultChat";
 import { sendEmail, getAdminEmails, emailWrapper, adminLink } from "@/lib/email";
 import { sendPushToAdmins } from "@/lib/push";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -25,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "That slot was just booked — please pick another." }, { status: 409 });
     }
 
-    const appointment = {
+    const appointment: Appointment = {
       id: crypto.randomUUID(),
       userId: session.userId,
       userName: session.name,
@@ -37,6 +40,15 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await createAppointment(appointment);
+    // Website bookings have no payment step: the chat and plans open after the
+    // team confirms the payment (Admin › Payments › “Bookings waiting for payment”).
+    const price = (await consultPrice(appointment.dietitianId).catch(() => ({ price: 0 }))).price;
+    if (price > 0) {
+      await addMessage(appointment.id, "team", `💳 Your booking with ${appointment.dietitianName} is saved. The chat and your personal plan open after the consultation fee of ₹${price} is paid. Our team will contact you to complete the payment.`).catch(() => {});
+    } else {
+      appointment.free = { by: "price", at: new Date().toISOString(), reason: "No fee set" };
+      await saveAppointment(appointment);
+    }
 
     const prettyDate = new Date(appointment.date).toLocaleDateString(undefined, {
       weekday: "long", day: "numeric", month: "long",

@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
       status: "booked" as const,
       createdAt: new Date().toISOString(),
       ...(payable > 0 && utr ? { payment: { amount: payable, utr, status: "unverified" as const } } : {}),
+      ...(payable <= 0 ? { free: { by: coupon ? "coupon" : "price", at: new Date().toISOString(), reason: coupon ? `Coupon ${coupon.code}` : "No fee set" } } : {}),
     };
     try {
       await createAppointment(appointment);
@@ -87,6 +88,9 @@ export async function POST(req: NextRequest) {
       throw e;
     }
     if (coupon) await recordCouponUse(coupon.code, session.userId).catch(() => {});
+    if (!appointment.payment && payable > 0) {
+      await addMessage(appointment.id, "team", `💳 Your booking with ${dietitianName} is saved. The chat and your personal plan open after the consultation fee of ₹${payable} is paid. Our team will contact you to complete the payment.`).catch(() => {});
+    }
     if (appointment.payment) {
       await addMessage(appointment.id, "team", `⏳ Thank you! We are checking your payment of ₹${payable} (UTR ${utr}). The chat with ${dietitianName} opens as soon as it is confirmed, usually within a few hours.`).catch(() => {});
     }

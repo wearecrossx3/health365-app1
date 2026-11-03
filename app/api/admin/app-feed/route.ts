@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     const threads = await threadsForDietitian(portalId);
     const when = (d: string, t: string) => `${new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${t}`;
     const bookings = threads
-      .filter((t) => t.status === "booked" && (!t.pay || t.pay.status === "verified"))
+      .filter((t) => t.status === "booked" && t.paid)
       .map((t) => ({ id: `book-${t.id}`, title: `New booking: ${t.clientName} 📅`, body: `${when(t.date, t.time)}. ${t.pay ? "Payment confirmed. " : ""}Open Health365 to say hello.`, url: "/admin/my-clients", at: t.pay ? t.pay.at : t.bookedAt }))
       .filter((e) => e.at > since);
     const chats = threads

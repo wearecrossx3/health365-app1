@@ -224,6 +224,8 @@ export interface Appointment {
   createdAt: string;
   // Paid by UPI: the UTR the client typed, checked by the owner in Admin › Payments.
   payment?: { amount: number; utr: string; status: "unverified" | "verified" | "rejected"; checkedAt?: string; checkedBy?: string };
+  // Approved without a UPI payment: a 100% coupon, or the owner marked it paid / free.
+  free?: { by: string; at: string; reason: string };
 }
 
 const UTR_SET = "utr_used";

@@ -10,7 +10,7 @@ export interface Journey {
   bookings: {
     id: string; dietitianName: string; date: string; time: string; status: string; createdAt: string;
     payment: { amount: number; status: string; checkedBy: string; checkedAt: string } | null;
-    open: boolean;
+    open: boolean; paid?: boolean; free?: { by: string; reason: string } | null;
     chat: { client: number; dietitian: number; team: number; firstDtAt: number; lastAt: number; lastFrom: string; clientRead: number; recent: { from: string; text: string; at: number }[] };
     rating: { stars: number; comment: string } | null; ratingAsked: boolean;
   }[];
@@ -49,9 +49,17 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
     if (!r.ok) { alert("Couldn't delete — please try again."); return; }
     onChanged();
   }
+  async function mark(id: string, decision: "markPaid" | "markFree") {
+    if (!confirm(decision === "markPaid" ? "Mark this booking as PAID (cash / bank / other)? The chat opens and the dietitian can send a plan." : "Give this consultation FREE? The chat opens and the dietitian can send a plan.")) return;
+    setBusy(id);
+    const r = await fetch("/api/admin/payments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision }) });
+    setBusy("");
+    if (!r.ok) { alert("Couldn't save — please try again."); return; }
+    onChanged();
+  }
   const latestForm = [...consultations].sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
   const conds = a?.conds.length ? a.conds.map((c) => COND[c] || c) : latestForm?.conditions || [];
-  const paid = j.bookings.filter((b) => b.payment?.status === "verified" || (!b.payment && b.status === "booked"));
+  const paid = j.bookings.filter((b) => b.status === "booked" && b.paid !== false);
   return (
     <div className="panel">
       <h2 style={{ fontSize: "1.05rem", marginBottom: 4 }}>Client journey</h2>
@@ -81,12 +89,16 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
         </Step>
       ) : j.bookings.map((b) => {
         const pay = b.payment;
-        const payTxt = !pay ? "Free / no payment needed" : pay.status === "verified" ? `₹${pay.amount} paid — confirmed${pay.checkedBy ? ` by ${pay.checkedBy}` : ""}${pay.checkedAt ? ` on ${day(pay.checkedAt)}` : ""}` : pay.status === "rejected" ? `₹${pay.amount} payment rejected` : `₹${pay.amount} — waiting for you to confirm the UPI payment (Admin › Payments)`;
+        const payTxt = b.free ? `Approved without UPI — ${b.free.reason} (${b.free.by})` : !pay ? (b.paid === false ? "No payment yet — chat and plans stay closed until it is paid" : "No payment needed (booked before payments were required)") : pay.status === "verified" ? `₹${pay.amount} paid — confirmed${pay.checkedBy ? ` by ${pay.checkedBy}` : ""}${pay.checkedAt ? ` on ${day(pay.checkedAt)}` : ""}` : pay.status === "rejected" ? `₹${pay.amount} payment rejected` : `₹${pay.amount} — waiting for you to confirm the UPI payment (Admin › Payments)`;
         const dtOk = b.chat.dietitian > 0;
         return (
           <div key={b.id}>
-            <Step ok={!pay || pay.status === "verified" ? "yes" : pay.status === "rejected" ? "no" : "wait"} icon="💳" title={`Booked ${b.dietitianName} for ${b.date} ${b.time}${b.status !== "booked" ? ` (${b.status})` : ""}`}>
+            <Step ok={b.paid !== false ? "yes" : pay?.status === "rejected" ? "no" : "wait"} icon="💳" title={`Booked ${b.dietitianName} for ${b.date} ${b.time}${b.status !== "booked" ? ` (${b.status})` : ""}`}>
               {payTxt}. Booked on {day(b.createdAt)}.{" "}
+              {b.paid === false && b.status === "booked" && (<>
+                <button disabled={busy === b.id} onClick={() => mark(b.id, "markPaid")} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>✓ Mark as paid</button>
+                <button disabled={busy === b.id} onClick={() => mark(b.id, "markFree")} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>🎁 Give free</button>
+              </>)}
               <button disabled={busy === b.id} onClick={() => del(b.id, `${b.dietitianName}, ${b.date}`)} style={{ background: "none", border: "none", padding: 0, color: "#B03A2E", fontWeight: 700, cursor: "pointer", fontSize: ".82rem" }}>{busy === b.id ? "Deleting…" : "🗑 Delete booking"}</button>
             </Step>
             <Step ok={dtOk ? "yes" : b.open ? "wait" : "no"} icon="💬" title={dtOk ? `${b.dietitianName} replied${b.chat.firstDtAt ? ` — first on ${when(b.chat.firstDtAt)} (${gap(Date.parse(b.createdAt), b.chat.firstDtAt)})` : ""}` : b.open ? `${b.dietitianName} hasn't written yet` : "Chat not open"}>

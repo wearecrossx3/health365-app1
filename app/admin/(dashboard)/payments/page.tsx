@@ -1,6 +1,9 @@
 import { requireAdminPage } from "@/lib/adminGuard";
 import { listAllAppointments, getUserById, getSiteContent } from "@/lib/kv";
 import PaymentsList, { PayRow } from "./PaymentsList";
+import WaitingList, { WaitRow } from "./WaitingList";
+import { noPayment } from "@/lib/consultChat";
+import { consultPrice } from "@/lib/dietitianFee";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +23,12 @@ export default async function PaymentsPage() {
       };
     })
   );
+  const waiting: WaitRow[] = await Promise.all(
+    all.filter((a) => a.status === "booked" && noPayment(a)).map(async (a) => {
+      const u = await getUserById(a.userId).catch(() => null);
+      return { id: a.id, client: a.userName, phone: (u?.phone || "").replace(/\D/g, "").slice(-10), dietitian: a.dietitianName, date: a.date, time: a.time, bookedAt: a.createdAt, price: (await consultPrice(a.dietitianId).catch(() => ({ price: 0 }))).price };
+    })
+  );
   return (
     <main style={{ minHeight: "70vh", background: "var(--paper)", padding: "40px 20px" }}>
       <div className="wrap" style={{ maxWidth: 980, padding: 0 }}>
@@ -28,6 +37,7 @@ export default async function PaymentsPage() {
         <p style={{ marginTop: 8, color: "var(--ink-soft)", fontSize: ".92rem", maxWidth: 700 }}>
           Every consultation paid by UPI. Open the bank or UPI app for <b>{c?.premiumUpiId || "your UPI ID"}</b>, find the payment with the same UTR and amount, then tap <b>Received</b>. If there is no such payment, tap <b>Not received</b>: the booking is cancelled and the client and dietitian are told in the chat.
         </p>
+        <WaitingList rows={waiting} />
         <PaymentsList rows={rows} />
       </div>
     </main>

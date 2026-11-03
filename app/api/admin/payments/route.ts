@@ -15,6 +15,19 @@ export async function POST(req: NextRequest) {
   if (!session) return denied();
   const b = await req.json().catch(() => ({}));
   const a = await getAppt(String(b?.id || ""));
+  // Paid another way (cash, bank) or given free: opens the chat and plans.
+  if (a && (b.decision === "markPaid" || b.decision === "markFree")) {
+    const paid = b.decision === "markPaid";
+    a.free = { by: session.name || session.email, at: new Date().toISOString(), reason: paid ? `Paid (${String(b.note || "marked by owner").slice(0, 80)})` : "Free consultation" };
+    if (a.status !== "booked") a.status = "booked";
+    await saveAppointment(a);
+    await addMessage(a.id, "team", paid ? "✅ Payment received. Your consultation is confirmed and the chat is now open." : "✅ Your consultation is confirmed and the chat is now open.").catch(() => {});
+    return NextResponse.json({ ok: true, free: a.free });
+  }
+  if (a && b.decision === "unmark") {
+    a.free = undefined; await saveAppointment(a);
+    return NextResponse.json({ ok: true });
+  }
   if (!a?.payment) return NextResponse.json({ error: "Booking not found." }, { status: 404 });
   const decision = b.decision;
   if (!["verified", "rejected", "unverified"].includes(decision)) return NextResponse.json({ error: "Unknown decision." }, { status: 400 });

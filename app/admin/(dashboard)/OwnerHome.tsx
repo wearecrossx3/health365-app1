@@ -47,9 +47,11 @@ export default function OwnerHome({ name, users, needsReview, pending, appointme
 
       {(() => {
         const toCheck = appointments.filter((a) => a.payment?.status === "unverified");
-        return toCheck.length > 0 ? (
-          <Link href="/admin/payments" className="oh-pay">💳 <b>{toCheck.length} payment{toCheck.length > 1 ? "s" : ""} to check</b><span>₹{toCheck.reduce((s, a) => s + (a.payment?.amount || 0), 0).toLocaleString("en-IN")} ›</span></Link>
-        ) : null;
+        const unpaid = appointments.filter((a) => a.status === "booked" && !a.payment && !a.free && Date.parse(a.createdAt || "") >= Date.parse("2026-11-03T11:45:00+05:30"));
+        return (<>
+          {toCheck.length > 0 && <Link href="/admin/payments" className="oh-pay">💳 <b>{toCheck.length} payment{toCheck.length > 1 ? "s" : ""} to check</b><span>₹{toCheck.reduce((s, a) => s + (a.payment?.amount || 0), 0).toLocaleString("en-IN")} ›</span></Link>}
+          {unpaid.length > 0 && <Link href="/admin/payments" className="oh-pay">⏳ <b>{unpaid.length} booking{unpaid.length > 1 ? "s" : ""} waiting for payment</b><span>›</span></Link>}
+        </>);
       })()}
 
       <div className="oh-act">

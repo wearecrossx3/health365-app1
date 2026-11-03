@@ -28,8 +28,16 @@ const imgKey = (id: string) => `cchat_img:${id}`;
 
 export const isChatAppointment = (a: Appointment | null | undefined) => !!a; // every consultation (Dt. Astha too) has a chat
 
-/** Paid by UPI but the owner hasn't confirmed the payment yet. */
-export const paymentPending = (a: Appointment) => !!a.payment && a.payment.status !== "verified";
+// A consultation is open (chat + plans) only when it is paid: the owner
+// confirmed the UPI payment, or approved it as paid / free. Bookings made
+// before this rule (3 Nov 2026) without any payment keep working as before.
+const PAY_RULE_FROM = Date.parse("2026-11-03T11:45:00+05:30");
+export const isPaid = (a: Appointment) =>
+  !!a.free || a.payment?.status === "verified" || (!a.payment && Date.parse(a.createdAt || "") < PAY_RULE_FROM);
+/** Not paid yet (UPI reference waiting for the owner, or no payment at all). */
+export const paymentPending = (a: Appointment) => !isPaid(a);
+/** Booked without sending any payment. */
+export const noPayment = (a: Appointment) => !a.payment && !isPaid(a);
 
 export function chatOpen(a: Appointment): boolean {
   if (a.status !== "booked") return false;
@@ -144,7 +152,7 @@ export async function threadHasImage(threadId: string, imgId: string) {
 }
 
 // ——— Thread lists ———
-export interface ThreadRow { id: string; userId: string; lastFrom: string; clientName: string; dietitianId: string; dietitianName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastAt: number; flags: number; outcome: string; bookedAt: number; pay: { status: string; amount: number; utr: string; at: number } | null }
+export interface ThreadRow { id: string; userId: string; lastFrom: string; clientName: string; dietitianId: string; dietitianName: string; date: string; time: string; status: string; open: boolean; unread: number; lastText: string; lastAt: number; flags: number; outcome: string; bookedAt: number; paid: boolean; pay: { status: string; amount: number; utr: string; at: number } | null }
 
 async function rows(appts: Appointment[], who: "client" | "dietitian" | "owner"): Promise<ThreadRow[]> {
   const list = appts.filter(isChatAppointment);
@@ -154,7 +162,7 @@ async function rows(appts: Appointment[], who: "client" | "dietitian" | "owner")
       id: a.id, userId: who === "client" ? "" : a.userId, clientName: who === "dietitian" ? firstName(a.userName) : a.userName,
       dietitianId: a.dietitianId, dietitianName: a.dietitianName, date: a.date, time: a.time, status: a.status, open: chatOpen(a),
       unread: who === "owner" ? 0 : unreadFor(metas[i], who), lastText: metas[i].lastText, lastFrom: metas[i].lastFrom, lastAt: metas[i].lastAt,
-      flags: who === "owner" ? metas[i].flags : 0, outcome: metas[i].outcome,
+      flags: who === "owner" ? metas[i].flags : 0, outcome: metas[i].outcome, paid: isPaid(a),
       bookedAt: Date.parse(a.createdAt) || 0,
       pay: !a.payment ? null : who === "client" ? { status: a.payment.status, amount: a.payment.amount, utr: "", at: 0 } : { status: a.payment.status, amount: a.payment.amount, utr: a.payment.utr, at: Date.parse(a.payment.checkedAt || "") || 0 },
     }))
