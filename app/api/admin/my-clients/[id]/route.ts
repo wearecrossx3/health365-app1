@@ -32,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     thread: { id: a.id, client: firstName(a.userName), date: a.date, time: a.time, status: a.status, open: chatOpen(a), note: meta.note, outcome: meta.outcome, pay: a.payment ? { status: a.payment.status, amount: a.payment.amount, utr: a.payment.utr } : null },
     suggest: suggestFromConsultation(c),
     profile: c ? { goal: c.goal, diet: c.dietType, conditions: c.conditions, allergens: c.allergens, answers: safeAnswers(c.raw), at: c.createdAt } : null,
-    plans: plans.filter((p) => p.byDietitian === me.dietitianId).map((p) => ({ id: p.id, title: p.title, at: p.assignedAt, active: p.active, targetKcal: p.targetKcal, plan: { title: p.title, goal: p.goal, diet: p.diet, region: p.region, conditions: p.conditions, targetKcal: p.targetKcal, days: p.days, tips: p.tips, source: p.source } })),
+    plans: plans.filter((p) => p.byDietitian === me.dietitianId).map((p) => ({ id: p.id, title: p.title, at: p.assignedAt, active: p.active, targetKcal: p.targetKcal, plan: { title: p.title, goal: p.goal, diet: p.diet, region: p.region, conditions: p.conditions, targetKcal: p.targetKcal, days: p.days, tips: p.tips, source: p.source, note: p.note || "" } })),
     messages: msgs,
     weights,
   });
@@ -89,9 +89,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       goal: p.goal || "better", diet: p.diet || "veg", region: p.region || "mixed",
       conditions: Array.isArray(p.conditions) ? p.conditions.slice(0, 4) : [],
       targetKcal: Number(p.targetKcal) || 0, days,
-      tips: (Array.isArray(p.tips) ? p.tips : []).map((t: unknown) => txt(t, 200)).filter(Boolean).slice(0, 8),
+      tips: (Array.isArray(p.tips) ? p.tips : []).map((t: unknown) => txt(t, 300)).filter(Boolean).slice(0, 12),
       source: `Prepared by ${d.name}`, createdAt: now,
-      note: txt(b.note, 600), assignedBy: d.name, byDietitian: me.dietitianId, assignedAt: now,
+      note: String(b.note ?? "").replace(/\r/g, "").trim().slice(0, 1500), assignedBy: d.name, byDietitian: me.dietitianId, assignedAt: now,
       startsOn: /^\d{4}-\d{2}-\d{2}$/.test(String(b.startsOn || "")) ? String(b.startsOn) : "", active: true,
     };
     const plans = await listUserPlans(user.id);
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       // Edit a plan this dietitian already sent: replace it in place.
       const old = plans.find((x) => x.id === String(b.replaceId));
       if (!old || old.byDietitian !== me.dietitianId) return NextResponse.json({ error: "You can only edit plans you sent." }, { status: 403 });
-      const upd: AssignedPlan = { ...old, ...plan, id: old.id, createdAt: old.createdAt, assignedAt: old.assignedAt, active: old.active, note: plan.note || old.note, startsOn: plan.startsOn || old.startsOn, updatedAt: now, editedBy: d.name } as AssignedPlan;
+      const upd: AssignedPlan = { ...old, ...plan, id: old.id, createdAt: old.createdAt, assignedAt: old.assignedAt, active: old.active, note: plan.note, startsOn: plan.startsOn || old.startsOn, updatedAt: now, editedBy: d.name } as AssignedPlan;
       await saveUserPlans(user.id, plans.map((x) => (x.id === old.id ? upd : x)));
       await addMessage(a.id, "team", `✏️ ${d.name} updated your diet plan. Open the Plan tab to see the changes.`);
       await logActivity(me.dietitianId, `Edited the plan for ${firstName(user.name)}`);

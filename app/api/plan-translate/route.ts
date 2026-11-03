@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const strings: string[] = [];
   const idx = new Map<string, number>();
   const add = (s: unknown) => { const t = String(s ?? "").trim(); if (!t || /^[\d\s.,/+-]*$/.test(t)) return; if (!idx.has(t)) { idx.set(t, strings.length); strings.push(t); } };
-  add(plan.title); (plan.tips || []).forEach(add); add(note);
+  add(plan.title); (plan.tips || []).forEach(add); note.split("\n").forEach(add);
   for (const d of plan.days) { add(d.label); for (const m of d.meals) { add(m.label); add(m.title); add(m.alt); for (const i of m.items) { add(i.name); add(i.portion); } } }
   if (strings.length > 900) return NextResponse.json({ error: "This plan is too long to translate at once." }, { status: 400 });
 
@@ -99,5 +99,5 @@ ${JSON.stringify(chunk)}`;
     })),
     lang,
   };
-  return NextResponse.json({ ok: true, plan: res, note: note ? String(tr(note)) : "", engine });
+  return NextResponse.json({ ok: true, plan: res, note: note ? note.split("\n").map((l: string) => (l.trim() ? String(tr(l)) : l)).join("\n") : "", engine });
 }

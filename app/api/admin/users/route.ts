@@ -119,7 +119,7 @@ function cleanMeal(m: Record<string, unknown>): PlanMeal {
     kcal: kcal || num(m.kcal),
     protein: Math.round(items.reduce((s: number, i: { protein: number }) => s + i.protein, 0)) || num(m.protein),
     carbs: num(m.carbs), fat: num(m.fat), fibre: num(m.fibre),
-    alt: txt(m.alt, 160),
+    alt: txt(m.alt, 300),
   };
 }
 
@@ -195,10 +195,10 @@ export async function POST(req: NextRequest) {
       conditions: Array.isArray(p.conditions) ? p.conditions.slice(0, 4) : [],
       targetKcal: num(p.targetKcal) || Math.round(days.reduce((s, d) => s + d.kcal, 0) / days.length),
       days,
-      tips: (Array.isArray(p.tips) ? p.tips : []).map((t: unknown) => txt(t, 200)).filter(Boolean).slice(0, 8),
+      tips: (Array.isArray(p.tips) ? p.tips : []).map((t: unknown) => txt(t, 300)).filter(Boolean).slice(0, 12),
       source: txt(p.source, 120) || "Prepared by your Health365 dietitian",
       createdAt: now,
-      note: txt(b.note, 600),
+      note: String(b.note ?? "").replace(/\r/g, "").trim().slice(0, 1500),
       assignedBy: txt(b.signedAs, 60) || by,
       assignedAt: now,
       startsOn: /^\d{4}-\d{2}-\d{2}$/.test(String(b.startsOn || "")) ? String(b.startsOn) : "",
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
     const old = b.replaceId ? plans.find((x) => x.id === String(b.replaceId)) : undefined;
     if (b.replaceId && !old) return NextResponse.json({ error: "That plan wasn't found — it may have been deleted." }, { status: 404 });
     if (old) {
-      const upd: AssignedPlan = { ...old, ...plan, id: old.id, createdAt: old.createdAt, assignedAt: old.assignedAt, assignedBy: old.assignedBy, byDietitian: old.byDietitian, active: old.active, note: plan.note || old.note, startsOn: plan.startsOn || old.startsOn, updatedAt: now, editedBy: by } as AssignedPlan;
+      const upd: AssignedPlan = { ...old, ...plan, id: old.id, createdAt: old.createdAt, assignedAt: old.assignedAt, assignedBy: old.assignedBy, byDietitian: old.byDietitian, active: old.active, note: plan.note, startsOn: plan.startsOn || old.startsOn, updatedAt: now, editedBy: by } as AssignedPlan;
       await saveUserPlans(userId, plans.map((x) => (x.id === old.id ? upd : x)));
       return NextResponse.json({ ok: true, plan: upd, updated: true });
     }

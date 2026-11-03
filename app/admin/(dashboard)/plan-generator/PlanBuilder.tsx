@@ -45,7 +45,7 @@ function scale(b: Base, portion: string): { kcal: number; protein: number } | nu
   // per serving: "2 medium", "1.5 katori", "½" not handled
   return { kcal: Math.round(b.kcal * n), protein: Math.round(b.protein * n * 10) / 10 };
 }
-const clean = (p: Plan): Plan => ({ ...p, days: p.days.map((d) => ({ ...d, meals: d.meals.map((m) => ({ ...m, items: m.items.map(({ _b, ...it }) => it) })) })) }); // eslint-disable-line @typescript-eslint/no-unused-vars
+const clean = (p: Plan): Plan => ({ ...p, tips: (p.tips || []).map((t) => t.trim()).filter(Boolean), days: p.days.map((d) => ({ ...d, meals: d.meals.map((m) => ({ ...m, items: m.items.map(({ _b, ...it }) => it) })) })) }); // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan, initialInput, editId, client }: { fixedUser?: UserRow; onAssigned?: () => void; portal?: { generateUrl: string; assignUrl: string }; initialPlan?: Plan | null; initialInput?: { goal: string; diet: string; conditions: string[]; kcal: number; basis: string } | null; editId?: string; client?: ClientInfo | null }) {
   const [goal, setGoal] = useState(initialInput?.goal || "lose");
@@ -100,7 +100,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
   const [users, setUsers] = useState<UserRow[]>([]);
   const [q, setQ] = useState("");
   const [userId, setUserId] = useState(fixedUser?.id || "");
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(editId ? String((initialPlan as unknown as { note?: string } | null)?.note || "") : "");
   // Language: the English version is kept so "English" brings it back.
   const [enPlan, setEnPlan] = useState<{ plan: Plan; note: string } | null>(null);
   const [trBusy, setTrBusy] = useState("");
@@ -194,6 +194,16 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
     const b: Base = { kcal: f[4], protein: f[5], per, serving: f[10] };
     editItem(di, mi, ii, { name: f[1], portion: per === "serving" ? f[10] || "1 serving" : "100 g", kcal: Math.round(f[4]), protein: Math.round(f[5] * 10) / 10, _b: b });
     setSugAt("");
+  }
+  function setMealNote(di: number, mi: number, v: string) {
+    if (!plan) return;
+    const p = structuredClone(plan);
+    p.days[di].meals[mi].alt = v;
+    setPlan(p);
+  }
+  function setTipsText(v: string) {
+    if (!plan) return;
+    setPlan({ ...plan, tips: v.split("\n").map((t) => t.replace(/^\s*[-•*]\s*/, "")).slice(0, 12) });
   }
   function addItem(di: number, mi: number) {
     if (!plan) return;
@@ -309,7 +319,7 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => openPrint(clean(plan), { client: fixedUser?.name || chosen?.name, from: portal ? undefined : signedAs, note })}>🖨️ PDF / Print</button>
-            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => sharePlanText(clean(plan), { client: (fixedUser?.name || chosen?.name || "").split(" ")[0], from: portal ? undefined : signedAs, phone: portal ? undefined : chosen?.phone })}>📲 WhatsApp</button>
+            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => sharePlanText(clean(plan), { client: (fixedUser?.name || chosen?.name || "").split(" ")[0], from: portal ? undefined : signedAs, phone: portal ? undefined : chosen?.phone, note })}>📲 WhatsApp</button>
             <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={saveTpl}>💾 Save as template</button>
           </div>
           <div style={{ border: "1px solid var(--line)", borderRadius: 14, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -382,11 +392,15 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
                 </div>
               ))}
               <button type="button" onClick={() => addItem(openDay, mi)} style={{ background: "none", border: "none", color: "#287379", fontWeight: 700, fontSize: ".8rem", cursor: "pointer", padding: 0 }}>+ Add item</button>
+              <textarea rows={1} maxLength={300} value={m.alt || ""} onChange={(e) => setMealNote(openDay, mi, e.target.value)}
+                placeholder="📝 Note for this meal (optional) — e.g. soak overnight, or swap with poha"
+                style={{ display: "block", width: "100%", marginTop: 8, padding: "8px 10px", border: "1px dashed var(--line)", borderRadius: 10, font: "inherit", fontSize: ".82rem", background: "#FFFDF8", resize: "vertical", boxSizing: "border-box" }} />
             </div>
           ))}
           <div style={{ background: "var(--paper)", borderRadius: 14, padding: 14, fontSize: ".85rem" }}>
-            <p style={{ fontWeight: 700, marginBottom: 6 }}>Tips shown with the plan</p>
-            <ul style={{ paddingLeft: 18, margin: 0 }}>{plan.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>
+            <p style={{ fontWeight: 700, marginBottom: 6 }}>Tips shown with the plan <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— one per line, change or add your own</span></p>
+            <textarea rows={Math.min(10, Math.max(3, plan.tips.length + 1))} value={plan.tips.join("\n")} onChange={(e) => setTipsText(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--line)", borderRadius: 10, font: "inherit", fontSize: ".85rem", lineHeight: 1.5, background: "#fff", resize: "vertical", boxSizing: "border-box" }} />
           </div>
         </div>
       )}
@@ -411,8 +425,8 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
           )}
           {fixedUser && <p style={{ fontSize: ".9rem" }}>For <b>{fixedUser.name}</b>{fixedUser.email ? ` · ${fixedUser.email}` : ""}</p>}
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Personal note <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— shown at the top of their plan</span></label>
-            <textarea rows={2} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder={portal ? "e.g. Start with this for 2 weeks. Message me in the chat if you feel low on energy." : "e.g. Start with this for 2 weeks. Message me on WhatsApp if you feel low on energy."} />
+            <label>Personal note <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>— shown at the top of their plan. New lines are kept.</span></label>
+            <textarea rows={5} maxLength={1500} value={note} style={{ lineHeight: 1.5, resize: "vertical" }} onChange={(e) => setNote(e.target.value)} placeholder={portal ? "e.g. Start with this for 2 weeks. Message me in the chat if you feel low on energy." : "e.g. Start with this for 2 weeks. Message me on WhatsApp if you feel low on energy."} />
           </div>
           {!portal && (
           <div className="field" style={{ marginBottom: 0 }}>

@@ -500,7 +500,7 @@ h1.q{font-weight:600;letter-spacing:-.2px}
 .items div{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;line-height:1.35}
 .items div span:last-child{color:var(--mute);white-space:nowrap;font-size:12.5px}
 .items div em{font-style:normal;color:var(--mute);font-size:12.5px}
-.dtnote{background:var(--gs);border-radius:16px;padding:13px 15px;font-size:13.5px;line-height:1.45;color:#256b3c;margin-top:14px}
+.dtnote{white-space:pre-line;/*dtn*/background:var(--gs);border-radius:16px;padding:13px 15px;font-size:13.5px;line-height:1.45;color:#256b3c;margin-top:14px}
 /* blog */
 .bcard{width:220px;background:var(--card);border-radius:22px;overflow:hidden;text-align:left}
 .bcard .th{height:110px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;background-size:cover;background-position:center}
@@ -735,6 +735,8 @@ h1.q{font-weight:600;letter-spacing:-.2px}
 .bk .chbtn{border:none;background:#287379;color:#fff;border-radius:12px;padding:7px 12px;font-size:13px;font-weight:600;margin-left:8px}
 .chinfo{font-size:13px;color:var(--mute);margin:6px 0 0}
 [data-theme=dark] .cm.team .bb{background:#2A2620;color:var(--ink)}
+.dtpill{display:inline-block;background:#287379;color:#fff;font-weight:700;font-size:12px;letter-spacing:.3px;padding:5px 12px;border-radius:99px;margin-bottom:10px}
+.dtlink{color:var(--cream);opacity:.85;font-size:14px;margin-top:2px}
 </style>
 <script>
 /* ---------- languages: English text in the app is swapped for the chosen language as it appears ---------- */
@@ -776,7 +778,8 @@ if(I18)new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='cha
     <div class="obfade" id="obcopy"><h2></h2><p></p></div>
     <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
     <button class="btn" onclick="go('goal')">Get Started</button>
-    <button class="link" style="color:var(--cream)" onclick="authMode='login';go('account')">I already have an account</button>
+    <button class="link" style="color:var(--cream)" onclick="DT_MODE=false;authMode='login';go('account')">I already have an account</button>
+    <button class="link dtlink" onclick="DT_MODE=true;authMode='login';go('account')">🩺 I'm a dietitian</button>
   </div>
 </section>
 
@@ -1451,6 +1454,8 @@ let authMode='signup',needAccFor='';
 function gBtn(){return googleOn()?`<div class="gor"><span>${tr('or')}</span></div><button class="btn ghost gbtn" onclick="googleStart()"><svg viewBox="0 0 48 48" width="20" height="20"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 38.2 44 33 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>${tr('Continue with Google')}</button>`:''}
 function renderAccount(){
   const su=authMode==='signup';
+  if(DT_MODE){renderDtAccount(su);return}
+  try{localStorage.removeItem('h365dtg')}catch(e){}
   $('#accBody').innerHTML=su?
    `<h1 class="q">Save your plan</h1><p class="sub">Create your Health365 account — the same login works on the app and the website.</p>
     <p class="lbl" style="margin-top:24px">Email</p><input class="field" id="aEmail" type="email" autocomplete="email" placeholder="you@example.com" value="${esc(S.email)}">
@@ -1466,7 +1471,50 @@ function renderAccount(){
   $('#accSwitch').textContent=su?'Already have an account? Log in':'New here? Create an account';
   $('#accSkip').style.display=su&&S.goal?'block':'none';
 }
+
+/* ---------- dietitians: log in here and work from the dietitian portal ---------- */
+let DT_MODE=false;
+function renderDtAccount(su){
+  try{localStorage.setItem('h365dtg','1')}catch(e){}
+  $('#accBody').innerHTML=`<div class="dtpill">🩺 Dietitian</div><h1 class="q">${su?'Join as a dietitian':'Dietitian login'}</h1>
+   <p class="sub">${su?'Create your account, then fill in your details to apply. Our team reviews every application.':'Log in with your Health365 dietitian account to see your clients, chats and plans.'}</p>
+   ${su?`<p class="lbl" style="margin-top:24px">Full name</p><input class="field" id="aName" autocomplete="name" placeholder="e.g. Priya Shah">`:''}
+   <p class="lbl" style="margin-top:${su?'0':'24px'}">Email</p><input class="field" id="aEmail" type="email" autocomplete="email" placeholder="you@example.com" value="${esc(S.email||'')}">
+   ${su?`<p class="lbl">Mobile number (WhatsApp)</p><div class="phone"><span>+91</span><input class="field" id="aPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>`:''}
+   <p class="lbl">${su?'Create a password':'Password'}</p><input class="field" id="aPass" type="password" autocomplete="${su?'new-password':'current-password'}" placeholder="${su?'At least 8 characters':''}">
+   <p class="err" id="aErr"></p>${gBtn()}
+   <button class="link" style="margin-top:14px;width:100%" onclick="DT_MODE=false;authMode='login';renderAccount()">Not a dietitian? Go to the client login</button>`;
+  $('#bAcc').textContent=su?'Create account':'Log in';
+  $('#accSwitch').textContent=su?'Already a Health365 dietitian? Log in':'New dietitian? Create an account and apply';
+  $('#accSkip').style.display='none'}
+async function submitDtAuth(){
+  const su=authMode==='signup',email=$('#aEmail').value.trim().toLowerCase(),pass=$('#aPass').value,err=$('#aErr');err.textContent='';
+  if(!/^\S+@\S+\.\S+$/.test(email)){err.textContent='Please enter a valid email address.';return}
+  let phone='',name='';
+  if(su){name=($('#aName').value||'').trim();phone=$('#aPhone').value.trim();
+    if(name.length<2){err.textContent='Please enter your full name.';return}
+    if(!/^[6-9][0-9]{9}$/.test(phone)){err.textContent='Please enter a valid 10-digit mobile number.';return}
+    if(pass.length<8){err.textContent='Password must be at least 8 characters.';return}}
+  if(!pass){err.textContent='Please enter your password.';return}
+  const b=$('#bAcc');busy(b,true);
+  const r=su?await api('/auth/signup',{method:'POST',auth:false,body:{name,email,phone,password:pass}}):await api('/auth/login',{method:'POST',auth:false,body:{email,password:pass}});
+  busy(b,false,su?'Create account':'Log in');
+  if(!r.ok){if(r.data.code==='exists'){authMode='login';renderAccount();$('#aEmail').value=email;$('#aErr').textContent='You already have an account — please log in.';return}err.textContent=r.data.error||'Something went wrong — please try again.';return}
+  S.token=r.data.token;S.user=r.data.user;S.email=email;if(phone)S.phone=phone;S.role='dt';save();try{syncAuth()}catch(e){}
+  openPortal()}
+async function openPortal(){
+  if(!S.token){DT_MODE=true;authMode='login';go('account');return}
+  busyOv(true,'Opening your dietitian portal…');
+  const r=await api('/portal',{method:'POST',timeout:20000});busyOv(false);
+  if(!r.ok||!r.data||!r.data.url){if(r.status===401){S.token='';S.role='';save();DT_MODE=true;authMode='login';go('account');return}toast((r.data&&r.data.error)||'Couldn’t open the dietitian portal — check your internet and try again.');return}
+  try{if(hasA()&&typeof Android.openPortal==='function'){Android.openPortal(r.data.url);return}}catch(e){}
+  location.href=r.data.url}
+window.__portalClosed=function(why){
+  if(why==='logout'){S.role='';S.token='';S.user=null;save();try{syncAuth()}catch(e){}DT_MODE=true;authMode='login';go('account');toast('Logged out of the dietitian portal')}};
+setTimeout(function(){try{if(S.role==='dt'&&S.token&&!(hasA()&&typeof Android.dtOpen==='function'&&Android.dtOpen()))openPortal()}catch(e){}},600);
+
 async function submitAuth(){
+  if(DT_MODE){submitDtAuth();return}
   const su=authMode==='signup',email=$('#aEmail').value.trim().toLowerCase(),pass=$('#aPass').value,err=$('#aErr');err.textContent='';
   if(!/^\S+@\S+\.\S+$/.test(email)){err.textContent='Please enter a valid email address.';return}
   if(su&&pass.length<8){err.textContent='Password must be at least 8 characters.';return}
@@ -1676,9 +1724,9 @@ function renderPlan(){
   const isT=day===td&&!exp,done=T().done;
   $('#meals').innerHTML=p.slotIdx.map((si,k)=>{const s=SLOTS[si],m=p.days[day][k];if(!m)return'';
     const btns=`${p.tpl||p.dt||exp?'':`<button class="sw" onclick="openSwap(${k})" aria-label="Swap">${I.swap}</button>`}${isT?`<button class="chk${done.includes(si)?' on':''}" onclick="toggleMeal(${si})">${I.check}</button>`:''}`;
-    if(m.it)return `<div class="meal mi"><div class="mh">${shp(s[4],s[5])}<div class="mt"><small>${s[1]} · ${s[2]}</small><b>${m.k} kcal</b></div>${btns}</div><div class="items">${m.it.map(x=>`<div><span>${esc(x[0])}</span><span>${esc(x[1])} · ${x[2]} kcal</span></div>`).join('')}</div>${m.n?`<em class="swi">Swap idea: ${esc(m.n)}</em>`:''}</div>`;
+    if(m.it)return `<div class="meal mi"><div class="mh">${shp(s[4],s[5])}<div class="mt"><small>${s[1]} · ${s[2]}</small><b>${m.k} kcal</b></div>${btns}</div><div class="items">${m.it.map(x=>`<div><span>${esc(x[0])}</span><span>${esc(x[1])} · ${x[2]} kcal</span></div>`).join('')}</div>${m.n?`<em class="swi" style="white-space:pre-line">${S.plan&&S.plan.dt?'📝 Note':'Swap idea'}: ${esc(m.n)}</em>`:''}</div>`;
     const body=`<p>${esc(fix(m.t,p))}</p>${m.p?`<small style="font-weight:600">${esc(m.p)}</small>`:''}`;
-    return `<div class="meal">${shp(s[4],s[5])}<div class="tx"><small>${s[1]} · ${s[2]} · ${esc(mealKcal(p,m,si))}</small>${body}${m.n?`<em>${m.it?'Swap idea':'Tip'}: ${esc(m.n)}</em>`:''}</div>${p.tpl||p.dt||exp?'':`<button class="sw" onclick="openSwap(${k})" aria-label="Swap">${I.swap}</button>`}${isT?`<button class="chk${done.includes(si)?' on':''}" onclick="toggleMeal(${si})">${I.check}</button>`:''}</div>`}).join('');
+    return `<div class="meal">${shp(s[4],s[5])}<div class="tx"><small>${s[1]} · ${s[2]} · ${esc(mealKcal(p,m,si))}</small>${body}${m.n?`<em style="white-space:pre-line">${S.plan&&S.plan.dt?'📝 Note':(m.it?'Swap idea':'Tip')}: ${esc(m.n)}</em>`:''}</div>${p.tpl||p.dt||exp?'':`<button class="sw" onclick="openSwap(${k})" aria-label="Swap">${I.swap}</button>`}${isT?`<button class="chk${done.includes(si)?' on':''}" onclick="toggleMeal(${si})">${I.check}</button>`:''}</div>`}).join('');
   let t='';
   if((p.genTips||[]).length)t+=`<div class="tipbox"><h4><i style="background:${C.g}"></i>Tips for this plan</h4><ul class="dv">${p.genTips.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></div>`;
   if(p.cs.includes('oncology'))t+=`<div class="warn"><b>Medical supervision needed.</b> Cancer care nutrition must be guided by your oncologist. Our dietitian can personalise this for you.</div>`;
@@ -2126,7 +2174,7 @@ function showPlanPop(p){const d=p&&p.dt;if(!d||S.planPopSeen===d.id)return;
   if($('#sheet').classList.contains('on')||$('#tour.on')){setTimeout(()=>showPlanPop(p),2500);return}
   S.planPopSeen=d.id;save();
   $('#offerIn').innerHTML=`<div class="ot" style="background-color:${C.teal};color:#fff">${E('stetho','float')}<span class="badge2">${tr('New')}</span><h3>${tr('Your diet plan is ready')} 🩺</h3></div>
-   <div class="ob"><p>${tr('{0} sent your personal diet plan.').replace('{0}',esc(d.by||tr('Your dietitian')))}${d.note?`<br><br>“${esc(d.note)}”`:''}</p>
+   <div class="ob"><p>${tr('{0} sent your personal diet plan.').replace('{0}',esc(d.by||tr('Your dietitian')))}${d.note?`<br><br><span style="white-space:pre-line">“${esc(d.note)}”</span>`:''}</p>
    <button class="btn" onclick="closeOffer();tab('plan')">${tr('See my plan')}</button><button class="later" onclick="closeOffer()">${tr('Later')}</button></div>`;
   $('#offer').classList.add('on');celebrate(false)}
 async function syncPlans(){if(!S.token)return;const r=await api('/plans');if(!r.ok)return;
@@ -2491,6 +2539,8 @@ async function googleDone(o){const p=o.slice(6);if(p.startsWith('error')){toast(
   toast('Signing you in…');const r=await api('/auth/google',{method:'POST',auth:false,body:{code:p}});
   if(!r.ok){toast(r.data.error||'Google sign-in didn’t work — please try again.');return}
   S.token=r.data.token;S.user=r.data.user;S.email=r.data.user.email;if(r.data.user.phone&&!S.phone)S.phone=r.data.user.phone;save();
+  let dtg=false;try{dtg=localStorage.getItem('h365dtg')==='1'}catch(e){}
+  if(DT_MODE||dtg){DT_MODE=true;S.role='dt';save();try{syncAuth()}catch(e){}openPortal();return}
   if(cur!=='account'){authMode='login';go('account')}
   await afterLogin(S.email,$('#bAcc'))}
 
