@@ -333,8 +333,8 @@ export default function PlanBuilder({ fixedUser, onAssigned, portal, initialPlan
             <input value={plan.title} onChange={(e) => setPlan({ ...plan, title: e.target.value })} />
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => openPrint(clean(plan), { client: fixedUser?.name || chosen?.name, from: portal ? undefined : signedAs, note })}>🖨️ PDF / Print</button>
-            <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => sharePlanText(clean(plan), { client: (fixedUser?.name || chosen?.name || "").split(" ")[0], from: portal ? undefined : signedAs, phone: portal ? undefined : chosen?.phone, note })}>📲 WhatsApp</button>
+            {!portal && <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => openPrint(clean(plan), { client: fixedUser?.name || chosen?.name, from: portal ? undefined : signedAs, note })}>🖨️ PDF / Print</button>}
+            {!portal && <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={() => sharePlanText(clean(plan), { client: (fixedUser?.name || chosen?.name || "").split(" ")[0], from: portal ? undefined : signedAs, phone: portal ? undefined : chosen?.phone, note })}>📲 WhatsApp</button>}
             <button type="button" className="pill pill-outline" style={{ padding: "6px 14px", fontSize: ".8rem" }} onClick={saveTpl}>💾 Save as template</button>
           </div>
           <div style={{ border: "1px solid var(--line)", borderRadius: 14, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>

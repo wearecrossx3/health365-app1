@@ -265,7 +265,7 @@ function PlanFor({ id, name, copy, editId, onDone }: { id: string; name: string;
   if (sug === undefined) return <p className="dta-empty">Loading…</p>;
   return (
     <PlanBuilder fixedUser={{ id, name, email: "", phone: "" }} initialPlan={copy} initialInput={sug} client={client} editId={editId}
-      portal={{ generateUrl: "/api/admin/my-clients/generate", assignUrl: `/api/admin/my-clients/${id}` }} onAssigned={onDone} />
+      portal={{ generateUrl: `/api/admin/my-clients/generate?for=${encodeURIComponent(id)}`, assignUrl: `/api/admin/my-clients/${id}` }} onAssigned={onDone} />
   );
 }
 
