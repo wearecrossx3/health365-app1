@@ -5,6 +5,7 @@ import { redis } from "@/lib/kv";
 import { askAIText, aiAvailable } from "@/lib/aiText";
 import { freeTranslate } from "@/lib/freeTranslate";
 import { getFoodDatabase } from "@/lib/foods";
+import { foodNamesFor } from "@/lib/foodNames";
 
 // The app's "Plan language" switch: the user's diet plan text (food names,
 // portions, notes, tips) in Gujarati, Hindi… Numbers never change.
@@ -42,10 +43,31 @@ ${JSON.stringify(chunk)}`, { json: true, maxTokens: 8000, timeoutMs: 25000 });
         if (!Array.isArray(arr) || arr.length !== chunk.length) throw new Error("bad answer");
         out.push(...arr.map((x, i) => String(x || chunk[i]).slice(0, 600)));
       }
+      // Any line that came back in the wrong script (or untranslated) goes to Google instead.
+      const bad = out.map((x, i) => (wrongScript(x, lang) || (x === strings[i] && INDIC.test(x) && !inScript(x, lang)) ? i : -1)).filter((i) => i >= 0);
+      if (bad.length) {
+        const g = await freeTranslate(bad.map((i) => strings[i]), tl, { roman });
+        bad.forEach((i, k) => { if (g[k]) out[i] = g[k].slice(0, 600); });
+      }
       return out;
     } catch { /* fall back to Google Translate */ }
   }
   return (await freeTranslate(strings, tl, { roman })).map((x, i) => String(x || strings[i]).slice(0, 600));
+}
+
+// Script checks for a translated line.
+const INDIC = /[\u0600-\u06FF\u0900-\u0DFF]/;
+const SCRIPT: Record<string, RegExp> = {
+  gu: /[\u0A80-\u0AFF]/, hi: /[\u0900-\u097F]/, mr: /[\u0900-\u097F]/, bn: /[\u0980-\u09FF]/, pa: /[\u0A00-\u0A7F]/,
+  ta: /[\u0B80-\u0BFF]/, te: /[\u0C00-\u0C7F]/, kn: /[\u0C80-\u0CFF]/, ml: /[\u0D00-\u0D7F]/, ur: /[\u0600-\u06FF]/,
+};
+function inScript(x: string, lang: string) { const re = SCRIPT[lang]; return !!re && re.test(x); }
+function wrongScript(x: string, lang: string) {
+  if (!INDIC.test(x)) return false; // Latin text is fine in any language (numbers, kcal, names)
+  if (lang === "en" || lang === "hinglish" || lang === "gujlish") return true; // should be English letters
+  const re = SCRIPT[lang];
+  // any Indian-script letter outside the target script
+  return !!re && [...x].some((c) => INDIC.test(c) && !re.test(c));
 }
 
 // Food names: Google Translate guesses dish names badly ("Handvo" in
@@ -53,13 +75,16 @@ ${JSON.stringify(chunk)}`, { json: true, maxTokens: 8000, timeoutMs: 25000 });
 // our own food list's local names, so those are mapped back to the English
 // food name first, then to the target language's name for that food.
 const norm = (s: string) => s.normalize("NFC").replace(/\s+/g, " ").trim().toLowerCase();
-async function foodGlossary(target: string) {
+async function foodGlossary(target: string, sourceLangs?: string[]) {
   const db = await getFoodDatabase(false);
   const rows = [...db.dishes, ...db.foods];
   const toEn = new Map<string, string>(); // any known name (English or local) → English name
   const servEn = new Map<string, string>();
   let tgt: { names: Record<string, string>; servings: Record<string, string> } | null = null;
   const langs = Object.keys(LANGS).filter((l) => l !== "en");
+  // Make sure the food list exists in the plan's own script and in the target.
+  const need = [...new Set([...(sourceLangs || []), target].filter((l) => l !== "en" && l in LANGS))];
+  if (need.length) await Promise.race([Promise.all(need.map((l) => foodNamesFor(l).catch(() => null))), new Promise((r) => setTimeout(r, 25000))]);
   const vals = await redis().mget(...langs.map((l) => `food_names:${l}:${db.version}:${rows.length}`)).catch(() => langs.map(() => null));
   const byId = new Map(rows.map((f) => [f.id, f]));
   rows.forEach((f) => toEn.set(norm(f.name), f.name));
@@ -107,7 +132,8 @@ export async function POST(req: NextRequest) {
     if (tooMany) return tooMany;
     try {
       // Known foods first (exact names from our food list), the rest by translation.
-      const g = await foodGlossary(lang).catch(() => null);
+      const srcLangs = [...new Set(miss.map((s) => (/[\u0A80-\u0AFF]/.test(s) ? "gu" : /[\u0900-\u097F]/.test(s) ? "hi" : /[\u0A00-\u0A7F]/.test(s) ? "pa" : /[\u0980-\u09FF]/.test(s) ? "bn" : "")).filter(Boolean))];
+      const g = await foodGlossary(lang, srcLangs).catch(() => null);
       const direct: Record<string, string> = {};
       const viaEn: Record<string, string> = {}; // source → English food name to translate
       for (const s of miss) {

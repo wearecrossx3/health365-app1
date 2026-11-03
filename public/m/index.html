@@ -1777,19 +1777,21 @@ function buildPrint(){const p=S.plan;
 let pdfLoading=null;
 function loadPdfKit(){if(window.H365PDF)return Promise.resolve();if(pdfLoading)return pdfLoading;
   pdfLoading=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='pdfkit.js';sc.onload=()=>ok();sc.onerror=()=>{pdfLoading=null;no(new Error('pdfkit'))};document.head.appendChild(sc)});return pdfLoading}
+// Meal text for the PDF in the plan language the user picked.
+function pdfMeal(m,p){if(m.it)return{text:m.it.map(x=>PT(x[0])).join(' + '),sub:m.it.map(x=>PT(x[1])+' '+PT(x[0])).join(' · ')};return{text:PT(fix(m.t,p)),sub:PT(m.p||'')}}
 function pdfData(){const p=S.plan,b=p.bmi,al=S.allergies.length?S.allergies.join(', '):'Nothing';
   const PREFN={veg:'Vegetarian',egg:'Eggetarian',nonveg:'Non-vegetarian',jain:'Jain',vegan:'Vegan'};
   const made=new Date(p.made+'T00:00');const days=p.days.map((d,i)=>{const dd=new Date(made);dd.setDate(dd.getDate()+i);
-    const meals=p.slotIdx.map((si,k)=>({slot:SLOTS[si][1],time:SLOTS[si][2],color:SLOTS[si][4],text:fix(d[k].t,p),sub:d[k].p||'',tip:d[k].n||'',kcal:mealKcal(p,d[k],si)}));
+    const meals=p.slotIdx.map((si,k)=>({slot:SLOTS[si][1],time:SLOTS[si][2],color:SLOTS[si][4],...pdfMeal(d[k],p),tip:PT(d[k].n||''),kcal:mealKcal(p,d[k],si)}));
     return{title:'Day '+(i+1),date:DNLE[dd.getDay()]+' · '+dd.getDate()+' '+MONE[dd.getMonth()],summary:`${p.kcal.toLocaleString('en-IN')} kcal · ${p.protein} g protein · ${meals.length} meals`,meals}});
   const tips=p.cs.map(c=>TIPS[c]).filter(Boolean).map(x=>({title:x[0],subtitle:x[1],color:x[2],do:x[3],avoid:x[4]}));
   if(p.other)tips.push({title:p.other,subtitle:'Share your reports with our dietitian — we’ll adjust your plan for this.',color:C.lav,do:['Book a consultation in the app so a dietitian can plan around it'],avoid:[]});
   if(!tips.length)tips.push({title:'Everyday habits',subtitle:'Small choices, better habits.',color:C.g,do:['Eat every 3–4 hours','Half plate vegetables at lunch and dinner','30 minutes of movement daily','Sleep 7–8 hours'],avoid:['Sugary drinks and fried snacks','Late-night eating']});
   const dt=p.dt||null,dtBy=dt?(dt.by||'your dietitian'):'';
-  return{name:(S.name+' '+S.last).trim(),subtitle:dt?(dt.title||('Personal plan from '+dtBy)):p.tpl?('Plan for '+p.tpl.label):GOALTXT[p.goal],dtBy,created:'Made '+made.getDate()+' '+MONE[made.getMonth()]+' '+made.getFullYear(),
+  return{name:(S.name+' '+S.last).trim(),subtitle:dt?(PT(dt.title)||('Personal plan from '+dtBy)):p.tpl?('Plan for '+p.tpl.label):GOALTXT[p.goal],dtBy,created:'Made '+made.getDate()+' '+MONE[made.getMonth()]+' '+made.getFullYear(),
     stats:{kcal:p.kcal.toLocaleString('en-IN'),protein:p.protein,carbs:p.carbs,fat:p.fat,water:p.water,glasses:glassGoal(),bmi:b,bmiLabel:bmiLabel(b)},
     profile:[['Age',p.age+' years'],['Height',`${fmtIn(S.inch)} (${p.cm} cm)`],['Weight',S.kg+' kg'],['Activity',(ACT.find(a=>a[0]===S.activity)||ACT[0])[1]],['Food',PREFN[S.pref]||'Vegetarian'],['Avoiding',al]],
-    tpl:dt?null:p.tpl,notes:p.notes||[],dtNote:dt?(dt.note||''):'',days,tips,warn:p.cs.includes('oncology')?'Medical supervision needed. Cancer care nutrition must be guided by your oncologist. Our dietitian can personalise this plan for you.':'',
+    tpl:dt?null:p.tpl,notes:(p.notes||[]).map(PT),dtNote:dt?String(dt.note||'').split('\n').map(PT).join('\n'):'',days,tips,warn:p.cs.includes('oncology')?'Medical supervision needed. Cancer care nutrition must be guided by your oncologist. Our dietitian can personalise this plan for you.':'',
     dietitian:(R.dietitians[0]||{}).name||'our dietitian',disclaimer:dt?('Prepared for you by '+dtBy+', your Health365 dietitian, based on your consultation. If your health, medicines or routine change, please tell your dietitian before continuing.'):(p.tpl?'Prepared by the Health365 team as general guidance — not a medically prescribed diet.':p.gen?'Built by the Health365 plan engine from everyday Indian meals — general guidance, not reviewed by a dietitian.':'Generated from general nutrition guidelines — not reviewed by a dietitian.')+' If you have a diagnosed condition, are pregnant or take medication, please speak to your doctor before changing your diet.',
     logoSvg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 378.55 74.13"><g fill="FILL_WORD">${LOGO_L}</g><g fill="FILL_LEAF">${LOGO_LEAF}</g></svg>`}}
 function pdfName(){return 'Health365-Diet-Plan-'+((S.name||'My').replace(/[^A-Za-z0-9]+/g,'-'))+'.pdf'}

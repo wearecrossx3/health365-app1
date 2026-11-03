@@ -410,6 +410,45 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     doc.addFileToVFS('Inter-600.ttf', F.inter600); doc.addFont('Inter-600.ttf', 'Inter', 'bold');
     doc.addFileToVFS('Fredoka-600.ttf', F.fredoka600); doc.addFont('Fredoka-600.ttf', 'Fredoka', 'normal');
     doc.addFileToVFS('Fredoka-700.ttf', F.fredoka700); doc.addFont('Fredoka-700.ttf', 'Fredoka', 'bold');
+
+    // Gujarati, Hindi and other Indian scripts: the embedded fonts only have
+    // Latin letters and jsPDF can't join Indic letters, so those lines are
+    // drawn by the phone's own text engine onto a canvas and placed as images.
+    var IND = /[؀-ۿऀ-෿]/, CUR = { f: 'Inter', s: 'normal', z: 10 };
+    var mcv = document.createElement('canvas').getContext('2d');
+    function cssFont(z) { var w = CUR.s === 'bold' ? (CUR.f === 'Fredoka' ? 700 : 600) : 400; return w + ' ' + z + 'px "Noto Sans Gujarati","Noto Sans Devanagari","Noto Sans",sans-serif'; }
+    function mw(s) { mcv.font = cssFont(CUR.z); return mcv.measureText(String(s)).width; }
+    var _split = doc.splitTextToSize.bind(doc), _width = doc.getTextWidth.bind(doc), _text = doc.text.bind(doc);
+    doc.splitTextToSize = function (t, w, o) {
+      t = String(t == null ? '' : t); if (!IND.test(t)) return _split(t, w, o);
+      var out = [];
+      t.split('\n').forEach(function (para) {
+        var line = '';
+        para.split(/\s+/).forEach(function (word) {
+          if (!word) return;
+          var tryL = line ? line + ' ' + word : word;
+          if (line && mw(tryL) > w) { out.push(line); line = word; } else line = tryL;
+        });
+        out.push(line);
+      });
+      return out;
+    };
+    doc.getTextWidth = function (s) { return IND.test(String(s)) ? mw(s) : _width(s); };
+    function img(s, x, y, al) {
+      var z = CUR.z, S = 4, wd = mw(s), cv = document.createElement('canvas');
+      cv.width = Math.ceil((wd + 4) * S); cv.height = Math.ceil(z * 1.7 * S);
+      var c = cv.getContext('2d'); c.scale(S, S); c.font = cssFont(z); c.fillStyle = doc.getTextColor(); c.textBaseline = 'alphabetic';
+      c.fillText(s, 2, z * 1.25);
+      var x0 = al === 'right' ? x - wd : al === 'center' ? x - wd / 2 : x;
+      doc.addImage(cv.toDataURL('image/png'), 'PNG', x0 - 2, y - z * 1.25, cv.width / S, cv.height / S);
+    }
+    doc.text = function (t, x, y, o) {
+      var lines = Array.isArray(t) ? t : [String(t == null ? '' : t)];
+      if (!lines.some(function (l) { return IND.test(String(l)); })) return _text(t, x, y, o);
+      var lh = CUR.z * doc.getLineHeightFactor(), al = o && o.align;
+      lines.forEach(function (l, i) { l = String(l); if (IND.test(l)) img(l, x, y + i * lh, al); else _text(l, x, y + i * lh, o); });
+      return doc;
+    };
     doc.setProperties({ title: '7-Day Diet Plan — ' + D.name, author: 'Health365', creator: 'Health365 app' });
 
     var logoCream = await logoPng(D.logoSvg.replace(/FILL_WORD/g, C.cream).replace(/FILL_LEAF/g, C.cream));
@@ -418,7 +457,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     function fill(c) { var a = hex(c); doc.setFillColor(a[0], a[1], a[2]); }
     function stroke(c) { var a = hex(c); doc.setDrawColor(a[0], a[1], a[2]); }
     function color(c) { var a = hex(c); doc.setTextColor(a[0], a[1], a[2]); }
-    function font(f, s, sz) { doc.setFont(f, s); doc.setFontSize(sz); }
+    function font(f, s, sz) { doc.setFont(f, s); doc.setFontSize(sz); CUR.f = f; CUR.s = s; CUR.z = sz; }
     function box(x, y, w, h, r, c) { fill(c); doc.roundedRect(x, y, w, h, r, r, 'F'); }
     function alpha(o) { doc.setGState(new doc.GState({ opacity: o })); }
     function wrap(t, w) { return doc.splitTextToSize(String(t || ''), w); }
