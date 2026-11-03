@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     try {
       for (let s = 0; s < strings.length; s += 250) {
         const chunk = strings.slice(s, s + 250);
-        const prompt = `You translate an Indian diet plan for a client into ${PLAN_LANGS[lang]}.
+        const prompt = `The plan may be written in English, Gujarati, Hindi or another Indian language. Translate an Indian diet plan for a client into ${PLAN_LANGS[lang]}.
 Rules:
 - Translate each string in the JSON array. Return ONLY JSON: {"t": [ ... ]} with exactly ${chunk.length} strings in the same order.
 - Write food and dish names the way people in that language actually say them at home (e.g. Roti → the local word for roti; Dal, Chaas, Poha in local script).

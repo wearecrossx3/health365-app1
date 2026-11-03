@@ -4,8 +4,8 @@ const GT = "https://translate.googleapis.com/translate_a/single";
 
 type Gt = [Array<[string | null, string | null, unknown?, string?]>, ...unknown[]];
 
-async function call(text: string, tl: string, roman: boolean, signal: AbortSignal): Promise<string> {
-  const qs = `client=gtx&sl=en&tl=${encodeURIComponent(tl)}&dt=t${roman ? "&dt=rm" : ""}&ie=UTF-8&oe=UTF-8`;
+async function call(text: string, tl: string, roman: boolean, signal: AbortSignal, sl = "auto"): Promise<string> {
+  const qs = `client=gtx&sl=${encodeURIComponent(sl)}&tl=${encodeURIComponent(tl)}&dt=t${roman ? "&dt=rm" : ""}&ie=UTF-8&oe=UTF-8`;
   const r = await fetch(`${GT}?${qs}`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "User-Agent": "Mozilla/5.0" },
@@ -23,8 +23,29 @@ async function call(text: string, tl: string, roman: boolean, signal: AbortSigna
   return segs.map((s) => (s && typeof s[0] === "string" ? s[0] : "")).join("");
 }
 
+// Source language from the script: Google's "auto" looks at a whole batch,
+// so a Gujarati line inside mostly-English lines gets read as English.
+const SCRIPTS: [RegExp, string][] = [
+  [/[\u0A80-\u0AFF]/, "gu"], [/[\u0A00-\u0A7F]/, "pa"], [/[\u0980-\u09FF]/, "bn"], [/[\u0B80-\u0BFF]/, "ta"],
+  [/[\u0C00-\u0C7F]/, "te"], [/[\u0C80-\u0CFF]/, "kn"], [/[\u0D00-\u0D7F]/, "ml"], [/[\u0600-\u06FF]/, "ur"],
+  [/[\u0900-\u097F]/, "auto"], // Hindi or Marathi
+];
+const scriptOf = (s: string) => (SCRIPTS.find(([re]) => re.test(s))?.[1]) || "en";
+
 // Translate many short strings; keeps the order and the count.
-export async function freeTranslate(strings: string[], tl: string, opts: { roman?: boolean } = {}): Promise<string[]> {
+export async function freeTranslate(strings: string[], tl: string, opts: { roman?: boolean; sl?: string } = {}): Promise<string[]> {
+  if (!opts.sl) {
+    const groups = new Map<string, number[]>();
+    strings.forEach((s, i) => { const k = scriptOf(s); groups.set(k, [...(groups.get(k) || []), i]); });
+    const out: string[] = new Array(strings.length);
+    for (const [sl, idx] of groups) {
+      if (sl === tl && !opts.roman) { idx.forEach((i) => (out[i] = strings[i])); continue; }
+      const res = await freeTranslate(idx.map((i) => strings[i]), tl, { ...opts, sl });
+      idx.forEach((i, k) => (out[i] = res[k]));
+    }
+    return out;
+  }
+  const sl = opts.sl;
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 45000);
   try {
@@ -41,12 +62,12 @@ export async function freeTranslate(strings: string[], tl: string, opts: { roman
     for (const b of batches) {
       const src = b.map((i) => strings[i].replace(/\n+/g, " ")).join("\n");
       let parts: string[] = [];
-      try { parts = (await call(src, tl, !!opts.roman, ctl.signal)).split("\n"); } catch { parts = []; }
+      try { parts = (await call(src, tl, !!opts.roman, ctl.signal, sl)).split("\n"); } catch { parts = []; }
       if (parts.length === b.length) { b.forEach((i, k) => (out[i] = parts[k].trim() || strings[i])); continue; }
       // lines got merged — translate one by one (a few at a time)
       for (let k = 0; k < b.length; k += 6) {
         const grp = b.slice(k, k + 6);
-        const res = await Promise.all(grp.map((i) => call(strings[i], tl, !!opts.roman, ctl.signal).catch(() => strings[i])));
+        const res = await Promise.all(grp.map((i) => call(strings[i], tl, !!opts.roman, ctl.signal, sl).catch(() => strings[i])));
         grp.forEach((i, j) => (out[i] = (res[j] || strings[i]).trim()));
       }
     }
