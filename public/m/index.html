@@ -1578,7 +1578,8 @@ async function finishOnboarding(){
     if(!ok){busyOv(false);reset('home');setTimeout(lockSheet,350);return}
     busyOv(true,'Building your new plan…');const p=await makePlanSmart(7);busyOv(false);
     S.plan=p;day=null;save();stack.length=0;stack.push('home');go('plan');toast(S.token?'New plan ready & synced':'New plan ready');setTimeout(()=>celebrate(false),300);return}
-  PENDING_PLAN=(async()=>{const ok=await claim7();const p=await makePlanSmart(ok?7:1);if(!ok)p.len=1;return p})();
+  // A health condition needs a dietitian: the free plan stays locked, so don't use up the free 7-day plan.
+  PENDING_PLAN=(async()=>{if((S.conds||[]).length){const p=await makePlanSmart(1);p.len=1;return p}const ok=await claim7();const p=await makePlanSmart(ok?7:1);if(!ok)p.len=1;return p})();
   reset('build');
 }
 function runBuild(){
@@ -1586,7 +1587,7 @@ function runBuild(){
   $('#bsteps').innerHTML=HOW.map(h=>`<div class="bstep">${shp(h[2],h[3])}<div><b>${h[0]}</b><span>${h[1]}</span></div><span class="ok">${I.check}</span></div>`).join('');
   const st=$$('.bstep');st.forEach((s,i)=>{setTimeout(()=>s.classList.add('on'),250+i*650);setTimeout(()=>{s.classList.add('done');FX.step(i)},700+i*650)});
   setTimeout(async()=>{let p=null;try{p=await PENDING_PLAN}catch(e){}S.plan=p||S.plan||makePlan();day=null;save();reset('ready');
-    if(S.plan.len===1)setTimeout(()=>toast('Your free 7-day plan was already used — here’s today’s free plan'),900)},250+HOW.length*650+500);
+    if(S.plan.len===1&&!needsDt())setTimeout(()=>toast('Your free 7-day plan was already used — here’s today’s free plan'),900)},250+HOW.length*650+500);
 }
 
 /* ================= DIET ENGINE =================

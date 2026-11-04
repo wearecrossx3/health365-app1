@@ -26,7 +26,10 @@ async function journey(user: User, appointments: Appointment[]) {
   const app = st.state ? {
     onboarded: !!S.onboarded, goal: String(S.goal || ""), conds: arr(S.conds), otherCond: String(S.otherCond || ""),
     pref: String(S.pref || ""), kg: Number(S.kg) || 0, allergies: arr(S.allergies).length ? arr(S.allergies) : (S.allergies ? [String(S.allergies)] : []),
-    activity: String(S.activity || ""), planTitle: plan ? String(plan.dt?.title || plan.title || "Plan") : "",
+    activity: String(S.activity || ""),
+    // With a health condition the app keeps the free plan locked (only a dietitian's plan shows), so don't report it as "has a plan".
+    planTitle: plan ? (plan.dt ? String(plan.dt.title || "Plan from your dietitian") : arr(S.conds).length ? "" : String(plan.title || "Plan")) : "",
+    planLocked: !!plan && !plan.dt && arr(S.conds).length > 0,
     lastActive: days[days.length - 1] || "", savedAt: st.updatedAt || 0,
   } : null;
   const bookings = await Promise.all([...appointments].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map(async (a) => {

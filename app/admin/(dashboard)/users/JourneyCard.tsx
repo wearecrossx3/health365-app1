@@ -6,7 +6,7 @@ import { useState } from "react";
 
 export interface Journey {
   joinedVia: string;
-  app: { onboarded: boolean; goal: string; conds: string[]; otherCond: string; pref: string; kg: number; allergies: string[]; activity: string; planTitle: string; lastActive: string; savedAt: number } | null;
+  app: { onboarded: boolean; goal: string; conds: string[]; otherCond: string; pref: string; kg: number; allergies: string[]; activity: string; planTitle: string; planLocked?: boolean; lastActive: string; savedAt: number } | null;
   bookings: {
     id: string; dietitianName: string; date: string; time: string; status: string; createdAt: string;
     payment: { amount: number; status: string; checkedBy: string; checkedAt: string } | null;
@@ -78,8 +78,9 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
         </>}
       </Step>
 
-      <Step ok={a?.planTitle ? "yes" : "no"} icon="🥗" title={a?.planTitle ? "Has a diet plan in the app" : "No diet plan in the app yet"}>
+      <Step ok={a?.planTitle ? "yes" : a?.planLocked ? "wait" : "no"} icon="🥗" title={a?.planTitle ? "Has a diet plan in the app" : a?.planLocked ? "No free plan: has a health condition, needs a dietitian" : "No diet plan in the app yet"}>
         {a?.planTitle && <>Showing “{a.planTitle}”. </>}
+        {a?.planLocked && <>The app shows “Your plan needs a dietitian” and a Book a consultation button instead of a plan. The plan opens only when a dietitian sends one. </>}
         {a?.lastActive ? <>Last logged food/progress on {day(a.lastActive)}.</> : a ? "Hasn't logged any food or progress yet." : "The app hasn't saved anything for this account yet."}
       </Step>
 
