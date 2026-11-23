@@ -3,7 +3,7 @@ import { getSiteContent, listApprovedDietitians, listAllDietTemplates, listPubli
 import { DIET_TEMPLATE_OPTIONS } from "@/lib/dietConditions";
 import { appJson, appPreflight } from "@/lib/appApi";
 import { listLiveOffers } from "@/lib/offers";
-import { getNudges, DEFAULT_NUDGES } from "@/lib/nudges";
+import { getNudges, DEFAULT_NUDGES, inSeason } from "@/lib/nudges";
 import { listPublishedPosts } from "@/lib/blog";
 import { getFoodOverrides } from "@/lib/foods";
 import { googleEnabled } from "@/lib/googleAuth";
@@ -115,7 +115,7 @@ export async function GET() {
         priceLabel: c.planPriceLabel,
       },
       offers,
-      nudges: { ...nudges, nudges: nudges.nudges.filter((n) => n.enabled) },
+      nudges: { ...nudges, nudges: nudges.nudges.filter((n) => n.enabled && inSeason(n)) },
       blog: posts.filter((p) => p.showInApp).slice(0, 10).map((p) => ({ slug: p.slug, title: p.title, excerpt: p.excerpt, tag: p.tag, coverUrl: p.coverUrl, color: p.color, emoji: p.emoji, readMins: p.readMins, featured: p.featured })),
       foodsVersion: `${(foodDb as { version: string }).version}-${foodOv?.updatedAt || "0"}`,
       app: {

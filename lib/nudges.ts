@@ -79,6 +79,29 @@ export async function getNudges(): Promise<NudgeSettings> {
   return { ...DEFAULT_NUDGES, ...s, nudges: Array.isArray(s.nudges) ? s.nudges : DEFAULT_NUDGES.nudges };
 }
 
+// Seasonal messages go out only in their season, so a Garba or Diwali line
+// never pops up in December. Matched by words in the title or message; works
+// for the messages already saved in Admin too. [from month-day, to month-day] (IST)
+const SEASONS: [RegExp, [number, number], [number, number]][] = [
+  [/garba|navratri|navaratri|dandiya|nav ?ratri/i, [9, 15], [10, 31]],
+  [/diwali|deepavali|festival|🪔|dhanteras|bhai ?dooj|rakhi|raksha|holi|uttarayan|kite|patang|eid|christmas|new year/i, [10, 1], [11, 15]],
+  [/monsoon|barish|baarish|\brain(y|s)?\b|mausam|🌧|☔/i, [6, 15], [9, 30]],
+  [/winter|thandi|🧣|cold mornings/i, [11, 1], [2, 28]],
+  [/summer|heatwave|\bAC\b|mango season|aam ras/, [3, 15], [6, 30]],
+  [/wedding|shaadi|lagna/i, [11, 1], [2, 28]],
+];
+export function inSeason(nudge: Pick<Nudge, "title" | "body">, now = new Date()): boolean {
+  const ist = new Date(now.getTime() + 5.5 * 36e5);
+  const md = (ist.getUTCMonth() + 1) * 100 + ist.getUTCDate();
+  const text = `${nudge.title} ${nudge.body}`;
+  for (const [re, [fm, fd], [tm, td]] of SEASONS) {
+    if (!re.test(text)) continue;
+    const from = fm * 100 + fd, to = tm * 100 + td;
+    return from <= to ? md >= from && md <= to : md >= from || md <= to; // winter wraps the new year
+  }
+  return true;
+}
+
 export async function saveNudges(s: NudgeSettings): Promise<void> {
   await setJSON(KEY, s);
 }
