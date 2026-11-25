@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { adminFromRequest, denied } from "@/lib/adminGuard";
-import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON, deleteUserAccount, setUserPhone } from "@/lib/kv";
+import { listAllUsers, getUserById, getConsultationsForUser, getAppointmentsForUser, getJSON, deleteUserAccount, setUserPhone, createAppointment, saveAppointment, listApprovedDietitians, getSiteContent } from "@/lib/kv";
 import { getAdminEmails } from "@/lib/email";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getEntitlement, saveEntitlement, listUserPlans, saveUserPlans, AssignedPlan, sevenDayAccess } from "@/lib/plans";
 import { listBackups, restoreBackup, weightLog } from "@/lib/appBackup";
 import type { PlanDay, PlanMeal } from "@/lib/planGenerator";
 import { suggestFromConsultation } from "@/lib/planSuggest";
-import { getMeta, listMessages, chatOpen, isPaid, planAllowed } from "@/lib/consultChat";
+import { getMeta, listMessages, chatOpen, isPaid, planAllowed, addMessage } from "@/lib/consultChat";
 import { getRating, wasAsked } from "@/lib/ratings";
 import { sentTo, logSent } from "@/lib/sentLog";
 import { purgeBooking } from "@/lib/purgeBooking";
@@ -49,7 +49,10 @@ async function journey(user: User, appointments: Appointment[]) {
   }));
   const ph = user.phone || (await bestPhone(user)).phone;
   const sent = (await sentTo(user.email, ph).catch(() => [])).slice(0, 25);
-  return { joinedVia: user.google ? "Google" : "email & password", app, bookings, sent };
+  // Dietitians the owner can pick when recording a payment made outside the app.
+  const [site, approved] = await Promise.all([getSiteContent().catch(() => null), listApprovedDietitians().catch(() => [])]);
+  const dietitians = [{ id: "dr-astha", name: site?.asthaName || "Dt. Astha Jadeja" }, ...approved.map((d) => ({ id: d.id, name: d.name }))];
+  return { joinedVia: user.google ? "Google" : "email & password", app, bookings, sent, dietitians };
 }
 
 export const dynamic = "force-dynamic";
@@ -140,6 +143,42 @@ export async function POST(req: NextRequest) {
     const ph = user.phone || (await bestPhone(user)).phone;
     if (ph) await logSent(ph, { via: "whatsapp", what: `${txt(b.what, 60) || "Message"} (opened by ${by})`, ok: true });
     return NextResponse.json({ ok: true });
+  }
+
+  // Paid outside the app (cash, another UPI, bank): the owner records it.
+  // With a booking → that booking is marked paid. Without one → a paid booking
+  // is made with the chosen dietitian, so the chat opens and a custom plan can be sent.
+  if (b.action === "recordPayment") {
+    if (!(await adminFromRequest(req, "dashboard"))) return denied();
+    const amount = Math.max(0, Math.round(Number(b.amount) || 0));
+    const how = txt(b.how, 40) || "Cash";
+    const note = txt(b.note, 120);
+    const mine = await getAppointmentsForUser(user.id).catch(() => []);
+    const now = new Date().toISOString();
+    const payment = { amount, utr: `${how.toUpperCase()}${note ? ` · ${note}` : ""}`.slice(0, 60), status: "verified" as const, checkedAt: now, checkedBy: by };
+    let appt = b.apptId ? mine.find((a) => a.id === txt(b.apptId, 80)) : undefined;
+    if (b.apptId && !appt) return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+    if (appt) {
+      appt.payment = payment;
+      appt.status = "booked";
+      await saveAppointment(appt);
+    } else {
+      const dtId = txt(b.dietitianId, 80);
+      const site = await getSiteContent().catch(() => null);
+      const dts = [{ id: "dr-astha", name: site?.asthaName || "Dt. Astha Jadeja" }, ...(await listApprovedDietitians().catch(() => [])).map((d) => ({ id: d.id, name: d.name }))];
+      const dt = dts.find((d) => d.id === dtId);
+      if (!dt) return NextResponse.json({ error: "Pick a dietitian." }, { status: 400 });
+      const ist = new Date(Date.now() + 5.5 * 36e5);
+      const h = ist.getUTCHours(), m = ist.getUTCMinutes();
+      appt = {
+        id: crypto.randomUUID(), userId: user.id, userName: user.name, dietitianId: dt.id, dietitianName: dt.name,
+        date: ist.toISOString().slice(0, 10), time: `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`,
+        status: "booked", createdAt: now, payment,
+      };
+      await createAppointment(appt);
+    }
+    await addMessage(appt.id, "team", `✅ Payment${amount ? ` of ₹${amount}` : ""} received. Your consultation with ${appt.dietitianName} is confirmed and the chat is now open.`).catch(() => {});
+    return NextResponse.json({ ok: true, apptId: appt.id });
   }
 
   if (b.action === "deleteBooking") {

@@ -15,6 +15,7 @@ export interface Journey {
     rating: { stars: number; comment: string } | null; ratingAsked: boolean;
   }[];
   sent: { at: number; via: string; what: string; ok: boolean; err?: string }[];
+  dietitians?: { id: string; name: string }[];
 }
 
 const GOAL: Record<string, string> = { lose: "Lose weight", gain: "Gain weight", maintain: "Maintain", condition: "Manage a condition" };
@@ -57,6 +58,43 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
     if (!r.ok) { alert("Couldn't save — please try again."); return; }
     onChanged();
   }
+  // Paid outside the app (cash, another UPI, bank transfer).
+  const [payOpen, setPayOpen] = useState(false);
+  const [payDt, setPayDt] = useState("");
+  const [payAmt, setPayAmt] = useState("");
+  const [payHow, setPayHow] = useState("Cash");
+  const [payNote, setPayNote] = useState("");
+  const [payMsg, setPayMsg] = useState("");
+  async function recordPayment(apptId?: string) {
+    if (!apptId && !payDt) { setPayMsg("Pick the dietitian."); return; }
+    const amount = Number(payAmt) || 0;
+    if (!confirm(`Record ${amount ? `₹${amount} ` : ""}${payHow} payment${apptId ? " for this booking" : ` and open a consultation with ${(j.dietitians || []).find((d) => d.id === payDt)?.name || "the dietitian"}`}?\n\nThe chat opens and the dietitian can send a custom diet plan.`)) return;
+    setBusy(apptId || "pay"); setPayMsg("");
+    const r = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, action: "recordPayment", apptId, dietitianId: payDt, amount, how: payHow, note: payNote }) });
+    const d = await r.json().catch(() => ({}));
+    setBusy("");
+    if (!r.ok) { setPayMsg(d.error || "Couldn't save — please try again."); return; }
+    setPayOpen(false); setPayAmt(""); setPayNote(""); setPayMsg("");
+    onChanged();
+  }
+  const payForm = (apptId?: string) => (
+    <div style={{ marginTop: 8, padding: 12, borderRadius: 12, background: "#F6F4EE", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", fontSize: ".85rem" }}>
+      {!apptId && (
+        <select value={payDt} onChange={(e) => setPayDt(e.target.value)} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid var(--line)" }}>
+          <option value="">Dietitian…</option>
+          {(j.dietitians || []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+      )}
+      <input value={payAmt} onChange={(e) => setPayAmt(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="Amount ₹" style={{ width: 100, padding: "8px 10px", borderRadius: 10, border: "1px solid var(--line)" }} />
+      <select value={payHow} onChange={(e) => setPayHow(e.target.value)} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid var(--line)" }}>
+        {["Cash", "Other UPI", "Bank transfer", "Card"].map((x) => <option key={x}>{x}</option>)}
+      </select>
+      <input value={payNote} onChange={(e) => setPayNote(e.target.value)} maxLength={80} placeholder="Note (optional), e.g. paid to Sagar's UPI" style={{ flex: "1 1 180px", padding: "8px 10px", borderRadius: 10, border: "1px solid var(--line)" }} />
+      <button disabled={!!busy} onClick={() => recordPayment(apptId)} className="pill pill-primary" style={{ padding: "8px 14px", fontSize: ".85rem" }}>{busy ? "Saving…" : "✓ Record payment"}</button>
+      {payMsg && <span style={{ color: "#B03A2E", width: "100%" }}>{payMsg}</span>}
+    </div>
+  );
+  const [payFor, setPayFor] = useState("");
   const latestForm = [...consultations].sort((x, y) => Date.parse(y.createdAt) - Date.parse(x.createdAt))[0];
   const conds = a?.conds.length ? a.conds.map((c) => COND[c] || c) : latestForm?.conditions || [];
   const paid = j.bookings.filter((b) => b.status === "booked" && b.paid !== false);
@@ -97,9 +135,10 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
             <Step ok={b.paid !== false ? "yes" : pay?.status === "rejected" ? "no" : "wait"} icon="💳" title={`Booked ${b.dietitianName} for ${b.date} ${b.time}${b.status !== "booked" ? ` (${b.status})` : ""}`}>
               {payTxt}{b.planOk === false && b.paid !== false ? " — chat is open, but custom plans stay locked until you mark it paid or free" : ""}. Booked on {day(b.createdAt)}.{" "}
               {b.planOk === false && b.status === "booked" && (<>
-                <button disabled={busy === b.id} onClick={() => mark(b.id, "markPaid")} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>✓ Mark as paid</button>
+                <button disabled={busy === b.id} onClick={() => setPayFor(payFor === b.id ? "" : b.id)} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>💵 Paid outside the app</button>
                 <button disabled={busy === b.id} onClick={() => mark(b.id, "markFree")} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem", marginRight: 10 }}>🎁 Give free</button>
               </>)}
+              {payFor === b.id && payForm(b.id)}
               <button disabled={busy === b.id} onClick={() => del(b.id, `${b.dietitianName}, ${b.date}`)} style={{ background: "none", border: "none", padding: 0, color: "#B03A2E", fontWeight: 700, cursor: "pointer", fontSize: ".82rem" }}>{busy === b.id ? "Deleting…" : "🗑 Delete booking"}</button>
             </Step>
             <Step ok={dtOk ? "yes" : b.open ? "wait" : "no"} icon="💬" title={dtOk ? `${b.dietitianName} replied${b.chat.firstDtAt ? ` — first on ${when(b.chat.firstDtAt)} (${gap(Date.parse(b.createdAt), b.chat.firstDtAt)})` : ""}` : b.open ? `${b.dietitianName} hasn't written yet` : "Chat not open"}>
@@ -119,6 +158,11 @@ export default function JourneyCard({ j, userId, onChanged, createdAt, consultat
           </div>
         );
       })}
+
+      <Step ok="wait" icon="💵" title="Paid you outside the app?">
+        Cash, another UPI or a bank transfer: record it here. A paid consultation opens with the dietitian you pick, the chat opens, and they can send a custom diet plan.{" "}
+        {!payOpen ? <button onClick={() => setPayOpen(true)} style={{ background: "none", border: "none", padding: 0, color: "#287379", fontWeight: 700, cursor: "pointer", fontSize: ".82rem" }}>+ Record a payment</button> : payForm()}
+      </Step>
 
       <Step ok={plans.length ? "yes" : paid.length ? "wait" : "no"} icon="📋" title={plans.length ? `${plans.length} plan${plans.length > 1 ? "s" : ""} sent by the team/dietitian` : paid.length ? "Paid, but no plan sent yet" : "No plan sent by a dietitian"}>
         {plans.slice(0, 3).map((p, i) => <span key={i}>“{p.title}” by {p.assignedBy} on {day(p.assignedAt)}<br /></span>)}
